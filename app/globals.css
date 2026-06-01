@@ -1,26 +1,67 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Main backgrounds */
+  --background: #fff;
+  --dashboard: #fff;
+  --card: #111827;
+  --card-secondary: #5D3E1D;
+
+  /* Text */
+  --foreground: #fff;
+  --muted-foreground: #94a3b8;
+  --secondary-foreground: #5D3E1D;
+
+  /* Brand */
+  --primary: #020617;
+  --primary-foreground: #fff;
+
+  /* Buttons / accents */
+  --secondary: #1e293b;
+  --secondary-foreground: #f8fafc;
+  --accent: #22c55e;
+  --accent-foreground: #020617;
+
+  /* Borders / inputs */
+  --border: #E5E5E5;
+  --input: #f8fafc;
+  --ring: #5D3E1D;
+
+  /* States */
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #22c55e;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-dashboard: var(--dashboard);
+  --color-card: var(--card);
+  --color-card-secondary: var(--card-secondary);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
