@@ -1,13 +1,569 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+
+  // For credentials login only.
+  hashedPassword String?
+
+  accounts Account[]
+  sessions Session[]
+
+  trips        Trip[]
+  chatMessages TripChatMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email])
+}
+
+model Account {
+  id     String @id @default(cuid())
+  userId String
+
+  type              String
+  provider          String
+  providerAccountId String
+
+  refresh_token String? @db.Text
+  access_token  String? @db.Text
+  expires_at    Int?
+  token_type    String?
+  scope         String?
+  id_token      String? @db.Text
+  session_state String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@unique([token])
+}
+
+model Place {
+  id String @id @default(cuid())
+
+  provider        PlaceProvider
+  providerPlaceId String?
+
+  name          String
+  formattedName String
+
+  city        String?
+  state       String?
+  country     String
+  countryCode String?
+
+  lat Float?
+  lng Float?
+
+  tripsFrom Trip[] @relation("TripFromPlace")
+  tripsTo   Trip[] @relation("TripToPlace")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([provider, providerPlaceId])
+  @@index([name])
+  @@index([city])
+  @@index([state])
+  @@index([country])
+  @@index([countryCode])
+}
+
+enum PlaceProvider {
+  GEOAPIFY
+  MAPBOX
+  GOOGLE
+  NOMINATIM
+  MANUAL
+}
+
+model Trip {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fromPlaceId String?
+  fromPlace   Place?  @relation("TripFromPlace", fields: [fromPlaceId], references: [id], onDelete: SetNull)
+
+  toPlaceId String?
+  toPlace   Place?  @relation("TripToPlace", fields: [toPlaceId], references: [id], onDelete: SetNull)
+
+  title   String
+  summary String? @db.Text
+
+  slug       String?
+  publicSlug String? @unique
+
+  daysCount   Int
+  peopleCount Int
+
+  budgetAmount Decimal? @db.Decimal(12, 2)
+  currency     String   @default("INR")
+
+  tripType            TripType            @default(OTHER)
+  travelPace          TravelPace          @default(BALANCED)
+  foodPreference      FoodPreference      @default(NO_PREFERENCE)
+  transportPreference TransportPreference @default(MIXED)
+
+  specialNotes String? @db.Text
+
+  visibility TripVisibility @default(PRIVATE)
+  status     TripStatus     @default(DRAFT)
+
+  isAiGenerated Boolean @default(false)
+
+  // Useful later for "Use as Template"
+  originalTripId String?
+
+  publishedAt DateTime?
+
+  days             TripDay[]
+  activities       TripActivity[]
+  transportOptions TransportOption[]
+  stayOptions      StayOption[]
+  mealSuggestions  MealSuggestion[]
+  costBreakdown    TripCostBreakdown?
+  chatMessages     TripChatMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([fromPlaceId])
+  @@index([toPlaceId])
+  @@index([visibility])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum TripVisibility {
+  PRIVATE
+  UNLISTED
+  PUBLIC
+}
+
+enum TripStatus {
+  DRAFT
+  GENERATED
+  EDITING
+  COMPLETED
+  ARCHIVED
+}
+
+enum TripType {
+  FAMILY
+  SOLO
+  COUPLE
+  FRIENDS
+  BUSINESS
+  ADVENTURE
+  RELIGIOUS
+  LUXURY
+  BUDGET
+  OTHER
+}
+
+enum TravelPace {
+  RELAXED
+  BALANCED
+  FAST
+}
+
+enum FoodPreference {
+  VEGETARIAN
+  VEGAN
+  NON_VEGETARIAN
+  JAIN
+  NO_PREFERENCE
+}
+
+enum TransportPreference {
+  FLIGHT
+  TRAIN
+  BUS
+  CAB
+  SELF_DRIVE
+  MIXED
+  NO_PREFERENCE
+}
+
+/**
+ * ---------------------------------
+ * TRIP DAY MODEL
+ * ----------------------------------
+ */
+
+model TripDay {
+  id String @id @default(cuid())
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  dayNumber   Int
+  title       String
+  description String? @db.Text
+
+  date DateTime?
+
+  estimatedCost Decimal? @db.Decimal(12, 2)
+  notes         String?  @db.Text
+
+  activities       TripActivity[]
+  transportOptions TransportOption[]
+  stayOptions      StayOption[]
+  mealSuggestions  MealSuggestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tripId, dayNumber])
+  @@index([tripId])
+  @@index([dayNumber])
+}
+
+/**
+ * ---------------------------------
+ * ACTIVITIES / PLACES MODEL
+ * ----------------------------------
+ */
+
+model TripActivity {
+  id String @id @default(cuid())
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  tripDayId String
+  tripDay   TripDay @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String? @db.Text
+
+  locationName String?
+  address      String?
+
+  startTime       String?
+  endTime         String?
+  durationMinutes Int?
+
+  category ActivityCategory @default(OTHER)
+
+  estimatedCost Decimal? @db.Decimal(12, 2)
+
+  source ItemSource @default(USER_ADDED)
+
+  notes    String? @db.Text
+  position Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([tripDayId])
+  @@index([category])
+  @@index([source])
+  @@index([position])
+}
+
+enum ActivityCategory {
+  SIGHTSEEING
+  ADVENTURE
+  FOOD
+  SHOPPING
+  RELAXATION
+  CULTURE
+  RELIGIOUS
+  NATURE
+  TRANSPORT_BREAK
+  HIDDEN_SPOT
+  OTHER
+}
+
+enum ItemSource {
+  AI_GENERATED
+  USER_ADDED
+  AI_EDITED
+  CLONED
+}
+
+/**
+ * ---------------------------------
+ * TRANSPORT OPTIONS MODEL
+ * ----------------------------------
+ */
+
+model TransportOption {
+  id String @id @default(cuid())
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  tripDayId String?
+  tripDay   TripDay? @relation(fields: [tripDayId], references: [id], onDelete: SetNull)
+
+  title String
+  mode  TransportMode @default(OTHER)
+
+  fromText String?
+  toText   String?
+
+  description String? @db.Text
+
+  costType       CostType @default(TOTAL)
+  pricePerPerson Decimal? @db.Decimal(12, 2)
+  totalCost      Decimal? @db.Decimal(12, 2)
+
+  isSelected Boolean @default(false)
+
+  source ItemSource @default(USER_ADDED)
+  notes  String?    @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([tripDayId])
+  @@index([mode])
+  @@index([isSelected])
+}
+
+enum TransportMode {
+  FLIGHT
+  TRAIN
+  BUS
+  CAB
+  SELF_DRIVE
+  WALK
+  BIKE
+  FERRY
+  METRO
+  MIXED
+  OTHER
+}
+
+enum CostType {
+  PER_PERSON
+  TOTAL
+}
+
+/**
+ * ---------------------------------
+ * STAY / HOTEL OPTIONS MODEL
+ * ----------------------------------
+ */
+
+model StayOption {
+  id String @id @default(cuid())
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  tripDayId String?
+  tripDay   TripDay? @relation(fields: [tripDayId], references: [id], onDelete: SetNull)
+
+  name String
+  city String?
+  area String?
+
+  stayType    StayType    @default(OTHER)
+  budgetLevel BudgetLevel @default(MID_RANGE)
+
+  pricePerNight Decimal? @db.Decimal(12, 2)
+  nights        Int?
+  totalCost     Decimal? @db.Decimal(12, 2)
+
+  isSelected Boolean @default(false)
+
+  bestFor String?
+  source  ItemSource @default(USER_ADDED)
+  notes   String?    @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([tripDayId])
+  @@index([city])
+  @@index([stayType])
+  @@index([budgetLevel])
+  @@index([isSelected])
+}
+
+enum StayType {
+  HOTEL
+  RESORT
+  HOMESTAY
+  HOUSEBOAT
+  HOSTEL
+  VILLA
+  CAMP
+  GUEST_HOUSE
+  OTHER
+}
+
+enum BudgetLevel {
+  BUDGET
+  MID_RANGE
+  PREMIUM
+  LUXURY
+}
+
+/**
+ * ---------------------------------
+ * MEAL SUGGESTIONS MODEL
+ * ----------------------------------
+ */
+
+model MealSuggestion {
+  id String @id @default(cuid())
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  tripDayId String
+  tripDay   TripDay @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+
+  mealType MealType
+
+  title        String
+  locationName String?
+
+  estimatedCost Decimal? @db.Decimal(12, 2)
+
+  source ItemSource @default(USER_ADDED)
+  notes  String?    @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tripId])
+  @@index([tripDayId])
+  @@index([mealType])
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+  OTHER
+}
+
+/**
+ * ---------------------------------
+ * COST BREAKDOWN MODEL
+ * ----------------------------------
+ */
+
+model TripCostBreakdown {
+  id String @id @default(cuid())
+
+  tripId String @unique
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  transportCost Decimal @default(0) @db.Decimal(12, 2)
+  stayCost      Decimal @default(0) @db.Decimal(12, 2)
+  foodCost      Decimal @default(0) @db.Decimal(12, 2)
+  activityCost  Decimal @default(0) @db.Decimal(12, 2)
+  miscCost      Decimal @default(0) @db.Decimal(12, 2)
+
+  totalEstimatedCost Decimal  @default(0) @db.Decimal(12, 2)
+  userBudget         Decimal? @db.Decimal(12, 2)
+
+  budgetStatus BudgetStatus @default(UNKNOWN)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([budgetStatus])
+}
+
+enum BudgetStatus {
+  UNDER_BUDGET
+  SLIGHTLY_OVER
+  OVER_BUDGET
+  BUDGET_FRIENDLY
+  UNKNOWN
+}
+
+/**
+ * ---------------------------------
+ * AI CHAT MESSAGE MODEL
+ * ----------------------------------
+ */
+
+model TripChatMessage {
+  id String @id @default(cuid())
+
+  tripId String
+  trip   Trip   @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  role ChatRole
+
+  content String @db.Text
+
+  // AI can return preview/proposal JSON here.
+  proposedChangesJson Json?
+
+  changeSummary String?  @db.Text
+  costImpact    Decimal? @db.Decimal(12, 2)
+
+  status AiProposalStatus @default(NONE)
+
+  createdAt DateTime @default(now())
+
+  @@index([tripId])
+  @@index([userId])
+  @@index([role])
+  @@index([status])
+  @@index([createdAt])
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+  SYSTEM
+}
+
+enum AiProposalStatus {
+  NONE
+  PENDING
+  APPLIED
+  DISCARDED
 }

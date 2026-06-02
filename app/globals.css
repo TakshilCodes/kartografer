@@ -2,35 +2,38 @@
 
 :root {
   /* Main backgrounds */
-  --background: #fff;
-  --dashboard: #fff;
-  --card: #111827;
-  --card-secondary: #5D3E1D;
+  --background: #ddd;
+  --dashboard: #F5EFE3;
+  --card: #FFFFFF;
+  --card-secondary: #F1E4D0;
+  --card-hover: #EFE0C8;
 
   /* Text */
-  --foreground: #fff;
-  --muted-foreground: #94a3b8;
-  --secondary-foreground: #5D3E1D;
+  --foreground: #1F1408;
+  --muted-foreground: #1F1101;
+  --secondary-foreground: #54371d;
 
   /* Brand */
-  --primary: #020617;
-  --primary-foreground: #fff;
+  --primary: #54371d;
+  --primary-foreground: #FFF8ED;
+  --primary-hover: #6B4727;
 
   /* Buttons / accents */
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --accent: #22c55e;
-  --accent-foreground: #020617;
+  --secondary: #EAD8BD;
+  --secondary-foreground: #54371d;
+  --secondary-hover: #DFC49D;
+  --accent: #1F1101;
+  --accent-foreground: #54371d;
 
   /* Borders / inputs */
-  --border: #E5E5E5;
-  --input: #f8fafc;
-  --ring: #5D3E1D;
+  --border: #E2D4BF;
+  --input: #FFFDF8;
+  --ring: #C0843E;
 
   /* States */
-  --danger: #ef4444;
-  --warning: #f59e0b;
-  --success: #22c55e;
+  --danger: #DC2626;
+  --warning: #D97706;
+  --success: #15803D;
 }
 
 @theme inline {
@@ -49,6 +52,10 @@
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
 
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary-hover: var(--secondary-hover);
+  --color-card-hover: var(--card-hover);
+
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
 
@@ -59,6 +66,14 @@
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-success: var(--success);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
