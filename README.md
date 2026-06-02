@@ -1,36 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kartografer
 
-## Getting Started
+**Kartografer** is an AI-powered travel planning web app that helps users generate, manage, edit, and explore personalized trip itineraries.
 
-First, run the development server:
+The goal of Kartografer is to make travel planning faster, smarter, and more flexible by combining AI-generated itineraries with an editable trip workspace.
+
+> This project is currently in active development.
+
+---
+
+## 🚧 Project Status
+
+Kartografer is currently in the **development stage**.
+
+Current focus:
+
+- Authentication system
+- Email OTP verification
+- User dashboard
+- Trip generation flow
+- Trip history
+- Editable itinerary workspace
+- Clean and scalable project architecture
+
+---
+
+## ✨ Planned Features
+
+- AI-generated travel itineraries
+- User authentication
+- Email OTP verification
+- Dashboard with sidebar navigation
+- Create new trip flow
+- Loading screen while generating trips
+- Trip history / saved trips
+- Full trip preview page
+- Editable itinerary workspace
+- Shareable trip plans
+- Public itinerary exploration
+- Use public itineraries as templates
+- Hotel and cost input system
+- Total trip cost calculation
+- Responsive UI for desktop and mobile
+
+---
+
+## 🛠️ Tech Stack
+
+This project is being built with:
+
+- **Next.js**
+- **TypeScript**
+- **Tailwind CSS**
+- **Prisma**
+- **PostgreSQL**
+- **Redis**
+- **Resend**
+- **AI API integration**
+
+More tools and services may be added as the project grows.
+
+---
+
+## 🧪 Development
+
+To run the project locally:
+
+```bash
+npm install
+```
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The app will run at:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```txt
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 📌 Current Development Notes
 
-To learn more about Next.js, take a look at the following resources:
+- Logo is not finalized yet.
+- Domain is registered: `kartografer.com`
+- UI design is still being improved.
+- Authentication flow is being built first.
+- AI trip generation will be added after the core user flow is stable.
+- The project is being developed step by step with a production-quality mindset.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🎯 Vision
 
-## Deploy on Vercel
+Kartografer aims to become a smart AI travel planner where users can generate complete travel plans, customize them easily, estimate costs, save trips, and reuse public itineraries.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The long-term goal is to build a useful, scalable, and professional travel planning platform.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 📄 License
+
+This project is currently in progress.
+
+License details will be added later.
