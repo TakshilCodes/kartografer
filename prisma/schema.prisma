@@ -13,7 +13,6 @@ model User {
   emailVerified DateTime?
   image         String?
 
-  // For credentials login only.
   hashedPassword String?
 
   accounts Account[]
@@ -145,7 +144,6 @@ model Trip {
 
   isAiGenerated Boolean @default(false)
 
-  // Useful later for "Use as Template"
   originalTripId String?
 
   publishedAt DateTime?
@@ -220,12 +218,6 @@ enum TransportPreference {
   NO_PREFERENCE
 }
 
-/**
- * ---------------------------------
- * TRIP DAY MODEL
- * ----------------------------------
- */
-
 model TripDay {
   id String @id @default(cuid())
 
@@ -253,12 +245,6 @@ model TripDay {
   @@index([tripId])
   @@index([dayNumber])
 }
-
-/**
- * ---------------------------------
- * ACTIVITIES / PLACES MODEL
- * ----------------------------------
- */
 
 model TripActivity {
   id String @id @default(cuid())
@@ -319,12 +305,6 @@ enum ItemSource {
   CLONED
 }
 
-/**
- * ---------------------------------
- * TRANSPORT OPTIONS MODEL
- * ----------------------------------
- */
-
 model TransportOption {
   id String @id @default(cuid())
 
@@ -378,12 +358,6 @@ enum CostType {
   PER_PERSON
   TOTAL
 }
-
-/**
- * ---------------------------------
- * STAY / HOTEL OPTIONS MODEL
- * ----------------------------------
- */
 
 model StayOption {
   id String @id @default(cuid())
@@ -441,12 +415,6 @@ enum BudgetLevel {
   LUXURY
 }
 
-/**
- * ---------------------------------
- * MEAL SUGGESTIONS MODEL
- * ----------------------------------
- */
-
 model MealSuggestion {
   id String @id @default(cuid())
 
@@ -482,12 +450,6 @@ enum MealType {
   OTHER
 }
 
-/**
- * ---------------------------------
- * COST BREAKDOWN MODEL
- * ----------------------------------
- */
-
 model TripCostBreakdown {
   id String @id @default(cuid())
 
@@ -519,12 +481,6 @@ enum BudgetStatus {
   UNKNOWN
 }
 
-/**
- * ---------------------------------
- * AI CHAT MESSAGE MODEL
- * ----------------------------------
- */
-
 model TripChatMessage {
   id String @id @default(cuid())
 
@@ -538,7 +494,6 @@ model TripChatMessage {
 
   content String @db.Text
 
-  // AI can return preview/proposal JSON here.
   proposedChangesJson Json?
 
   changeSummary String?  @db.Text

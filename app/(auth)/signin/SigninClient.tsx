@@ -13,6 +13,7 @@ import {
     Mail,
     ShieldCheck,
 } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function SigninClient() {
     const [email, setEmail] = useState("");
@@ -24,6 +25,11 @@ export default function SigninClient() {
     const [isCredentialsPending, startCredentialsTransition] = useTransition();
     const [isGooglePending, startGoogleTransition] = useTransition();
 
+    const router = useRouter();
+    const searchParams = useSearchParams();
+
+    const callbackUrl = searchParams.get("callbackUrl") || "/dashboard/new";
+
     function handleCredentialsSignIn(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         setError(null);
@@ -33,7 +39,7 @@ export default function SigninClient() {
                 email: email.toLowerCase().trim(),
                 password,
                 redirect: false,
-                callbackUrl: "/dashboard",
+                callbackUrl,
             });
 
             if (result?.error) {
@@ -41,7 +47,8 @@ export default function SigninClient() {
                 return;
             }
 
-            window.location.href = "/dashboard";
+            router.push(callbackUrl);
+            router.refresh();
         });
     }
 
@@ -50,7 +57,7 @@ export default function SigninClient() {
 
         startGoogleTransition(async () => {
             await signIn("google", {
-                callbackUrl: "/dashboard",
+                callbackUrl,
             });
         });
     }

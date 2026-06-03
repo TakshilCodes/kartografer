@@ -30,8 +30,7 @@ export default function LogoutButton({
       type="button"
       onClick={handleLogout}
       disabled={isLoading}
-      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-2.5 text-sm font-bold text-foreground shadow-sm transition hover:bg-card-hover disabled:pointer-events-none disabled:opacity-70 ${className}`}
-    >
+      className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-danger px-4 py-2.5 text-sm font-bold text-danger-foreground shadow-sm transition hover:bg-danger-hover disabled:pointer-events-none disabled:opacity-70 ${className}`}    >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (

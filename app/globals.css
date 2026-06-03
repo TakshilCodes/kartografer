@@ -31,9 +31,22 @@
   --ring: #C0843E;
 
   /* States */
-  --danger: #DC2626;
-  --warning: #D97706;
-  --success: #15803D;
+  --danger: #4A2A16;
+  --danger-hover: #5A341C;
+  --danger-foreground: #FFF8ED;
+
+  --warning: #8A5A1F;
+  --warning-hover: #9A6728;
+  --warning-foreground: #FFF8ED;
+
+  --success: #4B5A24;
+  --success-hover: #5D6B2E;
+  --success-foreground: #FFF8ED;
+
+
+  --selected: #D8B98C;
+  --selected-hover: #CFAE7E;
+  --selected-foreground: #2B1A0A;
 }
 
 @theme inline {
@@ -64,8 +77,20 @@
   --color-ring: var(--ring);
 
   --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
+  --color-danger-foreground: var(--danger-foreground);
+
   --color-warning: var(--warning);
+  --color-warning-hover: var(--warning-hover);
+  --color-warning-foreground: var(--warning-foreground);
+
   --color-success: var(--success);
+  --color-success-hover: var(--success-hover);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-selected: var(--selected);
+  --color-selected-hover: var(--selected-hover);
+  --color-selected-foreground: var(--selected-foreground);
 }
 
 * {
