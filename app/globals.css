@@ -2,8 +2,8 @@
 
 :root {
   /* Main backgrounds */
-  --background: #ddd;
-  --dashboard: #F5EFE3;
+  --background: #ffffff;
+  --dashboard: #ffffff;
   --card: #FFFFFF;
   --card-secondary: #F1E4D0;
   --card-hover: #EFE0C8;
@@ -42,7 +42,6 @@
   --success: #4B5A24;
   --success-hover: #5D6B2E;
   --success-foreground: #FFF8ED;
-
 
   --selected: #D8B98C;
   --selected-hover: #CFAE7E;
@@ -119,6 +118,7 @@ body {
 }
 
 @keyframes soft-glow {
+
   0%,
   100% {
     opacity: 0.45;
@@ -131,12 +131,45 @@ body {
   }
 }
 
+@keyframes slide-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slide-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.98);
+  }
+}
+
 .animate-fade-up {
   animation: fade-up 0.55s ease both;
 }
 
 .animate-soft-glow {
   animation: soft-glow 5s ease-in-out infinite;
+}
+
+
+.animate-slide-fade-in {
+  animation: slide-fade-in 0.25s ease-out both;
+}
+
+.animate-slide-fade-out {
+  animation: slide-fade-out 0.25s ease-in both;
 }
 
 .custom-scrollbar {

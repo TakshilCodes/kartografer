@@ -17,6 +17,67 @@ import MobilePanelDrawer from "@/components/trips/edit/MobilePanelDrawer";
 type TripDay = {
   id: string;
   dayNumber: number;
+  title: string;
+  description: string | null;
+  notes: string | null;
+  estimatedCost: string | null;
+};
+
+type TransportOption = {
+  id: string;
+  tripDayId: string | null;
+  title: string;
+  mode: string;
+  fromText: string | null;
+  toText: string | null;
+  description: string | null;
+  costType: string;
+  pricePerPerson: string | null;
+  totalCost: string | null;
+  isSelected: boolean;
+  notes: string | null;
+};
+
+type StayOption = {
+  id: string;
+  tripDayId: string | null;
+  name: string;
+  city: string | null;
+  area: string | null;
+  stayType: string;
+  budgetLevel: string;
+  pricePerNight: string | null;
+  nights: number | null;
+  totalCost: string | null;
+  isSelected: boolean;
+  bestFor: string | null;
+  notes: string | null;
+};
+
+type MealSuggestion = {
+  id: string;
+  tripDayId: string;
+  mealType: string;
+  title: string;
+  locationName: string | null;
+  estimatedCost: string | null;
+  notes: string | null;
+};
+
+type TripActivity = {
+  id: string;
+  tripDayId: string;
+  title: string;
+  description: string | null;
+  locationName: string | null;
+  address: string | null;
+  startTime: string | null;
+  endTime: string | null;
+  durationMinutes: number | null;
+  category: string;
+  estimatedCost: string | null;
+  notes: string | null;
+  position: number;
 };
 
 type EditTripClientProps = {
@@ -41,6 +102,10 @@ type EditTripClientProps = {
       formattedName: string;
     } | null;
     days: TripDay[];
+    transportOptions: TransportOption[];
+    stayOptions: StayOption[];
+    mealSuggestions: MealSuggestion[];
+    activities: TripActivity[];
   };
 };
 
@@ -85,6 +150,10 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
           <ItineraryEditor
             tripId={trip.id}
             days={trip.days}
+            transportOptions={trip.transportOptions}
+            stayOptions={trip.stayOptions}
+            mealSuggestions={trip.mealSuggestions}
+            activities={trip.activities}
             selectedDay={selectedDay}
             selectedDayId={selectedDayId}
             onSelectDay={setSelectedDayId}

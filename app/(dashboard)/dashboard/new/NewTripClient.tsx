@@ -4,8 +4,6 @@ import { useState } from "react";
 import {
     CalendarDays,
     Car,
-    Check,
-    ChevronDown,
     IndianRupee,
     Loader2,
     MapPin,
@@ -17,27 +15,49 @@ import {
 import { useRouter } from "next/navigation";
 import { createTripAction } from "@/actions/trips/create-trip.action";
 import PlaceAutocomplete from "@/components/dashboard/PlaceAutocomplete";
+import CustomSelect from "@/components/shared/CustomSelect";
 
-const tripTypes = [
-    "Family Trip",
-    "Adventure",
-    "Relaxed Vacation",
-    "Road Trip",
-    "Religious Trip",
-    "Budget Trip",
+const tripTypeOptions = [
+    { label: "Family Trip", value: "Family Trip" },
+    { label: "Adventure", value: "Adventure" },
+    { label: "Relaxed Vacation", value: "Relaxed Vacation" },
+    { label: "Road Trip", value: "Road Trip" },
+    { label: "Religious Trip", value: "Religious Trip" },
+    { label: "Budget Trip", value: "Budget Trip" },
 ];
 
-const transportOptions = ["Any", "Train", "Flight", "Cab", "Bus", "Self Drive"];
+const transportOptions = [
+    { label: "Any", value: "Any" },
+    { label: "Train", value: "Train" },
+    { label: "Flight", value: "Flight" },
+    { label: "Cab", value: "Cab" },
+    { label: "Bus", value: "Bus" },
+    { label: "Self Drive", value: "Self Drive" },
+];
 
-const foodOptions = ["Vegetarian", "Non-Vegetarian", "Jain", "Any"];
+const foodOptions = [
+    { label: "Vegetarian", value: "Vegetarian" },
+    { label: "Non-Vegetarian", value: "Non-Vegetarian" },
+    { label: "Jain", value: "Jain" },
+    { label: "Any", value: "Any" },
+];
 
-const paceOptions = ["Relaxed", "Balanced", "Fast"];
+const paceOptions = [
+    { label: "Relaxed", value: "Relaxed" },
+    { label: "Balanced", value: "Balanced" },
+    { label: "Fast", value: "Fast" },
+];
 
 export default function NewTripClient() {
     const [isLoading, setIsLoading] = useState(false);
 
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
+
+    const [tripType, setTripType] = useState("Family Trip");
+    const [transport, setTransport] = useState("Any");
+    const [food, setFood] = useState("Any");
+    const [pace, setPace] = useState("Balanced");
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
@@ -147,12 +167,13 @@ export default function NewTripClient() {
                                 placeholder="70000"
                             />
 
-                            <SelectField
+                            <CustomSelect
                                 icon={<Sparkles className="h-4 w-4" />}
                                 label="Trip Type"
                                 name="tripType"
-                                options={tripTypes}
-                                defaultValue="Family Trip"
+                                value={tripType}
+                                options={tripTypeOptions}
+                                onChange={setTripType}
                             />
                         </div>
                     </div>
@@ -168,28 +189,31 @@ export default function NewTripClient() {
                         </div>
 
                         <div className="grid gap-4 md:grid-cols-3">
-                            <SelectField
+                            <CustomSelect
                                 icon={<Car className="h-4 w-4" />}
                                 label="Transport"
                                 name="transport"
+                                value={transport}
                                 options={transportOptions}
-                                defaultValue="Any"
+                                onChange={setTransport}
                             />
 
-                            <SelectField
+                            <CustomSelect
                                 icon={<Utensils className="h-4 w-4" />}
                                 label="Food Preference"
                                 name="food"
+                                value={food}
                                 options={foodOptions}
-                                defaultValue="Any"
+                                onChange={setFood}
                             />
 
-                            <SelectField
+                            <CustomSelect
                                 icon={<Route className="h-4 w-4" />}
                                 label="Travel Pace"
                                 name="pace"
+                                value={pace}
                                 options={paceOptions}
-                                defaultValue="Balanced"
+                                onChange={setPace}
                             />
                         </div>
 
@@ -289,100 +313,6 @@ function InputField({
                     className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground/70"
                 />
             </div>
-        </div>
-    );
-}
-
-type SelectFieldProps = {
-    icon: React.ReactNode;
-    label: string;
-    name: string;
-    options: string[];
-    defaultValue: string;
-};
-
-function SelectField({
-    icon,
-    label,
-    name,
-    options,
-    defaultValue,
-}: SelectFieldProps) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [selectedValue, setSelectedValue] = useState(defaultValue);
-
-    const selectedLabel = selectedValue || `Select ${label.toLowerCase()}`;
-
-    return (
-        <div className="relative">
-            <label
-                htmlFor={name}
-                className="mb-2 block text-sm font-black text-foreground"
-            >
-                {label}
-            </label>
-
-            <input type="hidden" name={name} value={selectedValue} />
-
-            <button
-                id={name}
-                type="button"
-                onClick={() => setIsOpen((prev) => !prev)}
-                className={`flex w-full cursor-pointer items-center gap-3 rounded-2xl border px-4 py-3 text-left transition ${isOpen
-                    ? "border-ring bg-input ring-4 ring-ring/20"
-                    : "border-border bg-input hover:bg-input-hover"
-                    }`}
-            >
-                <span className="text-secondary-foreground">{icon}</span>
-
-                <span
-                    className={`min-w-0 flex-1 truncate text-sm font-semibold ${selectedValue ? "text-foreground" : "text-muted-foreground/70"
-                        }`}
-                >
-                    {selectedLabel}
-                </span>
-
-                <ChevronDown
-                    className={`h-4 w-4 shrink-0 text-secondary-foreground transition ${isOpen ? "rotate-180" : ""
-                        }`}
-                />
-            </button>
-
-            {isOpen && (
-                <>
-                    <button
-                        type="button"
-                        aria-label="Close dropdown"
-                        onClick={() => setIsOpen(false)}
-                        className="fixed inset-0 z-10 cursor-default"
-                    />
-
-                    <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-2xl border border-border bg-card p-1.5 shadow-xl">
-                        {options.map((option) => {
-                            const isSelected = selectedValue === option;
-
-                            return (
-                                <button
-                                    key={option}
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedValue(option);
-                                        setIsOpen(false);
-                                    }}
-                                    className={`flex w-full cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2.5 my-1 text-left text-sm font-bold transition ${isSelected
-                                        ? "bg-selected text-selected-foreground"
-                                        : "text-secondary-foreground hover:bg-secondary hover:text-foreground"
-                                        }`}
-                                >
-                                    <span>{option}</span>
-
-                                    {isSelected && <Check className="h-4 w-4" />}
-                                </button>
-                            );
-                        })}
-                    </div>
-                </>
-            )}
         </div>
     );
 }
