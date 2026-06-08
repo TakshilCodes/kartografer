@@ -1,0 +1,129 @@
+"use client";
+
+import { useMemo, useState } from "react";
+
+import EditTripHeader from "@/components/trips/edit/EditTripHeader";
+import OptionsPanel, {
+  OptionsPanelContent,
+} from "@/components/trips/edit/OptionsPanel";
+import ItineraryEditor from "@/components/trips/edit/ItineraryEditor";
+import CostEstimator from "@/components/trips/edit/CostEstimator";
+import AiAssistantPanel, {
+  AiChatContent,
+} from "@/components/trips/edit/AiAssistantPanel";
+import MobileEditorFooter from "@/components/trips/edit/MobileEditorFooter";
+import MobilePanelDrawer from "@/components/trips/edit/MobilePanelDrawer";
+
+type TripDay = {
+  id: string;
+  dayNumber: number;
+};
+
+type EditTripClientProps = {
+  trip: {
+    id: string;
+    title: string;
+    summary: string | null;
+    daysCount: number;
+    peopleCount: number;
+    budgetAmount: string | null;
+    currency: string;
+    tripType: string;
+    travelPace: string;
+    foodPreference: string;
+    transportPreference: string;
+    fromPlace: {
+      name: string;
+      formattedName: string;
+    } | null;
+    toPlace: {
+      name: string;
+      formattedName: string;
+    } | null;
+    days: TripDay[];
+  };
+};
+
+function formatCurrency(amount: string | null) {
+  if (!amount) return "Not set";
+
+  const value = Number(amount);
+
+  if (Number.isNaN(value)) return "Not set";
+
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export default function EditTripClient({ trip }: EditTripClientProps) {
+  const [selectedDayId, setSelectedDayId] = useState(trip.days[0]?.id ?? "");
+  const [mobilePanel, setMobilePanel] = useState<"options" | "ai" | null>(
+    null
+  );
+
+  const selectedDay = useMemo(() => {
+    return trip.days.find((day) => day.id === selectedDayId) ?? trip.days[0];
+  }, [selectedDayId, trip.days]);
+
+  const totalBudget = formatCurrency(trip.budgetAmount);
+
+  return (
+    <div className="min-h-screen overflow-x-hidden bg-dashboard pb-24 xl:pb-0">
+      <EditTripHeader trip={trip} />
+
+      <div className="mx-auto grid max-w-400 gap-4 p-4 sm:p-5 lg:p-6 xl:h-[calc(100vh-92px)] xl:grid-cols-[300px_minmax(0,1fr)_330px] xl:overflow-hidden">
+        <aside className="hidden min-h-0 min-w-0 xl:block xl:h-full xl:overflow-hidden">
+          <OptionsPanel />
+        </aside>
+
+        <main className="min-h-0 min-w-0 space-y-4 xl:h-full xl:overflow-y-auto xl:pr-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
+          <CostEstimator totalBudget={totalBudget} />
+
+          <ItineraryEditor
+            tripId={trip.id}
+            days={trip.days}
+            selectedDay={selectedDay}
+            selectedDayId={selectedDayId}
+            onSelectDay={setSelectedDayId}
+          />
+        </main>
+
+        <aside className="hidden min-h-0 min-w-0 xl:block xl:h-full xl:overflow-hidden">
+          <AiAssistantPanel />
+        </aside>
+      </div>
+
+      {mobilePanel === "options" ? (
+        <MobilePanelDrawer
+          title="Options Panel"
+          description="Suggestions to add into your final plan"
+          onClose={() => setMobilePanel(null)}
+        >
+          <OptionsPanelContent />
+        </MobilePanelDrawer>
+      ) : null}
+
+      {mobilePanel === "ai" ? (
+        <MobilePanelDrawer
+          title="AI Assistant"
+          description="Ask AI to improve your itinerary"
+          onClose={() => setMobilePanel(null)}
+        >
+          <div className="flex h-[70vh] flex-col overflow-hidden rounded-2xl border border-border bg-card">
+            <AiChatContent />
+          </div>
+        </MobilePanelDrawer>
+      ) : null}
+
+      <MobileEditorFooter
+        activePanel={mobilePanel}
+        onOpenOptions={() => setMobilePanel("options")}
+        onShowPlan={() => setMobilePanel(null)}
+        onOpenAi={() => setMobilePanel("ai")}
+      />
+    </div>
+  );
+}
