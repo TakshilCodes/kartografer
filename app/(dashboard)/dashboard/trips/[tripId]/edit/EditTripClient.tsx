@@ -80,6 +80,17 @@ type TripActivity = {
   position: number;
 };
 
+type CostBreakdown = {
+  transportCost: string;
+  stayCost: string;
+  foodCost: string;
+  activityCost: string;
+  miscCost: string;
+  totalEstimatedCost: string;
+  userBudget: string | null;
+  budgetStatus: string;
+};
+
 type EditTripClientProps = {
   trip: {
     id: string;
@@ -88,6 +99,7 @@ type EditTripClientProps = {
     daysCount: number;
     peopleCount: number;
     budgetAmount: string | null;
+    costBreakdown: CostBreakdown | null;
     currency: string;
     tripType: string;
     travelPace: string;
@@ -109,20 +121,6 @@ type EditTripClientProps = {
   };
 };
 
-function formatCurrency(amount: string | null) {
-  if (!amount) return "Not set";
-
-  const value = Number(amount);
-
-  if (Number.isNaN(value)) return "Not set";
-
-  return new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency: "INR",
-    maximumFractionDigits: 0,
-  }).format(value);
-}
-
 export default function EditTripClient({ trip }: EditTripClientProps) {
   const [selectedDayId, setSelectedDayId] = useState(trip.days[0]?.id ?? "");
   const [mobilePanel, setMobilePanel] = useState<"options" | "ai" | null>(
@@ -132,8 +130,6 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
   const selectedDay = useMemo(() => {
     return trip.days.find((day) => day.id === selectedDayId) ?? trip.days[0];
   }, [selectedDayId, trip.days]);
-
-  const totalBudget = formatCurrency(trip.budgetAmount);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-dashboard pb-24 xl:pb-0">
@@ -145,7 +141,12 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
         </aside>
 
         <main className="min-h-0 min-w-0 space-y-4 xl:h-full xl:overflow-y-auto xl:pr-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
-          <CostEstimator totalBudget={totalBudget} />
+          <CostEstimator
+            costBreakdown={trip.costBreakdown}
+            userBudget={trip.budgetAmount}
+            daysCount={trip.daysCount}
+            peopleCount={trip.peopleCount}
+          />
 
           <ItineraryEditor
             tripId={trip.id}

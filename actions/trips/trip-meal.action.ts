@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
 const mealTypeSchema = z.enum([
   "BREAKFAST",
@@ -187,6 +188,7 @@ export async function createMealSuggestionAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -281,6 +283,7 @@ export async function updateMealSuggestionAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -348,6 +351,7 @@ export async function deleteMealSuggestionAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {

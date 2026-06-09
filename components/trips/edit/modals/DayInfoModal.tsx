@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, X } from "lucide-react";
 
 export type DayInfoFormValues = {
   dayTitle: string;
   dayDescription: string;
   dayNotes: string;
-  estimatedCost: string;
 };
 
 type DayInfoModalProps = {
@@ -15,7 +14,6 @@ type DayInfoModalProps = {
   isPending: boolean;
   error?: string;
   dayNumber?: number;
-  dayId?: string;
   initialValues: DayInfoFormValues | null;
   onClose: () => void;
   onSave: (values: DayInfoFormValues) => void;
@@ -25,7 +23,6 @@ const emptyValues: DayInfoFormValues = {
   dayTitle: "",
   dayDescription: "",
   dayNotes: "",
-  estimatedCost: "",
 };
 
 export default function DayInfoModal({
@@ -33,17 +30,13 @@ export default function DayInfoModal({
   isPending,
   error,
   dayNumber,
-  dayId,
   initialValues,
   onClose,
   onSave,
 }: DayInfoModalProps) {
-  const [form, setForm] = useState<DayInfoFormValues>(emptyValues);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    setForm(initialValues ?? emptyValues);
-  }, [isOpen, dayId]);
+  const [form, setForm] = useState<DayInfoFormValues>(
+    () => initialValues ?? emptyValues
+  );
 
   if (!isOpen) return null;
 
@@ -63,8 +56,7 @@ export default function DayInfoModal({
               Edit Day {dayNumber ?? ""}
             </h2>
             <p className="mt-0.5 text-xs font-semibold text-secondary-foreground">
-              Update the selected day title, description, notes, and estimated
-              cost.
+              Update the selected day title, description, and notes.
             </p>
           </div>
 
@@ -137,22 +129,6 @@ export default function DayInfoModal({
             />
           </div>
 
-          <div>
-            <label className="mb-2 block text-sm font-black text-foreground">
-              Estimated cost
-            </label>
-            <input
-              value={form.estimatedCost}
-              onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  estimatedCost: event.target.value,
-                }))
-              }
-              className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold text-foreground outline-none transition focus:border-ring"
-              placeholder="18500"
-            />
-          </div>
         </div>
 
         <div className="shrink-0 border-t border-border bg-card p-5">

@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
 const activityCategorySchema = z.enum([
   "SIGHTSEEING",
@@ -276,6 +277,7 @@ export async function createTripActivityAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -383,6 +385,7 @@ export async function updateTripActivityAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -451,6 +454,7 @@ export async function deleteTripActivityAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {

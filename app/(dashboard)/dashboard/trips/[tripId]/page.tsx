@@ -15,6 +15,7 @@ import {
 
 import TripPreviewDayPanel from "@/components/trips/preview/TripPreviewDayPanel";
 import { buildPreviewDayPanels } from "@/lib/trips/build-preview-day-panels";
+import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
@@ -102,6 +103,35 @@ function CostRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+function getBudgetStatusLabel(status?: string) {
+  switch (status) {
+    case "BUDGET_FRIENDLY":
+      return "Budget friendly";
+    case "UNDER_BUDGET":
+      return "Under budget";
+    case "SLIGHTLY_OVER":
+      return "Slightly over";
+    case "OVER_BUDGET":
+      return "Over budget";
+    default:
+      return "Budget unknown";
+  }
+}
+
+function getBudgetStatusClass(status?: string) {
+  switch (status) {
+    case "BUDGET_FRIENDLY":
+    case "UNDER_BUDGET":
+      return "bg-success text-success-foreground";
+    case "SLIGHTLY_OVER":
+      return "bg-warning text-warning-foreground";
+    case "OVER_BUDGET":
+      return "bg-danger text-danger-foreground";
+    default:
+      return "border border-border bg-card text-secondary-foreground";
+  }
+}
+
 export default async function TripPreviewPage({
   params,
   searchParams,
@@ -115,6 +145,22 @@ export default async function TripPreviewPage({
   const { tripId } = await params;
   const resolvedSearchParams = await searchParams;
   const selectedDayFromUrl = Number(resolvedSearchParams?.day ?? "1");
+
+  const accessibleTrip = await prisma.trip.findFirst({
+    where: {
+      id: tripId,
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!accessibleTrip) {
+    notFound();
+  }
+
+  await ensureTripCostBreakdown(tripId);
 
   const trip = await prisma.trip.findFirst({
     where: {
@@ -218,12 +264,6 @@ export default async function TripPreviewPage({
     notFound();
   }
 
-  const selectedTransportOptions = trip.transportOptions.filter(
-    (transport) => transport.isSelected
-  );
-
-  const selectedStayOptions = trip.stayOptions.filter((stay) => stay.isSelected);
-
   const dayPanels = buildPreviewDayPanels({
     days: trip.days,
     transportOptions: trip.transportOptions,
@@ -235,36 +275,19 @@ export default async function TripPreviewPage({
     getDisplayDayTitle,
   });
 
-  const transportEstimate = selectedTransportOptions.reduce((total, item) => {
-    if (item.costType === "PER_PERSON") {
-      return total + getNumberValue(item.pricePerPerson) * trip.peopleCount;
-    }
-
-    return total + getNumberValue(item.totalCost);
-  }, 0);
-
-  const stayEstimate = selectedStayOptions.reduce((total, item) => {
-    if (item.totalCost) {
-      return total + getNumberValue(item.totalCost);
-    }
-
-    return (
-      total +
-      getNumberValue(item.pricePerNight) *
-      (item.nights && item.nights > 0 ? item.nights : 1)
-    );
-  }, 0);
-
-  const foodEstimate = trip.mealSuggestions.reduce((total, item) => {
-    return total + getNumberValue(item.estimatedCost);
-  }, 0);
-
-  const activityEstimate = trip.activities.reduce((total, item) => {
-    return total + getNumberValue(item.estimatedCost);
-  }, 0);
-
-  const estimatedTotal =
-    transportEstimate + stayEstimate + foodEstimate + activityEstimate;
+  const transportEstimate = getNumberValue(trip.costBreakdown?.transportCost);
+  const stayEstimate = getNumberValue(trip.costBreakdown?.stayCost);
+  const foodEstimate = getNumberValue(trip.costBreakdown?.foodCost);
+  const activityEstimate = getNumberValue(trip.costBreakdown?.activityCost);
+  const miscEstimate = getNumberValue(trip.costBreakdown?.miscCost);
+  const estimatedTotal = getNumberValue(
+    trip.costBreakdown?.totalEstimatedCost
+  );
+  const budgetAmount = getNumberValue(
+    trip.costBreakdown?.userBudget ?? trip.budgetAmount
+  );
+  const budgetStatus = trip.costBreakdown?.budgetStatus ?? "UNKNOWN";
+  const remainingAmount = budgetAmount - estimatedTotal;
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background px-3 py-4 sm:px-5 lg:px-6">
@@ -454,7 +477,7 @@ export default async function TripPreviewPage({
                 <div className="flex items-center gap-2">
                   <IndianRupee className="h-4 w-4 text-primary" />
 
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <h2 className="text-sm font-black text-foreground">
                       Trip basket
                     </h2>
@@ -463,45 +486,51 @@ export default async function TripPreviewPage({
                       Checkout-style estimate
                     </p>
                   </div>
+
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-black ${getBudgetStatusClass(
+                      budgetStatus
+                    )}`}
+                  >
+                    {getBudgetStatusLabel(budgetStatus)}
+                  </span>
                 </div>
               </div>
 
               <div className="p-4">
                 <div className="space-y-3">
-                  <CostRow
-                    label="Stay"
-                    value={
-                      stayEstimate ? formatCurrency(stayEstimate) : "Not set"
-                    }
-                  />
+                  <CostRow label="Stay" value={formatCurrency(stayEstimate)} />
 
                   <CostRow
                     label="Transport"
-                    value={
-                      transportEstimate
-                        ? formatCurrency(transportEstimate)
-                        : "Not set"
-                    }
+                    value={formatCurrency(transportEstimate)}
                   />
 
                   <CostRow
                     label="Food"
-                    value={foodEstimate ? formatCurrency(foodEstimate) : "Not set"}
+                    value={formatCurrency(foodEstimate)}
                   />
 
                   <CostRow
                     label="Activities"
-                    value={
-                      activityEstimate
-                        ? formatCurrency(activityEstimate)
-                        : "Not set"
-                    }
+                    value={formatCurrency(activityEstimate)}
                   />
+
+                  {miscEstimate > 0 ? (
+                    <CostRow label="Misc" value={formatCurrency(miscEstimate)} />
+                  ) : null}
                 </div>
 
                 <div className="my-4 border-t border-dashed border-border" />
 
-                <div className="flex items-start justify-between gap-4">
+                <CostRow
+                  label="Budget"
+                  value={
+                    budgetAmount > 0 ? formatCurrency(budgetAmount) : "Not set"
+                  }
+                />
+
+                <div className="mt-4 flex items-start justify-between gap-4">
                   <div>
                     <p className="text-sm font-black text-foreground">
                       Estimated total
@@ -515,11 +544,17 @@ export default async function TripPreviewPage({
                   </div>
 
                   <p className="text-lg font-black text-primary">
-                    {estimatedTotal
-                      ? formatCurrency(estimatedTotal)
-                      : formatCurrency(trip.budgetAmount)}
+                    {formatCurrency(estimatedTotal)}
                   </p>
                 </div>
+
+                {budgetAmount > 0 ? (
+                  <p className="mt-2 text-right text-xs font-bold text-secondary-foreground">
+                    {remainingAmount >= 0
+                      ? `${formatCurrency(remainingAmount)} remaining`
+                      : `${formatCurrency(Math.abs(remainingAmount))} over budget`}
+                  </p>
+                ) : null}
 
                 <Link
                   href={`/dashboard/trips/${trip.id}/edit`}

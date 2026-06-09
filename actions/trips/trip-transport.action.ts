@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
 const transportModeSchema = z.enum([
   "FLIGHT",
@@ -257,6 +258,7 @@ export async function createTransportOptionAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -362,6 +364,7 @@ export async function updateTransportOptionAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -430,6 +433,7 @@ export async function deleteTransportOptionAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -511,6 +515,7 @@ export async function selectTransportOptionAction(
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {

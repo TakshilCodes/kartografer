@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
 const stayTypeSchema = z.enum([
   "HOTEL",
@@ -260,6 +261,7 @@ export async function createStayOptionAction(input: CreateStayOptionInput) {
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -364,6 +366,7 @@ export async function updateStayOptionAction(input: UpdateStayOptionInput) {
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -429,6 +432,7 @@ export async function deleteStayOptionAction(input: DeleteStayOptionInput) {
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -507,6 +511,7 @@ export async function selectStayOptionAction(input: SelectStayOptionInput) {
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {

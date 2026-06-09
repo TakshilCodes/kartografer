@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
 import EditTripClient from "./EditTripClient";
 
 type EditTripPageProps = {
@@ -20,6 +21,22 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
 
   const { tripId } = await params;
 
+  const accessibleTrip = await prisma.trip.findFirst({
+    where: {
+      id: tripId,
+      userId: session.user.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!accessibleTrip) {
+    notFound();
+  }
+
+  await ensureTripCostBreakdown(tripId);
+
   const trip = await prisma.trip.findFirst({
     where: {
       id: tripId,
@@ -28,6 +45,7 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
     include: {
       fromPlace: true,
       toPlace: true,
+      costBreakdown: true,
       days: {
         orderBy: {
           dayNumber: "asc",
@@ -130,6 +148,19 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
         daysCount: trip.daysCount,
         peopleCount: trip.peopleCount,
         budgetAmount: trip.budgetAmount?.toString() ?? null,
+        costBreakdown: trip.costBreakdown
+          ? {
+              transportCost: trip.costBreakdown.transportCost.toString(),
+              stayCost: trip.costBreakdown.stayCost.toString(),
+              foodCost: trip.costBreakdown.foodCost.toString(),
+              activityCost: trip.costBreakdown.activityCost.toString(),
+              miscCost: trip.costBreakdown.miscCost.toString(),
+              totalEstimatedCost:
+                trip.costBreakdown.totalEstimatedCost.toString(),
+              userBudget: trip.costBreakdown.userBudget?.toString() ?? null,
+              budgetStatus: trip.costBreakdown.budgetStatus,
+            }
+          : null,
         currency: trip.currency,
         tripType: trip.tripType,
         travelPace: trip.travelPace,

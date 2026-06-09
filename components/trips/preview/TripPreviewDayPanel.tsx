@@ -207,7 +207,7 @@ export default function TripPreviewDayPanel({
                         </p>
 
                         {index !== routePreviewItems.slice(0, 4).length - 1 ? (
-                          <div className="absolute -right-3 top-1/2 hidden h-px w-6 border-t-2 border-dashed border-primary/40 sm:block" />
+                          <div className="pointer-events-none absolute left-full top-1/2 ml-0.5 hidden h-px w-2.5 border-t-2 border-dashed border-primary/40 sm:block" />
                         ) : null}
                       </div>
                     ))}

@@ -6,9 +6,6 @@ import { useRouter } from "next/navigation";
 import {
     Edit3,
     Hotel,
-    MapPin,
-    MoreHorizontal,
-    Plane,
     Plus,
     Route,
     Sparkles,
@@ -211,17 +208,6 @@ function SectionTitle({
     );
 }
 
-function SmallActionButton({ children }: { children: ReactNode }) {
-    return (
-        <button
-            type="button"
-            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-black text-foreground transition hover:bg-card-secondary"
-        >
-            {children}
-        </button>
-    );
-}
-
 export default function ItineraryEditor({
     tripId,
     days,
@@ -337,7 +323,9 @@ export default function ItineraryEditor({
     useEffect(() => {
         if (!message) return;
 
-        setIsMessageLeaving(false);
+        const resetTimer = setTimeout(() => {
+            setIsMessageLeaving(false);
+        }, 0);
 
         const exitTimer = setTimeout(() => {
             setIsMessageLeaving(true);
@@ -349,6 +337,7 @@ export default function ItineraryEditor({
         }, 10000);
 
         return () => {
+            clearTimeout(resetTimer);
             clearTimeout(exitTimer);
             clearTimeout(clearTimer);
         };
@@ -387,7 +376,6 @@ export default function ItineraryEditor({
                 title: values.dayTitle,
                 description: values.dayDescription,
                 notes: values.dayNotes,
-                estimatedCost: values.estimatedCost,
             });
 
             if (!result.success) {
@@ -773,7 +761,7 @@ export default function ItineraryEditor({
                 </div>
 
                 <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
-                    {days.map((day, index) => {
+                    {days.map((day) => {
                         const isActive = day.id === selectedDayId;
                         const dayDisplayTitle = getDisplayDayTitle(day);
 
@@ -1266,14 +1254,12 @@ export default function ItineraryEditor({
                     isPending={isPending}
                     error={dayInfoModalError}
                     dayNumber={selectedDay?.dayNumber}
-                    dayId={selectedDay?.id}
                     initialValues={
                         selectedDay
                             ? {
                                   dayTitle: selectedDay.title,
                                   dayDescription: selectedDay.description ?? "",
                                   dayNotes: selectedDay.notes ?? "",
-                                  estimatedCost: selectedDay.estimatedCost ?? "",
                               }
                             : null
                     }

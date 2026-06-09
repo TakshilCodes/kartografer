@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
 const createTripDaySchema = z.object({
   tripId: z.string().trim().min(1, "Trip id is required."),
@@ -34,31 +35,6 @@ const updateTripDayInfoSchema = z.object({
     .max(1000, "Day notes must be less than 1000 characters.")
     .optional()
     .nullable(),
-
-  estimatedCost: z
-    .union([z.string().trim(), z.number(), z.null(), z.undefined()])
-    .transform((value) => {
-      if (value === null || value === undefined || value === "") {
-        return null;
-      }
-
-      const numberValue = Number(value);
-
-      if (Number.isNaN(numberValue)) {
-        return NaN;
-      }
-
-      return numberValue;
-    })
-    .refine((value) => value === null || !Number.isNaN(value), {
-      message: "Estimated cost must be a valid number.",
-    })
-    .refine((value) => value === null || value >= 0, {
-      message: "Estimated cost cannot be negative.",
-    })
-    .refine((value) => value === null || value <= 10_000_000, {
-      message: "Estimated cost is too high.",
-    }),
 });
 
 const deleteTripDaySchema = z.object({
@@ -153,6 +129,7 @@ export async function createTripDayAction(input: CreateTripDayInput) {
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -193,8 +170,7 @@ export async function updateTripDayInfoAction(
       };
     }
 
-    const { tripId, tripDayId, title, description, notes, estimatedCost } =
-      parsedInput.data;
+    const { tripId, tripDayId, title, description, notes } = parsedInput.data;
 
     const tripDay = await prisma.tripDay.findFirst({
       where: {
@@ -224,10 +200,10 @@ export async function updateTripDayInfoAction(
         title,
         description: description?.trim() ? description.trim() : null,
         notes: notes?.trim() ? notes.trim() : null,
-        estimatedCost,
       },
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
@@ -358,6 +334,7 @@ export async function deleteTripDayAction(input: DeleteTripDayInput) {
       });
     });
 
+    await recalculateTripCost(tripId);
     revalidateTripPages(tripId);
 
     return {
