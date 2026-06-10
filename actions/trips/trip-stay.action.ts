@@ -139,6 +139,7 @@ type CreateStayOptionInput = z.input<typeof createStayOptionSchema>;
 type UpdateStayOptionInput = z.input<typeof updateStayOptionSchema>;
 type DeleteStayOptionInput = z.infer<typeof deleteStayOptionSchema>;
 type SelectStayOptionInput = z.infer<typeof selectStayOptionSchema>;
+type UnselectStayOptionInput = DeleteStayOptionInput;
 
 function cleanText(value?: string | null) {
   return value?.trim() ? value.trim() : null;
@@ -524,6 +525,77 @@ export async function selectStayOptionAction(input: SelectStayOptionInput) {
     return {
       success: false,
       message: "Something went wrong while selecting stay.",
+    };
+  }
+}
+
+export async function unselectStayOptionAction(
+  input: UnselectStayOptionInput
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        message: "You must be logged in to move this stay to options.",
+      };
+    }
+
+    const parsedInput = deleteStayOptionSchema.safeParse(input);
+
+    if (!parsedInput.success) {
+      return {
+        success: false,
+        message:
+          parsedInput.error.issues[0]?.message ?? "Invalid stay information.",
+      };
+    }
+
+    const { tripId, stayOptionId } = parsedInput.data;
+
+    const stayOption = await prisma.stayOption.findFirst({
+      where: {
+        id: stayOptionId,
+        tripId,
+        trip: {
+          userId: session.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!stayOption) {
+      return {
+        success: false,
+        message: "Stay option not found.",
+      };
+    }
+
+    await prisma.stayOption.update({
+      where: {
+        id: stayOptionId,
+      },
+      data: {
+        isSelected: false,
+      },
+    });
+
+    await recalculateTripCost(tripId);
+    revalidateTripPages(tripId);
+
+    return {
+      success: true,
+      message: "Stay moved to options.",
+    };
+  } catch (error) {
+    console.error("UNSELECT_STAY_OPTION_ERROR", error);
+
+    return {
+      success: false,
+      message: "Something went wrong while moving stay to options.",
     };
   }
 }

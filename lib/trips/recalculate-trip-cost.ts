@@ -109,12 +109,18 @@ export async function recalculateTripCost(tripId: string) {
         },
       },
       mealSuggestions: {
+        where: {
+          isSelected: true,
+        },
         select: {
           tripDayId: true,
           estimatedCost: true,
         },
       },
       activities: {
+        where: {
+          isSelected: true,
+        },
         select: {
           tripDayId: true,
           estimatedCost: true,

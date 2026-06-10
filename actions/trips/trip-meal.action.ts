@@ -79,9 +79,12 @@ const deleteMealSuggestionSchema = z.object({
   mealSuggestionId: z.string().trim().min(1, "Meal id is required."),
 });
 
+const selectMealSuggestionSchema = deleteMealSuggestionSchema;
+
 type CreateMealSuggestionInput = z.input<typeof createMealSuggestionSchema>;
 type UpdateMealSuggestionInput = z.input<typeof updateMealSuggestionSchema>;
 type DeleteMealSuggestionInput = z.infer<typeof deleteMealSuggestionSchema>;
+type SelectMealSuggestionInput = z.infer<typeof selectMealSuggestionSchema>;
 
 function cleanText(value?: string | null) {
   return value?.trim() ? value.trim() : null;
@@ -364,6 +367,148 @@ export async function deleteMealSuggestionAction(
     return {
       success: false,
       message: "Something went wrong while deleting meal.",
+    };
+  }
+}
+
+export async function selectMealSuggestionAction(
+  input: SelectMealSuggestionInput
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        message: "You must be logged in to add this meal to the plan.",
+      };
+    }
+
+    const parsedInput = selectMealSuggestionSchema.safeParse(input);
+
+    if (!parsedInput.success) {
+      return {
+        success: false,
+        message:
+          parsedInput.error.issues[0]?.message ?? "Invalid meal information.",
+      };
+    }
+
+    const { tripId, mealSuggestionId } = parsedInput.data;
+
+    const mealSuggestion = await prisma.mealSuggestion.findFirst({
+      where: {
+        id: mealSuggestionId,
+        tripId,
+        trip: {
+          userId: session.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!mealSuggestion) {
+      return {
+        success: false,
+        message: "Meal not found.",
+      };
+    }
+
+    await prisma.mealSuggestion.update({
+      where: {
+        id: mealSuggestionId,
+      },
+      data: {
+        isSelected: true,
+      },
+    });
+
+    await recalculateTripCost(tripId);
+    revalidateTripPages(tripId);
+
+    return {
+      success: true,
+      message: "Meal added to final itinerary.",
+    };
+  } catch (error) {
+    console.error("SELECT_MEAL_SUGGESTION_ERROR", error);
+
+    return {
+      success: false,
+      message: "Something went wrong while adding meal to the plan.",
+    };
+  }
+}
+
+export async function unselectMealSuggestionAction(
+  input: SelectMealSuggestionInput
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        message: "You must be logged in to move this meal to options.",
+      };
+    }
+
+    const parsedInput = selectMealSuggestionSchema.safeParse(input);
+
+    if (!parsedInput.success) {
+      return {
+        success: false,
+        message:
+          parsedInput.error.issues[0]?.message ?? "Invalid meal information.",
+      };
+    }
+
+    const { tripId, mealSuggestionId } = parsedInput.data;
+
+    const mealSuggestion = await prisma.mealSuggestion.findFirst({
+      where: {
+        id: mealSuggestionId,
+        tripId,
+        trip: {
+          userId: session.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!mealSuggestion) {
+      return {
+        success: false,
+        message: "Meal not found.",
+      };
+    }
+
+    await prisma.mealSuggestion.update({
+      where: {
+        id: mealSuggestionId,
+      },
+      data: {
+        isSelected: false,
+      },
+    });
+
+    await recalculateTripCost(tripId);
+    revalidateTripPages(tripId);
+
+    return {
+      success: true,
+      message: "Meal moved to options.",
+    };
+  } catch (error) {
+    console.error("UNSELECT_MEAL_SUGGESTION_ERROR", error);
+
+    return {
+      success: false,
+      message: "Something went wrong while moving meal to options.",
     };
   }
 }

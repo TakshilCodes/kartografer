@@ -8,7 +8,6 @@ import { createTripSchema } from "@/lib/validations/trip.validation";
 
 import {
     FoodPreference,
-    PlaceProvider,
     TransportPreference,
     TravelPace,
     TripStatus,

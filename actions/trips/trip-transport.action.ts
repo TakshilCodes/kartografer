@@ -136,6 +136,8 @@ type SelectTransportOptionInput = z.infer<
   typeof selectTransportOptionSchema
 >;
 
+type UnselectTransportOptionInput = DeleteTransportOptionInput;
+
 function cleanText(value?: string | null) {
   return value?.trim() ? value.trim() : null;
 }
@@ -528,6 +530,78 @@ export async function selectTransportOptionAction(
     return {
       success: false,
       message: "Something went wrong while selecting transport.",
+    };
+  }
+}
+
+export async function unselectTransportOptionAction(
+  input: UnselectTransportOptionInput
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        message: "You must be logged in to move transport to options.",
+      };
+    }
+
+    const parsedInput = deleteTransportOptionSchema.safeParse(input);
+
+    if (!parsedInput.success) {
+      return {
+        success: false,
+        message:
+          parsedInput.error.issues[0]?.message ??
+          "Invalid transport information.",
+      };
+    }
+
+    const { tripId, transportOptionId } = parsedInput.data;
+
+    const transportOption = await prisma.transportOption.findFirst({
+      where: {
+        id: transportOptionId,
+        tripId,
+        trip: {
+          userId: session.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!transportOption) {
+      return {
+        success: false,
+        message: "Transport option not found.",
+      };
+    }
+
+    await prisma.transportOption.update({
+      where: {
+        id: transportOptionId,
+      },
+      data: {
+        isSelected: false,
+      },
+    });
+
+    await recalculateTripCost(tripId);
+    revalidateTripPages(tripId);
+
+    return {
+      success: true,
+      message: "Transport moved to options.",
+    };
+  } catch (error) {
+    console.error("UNSELECT_TRANSPORT_OPTION_ERROR", error);
+
+    return {
+      success: false,
+      message: "Something went wrong while moving transport to options.",
     };
   }
 }

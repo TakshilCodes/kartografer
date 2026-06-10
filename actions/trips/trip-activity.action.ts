@@ -142,9 +142,12 @@ const deleteTripActivitySchema = z.object({
   activityId: z.string().trim().min(1, "Activity id is required."),
 });
 
+const selectTripActivitySchema = deleteTripActivitySchema;
+
 type CreateTripActivityInput = z.input<typeof createTripActivitySchema>;
 type UpdateTripActivityInput = z.input<typeof updateTripActivitySchema>;
 type DeleteTripActivityInput = z.infer<typeof deleteTripActivitySchema>;
+type SelectTripActivityInput = z.infer<typeof selectTripActivitySchema>;
 
 function cleanText(value?: string | null) {
   return value?.trim() ? value.trim() : null;
@@ -467,6 +470,150 @@ export async function deleteTripActivityAction(
     return {
       success: false,
       message: "Something went wrong while deleting activity.",
+    };
+  }
+}
+
+export async function selectTripActivityAction(
+  input: SelectTripActivityInput
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        message: "You must be logged in to add this activity to the plan.",
+      };
+    }
+
+    const parsedInput = selectTripActivitySchema.safeParse(input);
+
+    if (!parsedInput.success) {
+      return {
+        success: false,
+        message:
+          parsedInput.error.issues[0]?.message ??
+          "Invalid activity information.",
+      };
+    }
+
+    const { tripId, activityId } = parsedInput.data;
+
+    const activity = await prisma.tripActivity.findFirst({
+      where: {
+        id: activityId,
+        tripId,
+        trip: {
+          userId: session.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!activity) {
+      return {
+        success: false,
+        message: "Activity not found.",
+      };
+    }
+
+    await prisma.tripActivity.update({
+      where: {
+        id: activityId,
+      },
+      data: {
+        isSelected: true,
+      },
+    });
+
+    await recalculateTripCost(tripId);
+    revalidateTripPages(tripId);
+
+    return {
+      success: true,
+      message: "Activity added to final itinerary.",
+    };
+  } catch (error) {
+    console.error("SELECT_TRIP_ACTIVITY_ERROR", error);
+
+    return {
+      success: false,
+      message: "Something went wrong while adding activity to the plan.",
+    };
+  }
+}
+
+export async function unselectTripActivityAction(
+  input: SelectTripActivityInput
+) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return {
+        success: false,
+        message: "You must be logged in to move this activity to options.",
+      };
+    }
+
+    const parsedInput = selectTripActivitySchema.safeParse(input);
+
+    if (!parsedInput.success) {
+      return {
+        success: false,
+        message:
+          parsedInput.error.issues[0]?.message ??
+          "Invalid activity information.",
+      };
+    }
+
+    const { tripId, activityId } = parsedInput.data;
+
+    const activity = await prisma.tripActivity.findFirst({
+      where: {
+        id: activityId,
+        tripId,
+        trip: {
+          userId: session.user.id,
+        },
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (!activity) {
+      return {
+        success: false,
+        message: "Activity not found.",
+      };
+    }
+
+    await prisma.tripActivity.update({
+      where: {
+        id: activityId,
+      },
+      data: {
+        isSelected: false,
+      },
+    });
+
+    await recalculateTripCost(tripId);
+    revalidateTripPages(tripId);
+
+    return {
+      success: true,
+      message: "Activity moved to options.",
+    };
+  } catch (error) {
+    console.error("UNSELECT_TRIP_ACTIVITY_ERROR", error);
+
+    return {
+      success: false,
+      message: "Something went wrong while moving activity to options.",
     };
   }
 }

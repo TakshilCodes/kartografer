@@ -1,6 +1,8 @@
 @import "tailwindcss";
 
 :root {
+
+
   /* Main backgrounds */
   --background: #ffffff;
   --dashboard: #ffffff;
@@ -9,16 +11,19 @@
   --card-hover: #EFE0C8;
 
   /* Text */
+
   --foreground: #1F1408;
   --muted-foreground: #1F1101;
   --secondary-foreground: #54371d;
 
   /* Brand */
+
   --primary: #54371d;
   --primary-foreground: #FFF8ED;
   --primary-hover: #6B4727;
 
   /* Buttons / accents */
+
   --secondary: #EAD8BD;
   --secondary-foreground: #54371d;
   --secondary-hover: #DFC49D;
@@ -26,23 +31,22 @@
   --accent-foreground: #54371d;
 
   /* Borders / inputs */
+
   --border: #E2D4BF;
   --input: #FFFDF8;
   --ring: #C0843E;
 
   /* States */
+  
   --danger: #4A2A16;
   --danger-hover: #5A341C;
   --danger-foreground: #FFF8ED;
-
   --warning: #8A5A1F;
   --warning-hover: #9A6728;
   --warning-foreground: #FFF8ED;
-
   --success: #4B5A24;
   --success-hover: #5D6B2E;
   --success-foreground: #FFF8ED;
-
   --selected: #D8B98C;
   --selected-hover: #CFAE7E;
   --selected-foreground: #2B1A0A;

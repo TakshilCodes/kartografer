@@ -20,6 +20,7 @@ import {
     TreePalm,
     Church,
     Car,
+    Archive,
 } from "lucide-react";
 
 import {
@@ -31,6 +32,7 @@ import { useConfirmStore } from "@/stores/use-confirm-store";
 import {
     createTransportOptionAction,
     deleteTransportOptionAction,
+    unselectTransportOptionAction,
     updateTransportOptionAction,
 } from "@/actions/trips/trip-transport.action";
 import TransportModal, {
@@ -47,6 +49,7 @@ import StayModal, {
 import {
     createStayOptionAction,
     deleteStayOptionAction,
+    unselectStayOptionAction,
     updateStayOptionAction,
 } from "@/actions/trips/trip-stay.action";
 import MealModal, {
@@ -57,6 +60,7 @@ import MealModal, {
 import {
     createMealSuggestionAction,
     deleteMealSuggestionAction,
+    unselectMealSuggestionAction,
     updateMealSuggestionAction,
 } from "@/actions/trips/trip-meal.action";
 import ActivityModal, {
@@ -67,8 +71,10 @@ import ActivityModal, {
 import {
     createTripActivityAction,
     deleteTripActivityAction,
+    unselectTripActivityAction,
     updateTripActivityAction,
 } from "@/actions/trips/trip-activity.action";
+import ItemActionsMenu from "@/components/trips/edit/ItemActionsMenu";
 
 type TripDay = {
     id: string;
@@ -94,13 +100,21 @@ type TransportOption = {
     notes: string | null;
 };
 
+type SelectableMealSuggestion = MealSuggestion & {
+    isSelected: boolean;
+};
+
+type SelectableTripActivity = TripActivity & {
+    isSelected: boolean;
+};
+
 type ItineraryEditorProps = {
     tripId: string;
     days: TripDay[];
     transportOptions: TransportOption[];
     stayOptions: StayOption[];
-    mealSuggestions: MealSuggestion[];
-    activities: TripActivity[];
+    mealSuggestions: SelectableMealSuggestion[];
+    activities: SelectableTripActivity[];
     selectedDay: TripDay | undefined;
     selectedDayId: string;
     onSelectDay: (dayId: string) => void;
@@ -285,7 +299,7 @@ export default function ItineraryEditor({
     }
 
     const selectedDayMeals = mealSuggestions.filter((meal) => {
-        return meal.tripDayId === selectedDay?.id;
+        return meal.isSelected && meal.tripDayId === selectedDay?.id;
     });
 
     function openCreateMealModal() {
@@ -301,7 +315,7 @@ export default function ItineraryEditor({
     }
 
     const selectedDayActivities = activities.filter((activity) => {
-        return activity.tripDayId === selectedDay?.id;
+        return activity.isSelected && activity.tripDayId === selectedDay?.id;
     });
 
     function openCreateActivityModal() {
@@ -329,12 +343,12 @@ export default function ItineraryEditor({
 
         const exitTimer = setTimeout(() => {
             setIsMessageLeaving(true);
-        }, 9700);
+        }, 4700);
 
         const clearTimer = setTimeout(() => {
             setMessage("");
             setIsMessageLeaving(false);
-        }, 10000);
+        }, 5000);
 
         return () => {
             clearTimeout(resetTimer);
@@ -487,22 +501,39 @@ export default function ItineraryEditor({
             variant: "danger",
         });
 
-        if (!confirmed) return;
+        if (!confirmed) return false;
 
         setMessage("");
 
-        startTransition(async () => {
-            const result = await deleteTransportOptionAction({
-                tripId,
-                transportOptionId: transport.id,
-            });
-
-            setMessage(result.message);
-
-            if (result.success) {
-                router.refresh();
-            }
+        const result = await deleteTransportOptionAction({
+            tripId,
+            transportOptionId: transport.id,
         });
+
+        setMessage(result.message);
+
+        if (result.success) {
+            router.refresh();
+        }
+
+        return result.success;
+    }
+
+    async function handleMoveTransportToOptions(transport: TransportOption) {
+        setMessage("");
+
+        const result = await unselectTransportOptionAction({
+            tripId,
+            transportOptionId: transport.id,
+        });
+
+        setMessage(result.message);
+
+        if (result.success) {
+            router.refresh();
+        }
+
+        return result.success;
     }
 
     function handleSaveStay(values: StayFormValues) {
@@ -570,22 +601,39 @@ export default function ItineraryEditor({
             variant: "danger",
         });
 
-        if (!confirmed) return;
+        if (!confirmed) return false;
 
         setMessage("");
 
-        startTransition(async () => {
-            const result = await deleteStayOptionAction({
-                tripId,
-                stayOptionId: stay.id,
-            });
-
-            setMessage(result.message);
-
-            if (result.success) {
-                router.refresh();
-            }
+        const result = await deleteStayOptionAction({
+            tripId,
+            stayOptionId: stay.id,
         });
+
+        setMessage(result.message);
+
+        if (result.success) {
+            router.refresh();
+        }
+
+        return result.success;
+    }
+
+    async function handleMoveStayToOptions(stay: StayOption) {
+        setMessage("");
+
+        const result = await unselectStayOptionAction({
+            tripId,
+            stayOptionId: stay.id,
+        });
+
+        setMessage(result.message);
+
+        if (result.success) {
+            router.refresh();
+        }
+
+        return result.success;
     }
 
     function handleSaveMeal(values: MealFormValues) {
@@ -639,22 +687,39 @@ export default function ItineraryEditor({
             variant: "danger",
         });
 
-        if (!confirmed) return;
+        if (!confirmed) return false;
 
         setMessage("");
 
-        startTransition(async () => {
-            const result = await deleteMealSuggestionAction({
-                tripId,
-                mealSuggestionId: meal.id,
-            });
-
-            setMessage(result.message);
-
-            if (result.success) {
-                router.refresh();
-            }
+        const result = await deleteMealSuggestionAction({
+            tripId,
+            mealSuggestionId: meal.id,
         });
+
+        setMessage(result.message);
+
+        if (result.success) {
+            router.refresh();
+        }
+
+        return result.success;
+    }
+
+    async function handleMoveMealToOptions(meal: MealSuggestion) {
+        setMessage("");
+
+        const result = await unselectMealSuggestionAction({
+            tripId,
+            mealSuggestionId: meal.id,
+        });
+
+        setMessage(result.message);
+
+        if (result.success) {
+            router.refresh();
+        }
+
+        return result.success;
     }
 
     function handleSaveActivity(values: ActivityFormValues) {
@@ -720,22 +785,39 @@ export default function ItineraryEditor({
             variant: "danger",
         });
 
-        if (!confirmed) return;
+        if (!confirmed) return false;
 
         setMessage("");
 
-        startTransition(async () => {
-            const result = await deleteTripActivityAction({
-                tripId,
-                activityId: activity.id,
-            });
-
-            setMessage(result.message);
-
-            if (result.success) {
-                router.refresh();
-            }
+        const result = await deleteTripActivityAction({
+            tripId,
+            activityId: activity.id,
         });
+
+        setMessage(result.message);
+
+        if (result.success) {
+            router.refresh();
+        }
+
+        return result.success;
+    }
+
+    async function handleMoveActivityToOptions(activity: TripActivity) {
+        setMessage("");
+
+        const result = await unselectTripActivityAction({
+            tripId,
+            activityId: activity.id,
+        });
+
+        setMessage(result.message);
+
+        if (result.success) {
+            router.refresh();
+        }
+
+        return result.success;
     }
 
     return (
@@ -866,7 +948,7 @@ export default function ItineraryEditor({
                                         key={transport.id}
                                         className="rounded-2xl border border-border bg-dashboard p-3"
                                     >
-                                        <div className="flex min-w-0 gap-3">
+                                        <div className="flex min-w-0 items-start gap-3">
                                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-primary">
                                                 <Route className="h-4 w-4" />
                                             </div>
@@ -907,23 +989,30 @@ export default function ItineraryEditor({
                                                                 : "Cost not set"}
                                                     </span>
 
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => openEditTransportModal(transport)}
-                                                        className="rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary"
-                                                    >
-                                                        Edit
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDeleteTransport(transport)}
-                                                        className="rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary"
-                                                    >
-                                                        Delete
-                                                    </button>
                                                 </div>
                                             </div>
+
+                                            <ItemActionsMenu
+                                                actions={[
+                                                    {
+                                                        label: "Edit",
+                                                        icon: <Edit3 className="h-3.5 w-3.5" />,
+                                                        onClick: () => openEditTransportModal(transport),
+                                                    },
+                                                    {
+                                                        label: "Move to options",
+                                                        icon: <Archive className="h-3.5 w-3.5" />,
+                                                        onClick: () =>
+                                                            handleMoveTransportToOptions(transport),
+                                                    },
+                                                    {
+                                                        label: "Delete",
+                                                        icon: <Trash2 className="h-3.5 w-3.5" />,
+                                                        variant: "danger",
+                                                        onClick: () => handleDeleteTransport(transport),
+                                                    },
+                                                ]}
+                                            />
                                         </div>
                                     </div>
                                 ))
@@ -958,7 +1047,7 @@ export default function ItineraryEditor({
                                         key={stay.id}
                                         className="rounded-2xl border border-border bg-dashboard p-3"
                                     >
-                                        <div className="flex min-w-0 gap-3">
+                                        <div className="flex min-w-0 items-start gap-3">
                                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-primary">
                                                 <Hotel className="h-4 w-4" />
                                             </div>
@@ -997,23 +1086,29 @@ export default function ItineraryEditor({
                                                                 : "Cost not set"}
                                                     </span>
 
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => openEditStayModal(stay)}
-                                                        className="rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary"
-                                                    >
-                                                        Edit
-                                                    </button>
-
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleDeleteStay(stay)}
-                                                        className="rounded-full border border-border bg-card px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary"
-                                                    >
-                                                        Delete
-                                                    </button>
                                                 </div>
                                             </div>
+
+                                            <ItemActionsMenu
+                                                actions={[
+                                                    {
+                                                        label: "Edit",
+                                                        icon: <Edit3 className="h-3.5 w-3.5" />,
+                                                        onClick: () => openEditStayModal(stay),
+                                                    },
+                                                    {
+                                                        label: "Move to options",
+                                                        icon: <Archive className="h-3.5 w-3.5" />,
+                                                        onClick: () => handleMoveStayToOptions(stay),
+                                                    },
+                                                    {
+                                                        label: "Delete",
+                                                        icon: <Trash2 className="h-3.5 w-3.5" />,
+                                                        variant: "danger",
+                                                        onClick: () => handleDeleteStay(stay),
+                                                    },
+                                                ]}
+                                            />
                                         </div>
                                     </div>
                                 ))
@@ -1079,23 +1174,26 @@ export default function ItineraryEditor({
                                                 ) : null}
                                             </div>
 
-                                            <div className="flex shrink-0 items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openEditMealModal(meal)}
-                                                    className="rounded-full border border-border cursor-pointer bg-card px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary"
-                                                >
-                                                    Edit
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDeleteMeal(meal)}
-                                                    className="rounded-full border border-border cursor-pointer bg-card px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
+                                            <ItemActionsMenu
+                                                actions={[
+                                                    {
+                                                        label: "Edit",
+                                                        icon: <Edit3 className="h-3.5 w-3.5" />,
+                                                        onClick: () => openEditMealModal(meal),
+                                                    },
+                                                    {
+                                                        label: "Move to options",
+                                                        icon: <Archive className="h-3.5 w-3.5" />,
+                                                        onClick: () => handleMoveMealToOptions(meal),
+                                                    },
+                                                    {
+                                                        label: "Delete",
+                                                        icon: <Trash2 className="h-3.5 w-3.5" />,
+                                                        variant: "danger",
+                                                        onClick: () => handleDeleteMeal(meal),
+                                                    },
+                                                ]}
+                                            />
                                         </div>
                                     </div>
                                 ))
@@ -1185,23 +1283,27 @@ export default function ItineraryEditor({
                                                 </div>
                                             </div>
 
-                                            <div className="flex shrink-0 items-center gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => openEditActivityModal(activity)}
-                                                    className="rounded-full cursor-pointer border border-border bg-card px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary"
-                                                >
-                                                    Edit
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => handleDeleteActivity(activity)}
-                                                    className="rounded-full cursor-pointer border border-border bg-card px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
+                                            <ItemActionsMenu
+                                                actions={[
+                                                    {
+                                                        label: "Edit",
+                                                        icon: <Edit3 className="h-3.5 w-3.5" />,
+                                                        onClick: () => openEditActivityModal(activity),
+                                                    },
+                                                    {
+                                                        label: "Move to options",
+                                                        icon: <Archive className="h-3.5 w-3.5" />,
+                                                        onClick: () =>
+                                                            handleMoveActivityToOptions(activity),
+                                                    },
+                                                    {
+                                                        label: "Delete",
+                                                        icon: <Trash2 className="h-3.5 w-3.5" />,
+                                                        variant: "danger",
+                                                        onClick: () => handleDeleteActivity(activity),
+                                                    },
+                                                ]}
+                                            />
                                         </div>
                                     </div>
                                 ))

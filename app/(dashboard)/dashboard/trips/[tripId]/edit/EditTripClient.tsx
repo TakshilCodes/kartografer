@@ -61,6 +61,7 @@ type MealSuggestion = {
   title: string;
   locationName: string | null;
   estimatedCost: string | null;
+  isSelected: boolean;
   notes: string | null;
 };
 
@@ -76,6 +77,7 @@ type TripActivity = {
   durationMinutes: number | null;
   category: string;
   estimatedCost: string | null;
+  isSelected: boolean;
   notes: string | null;
   position: number;
 };
@@ -137,7 +139,14 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
 
       <div className="mx-auto grid max-w-400 gap-4 p-4 sm:p-5 lg:p-6 xl:h-[calc(100vh-92px)] xl:grid-cols-[300px_minmax(0,1fr)_330px] xl:overflow-hidden">
         <aside className="hidden min-h-0 min-w-0 xl:block xl:h-full xl:overflow-hidden">
-          <OptionsPanel />
+          <OptionsPanel
+            tripId={trip.id}
+            days={trip.days}
+            transportOptions={trip.transportOptions}
+            stayOptions={trip.stayOptions}
+            mealSuggestions={trip.mealSuggestions}
+            activities={trip.activities}
+          />
         </aside>
 
         <main className="min-h-0 min-w-0 space-y-4 xl:h-full xl:overflow-y-auto xl:pr-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
@@ -172,7 +181,14 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
           description="Suggestions to add into your final plan"
           onClose={() => setMobilePanel(null)}
         >
-          <OptionsPanelContent />
+          <OptionsPanelContent
+            tripId={trip.id}
+            days={trip.days}
+            transportOptions={trip.transportOptions}
+            stayOptions={trip.stayOptions}
+            mealSuggestions={trip.mealSuggestions}
+            activities={trip.activities}
+          />
         </MobilePanelDrawer>
       ) : null}
 

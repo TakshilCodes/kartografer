@@ -38,6 +38,7 @@ type MealSuggestion = {
   title: string;
   locationName: string | null;
   estimatedCost: unknown;
+  isSelected: boolean;
   notes: string | null;
 };
 
@@ -52,6 +53,7 @@ type TripActivity = {
   endTime: string | null;
   category: string;
   estimatedCost: unknown;
+  isSelected: boolean;
   notes: string | null;
 };
 
@@ -142,6 +144,12 @@ export function buildPreviewDayPanels({
     (transport) => transport.isSelected
   );
   const selectedStayOptions = stayOptions.filter((stay) => stay.isSelected);
+  const selectedMealSuggestions = mealSuggestions.filter(
+    (meal) => meal.isSelected
+  );
+  const selectedActivities = activities.filter(
+    (activity) => activity.isSelected
+  );
 
   return days.map((day) => {
     const selectedDayTransport = selectedTransportOptions.filter(
@@ -150,10 +158,10 @@ export function buildPreviewDayPanels({
     const selectedDayStays = selectedStayOptions.filter(
       (stay) => stay.tripDayId === day.id
     );
-    const selectedDayMeals = mealSuggestions.filter(
+    const selectedDayMeals = selectedMealSuggestions.filter(
       (meal) => meal.tripDayId === day.id
     );
-    const selectedDayActivities = activities.filter(
+    const selectedDayActivities = selectedActivities.filter(
       (activity) => activity.tripDayId === day.id
     );
 

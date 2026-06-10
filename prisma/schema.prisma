@@ -269,6 +269,8 @@ model TripActivity {
 
   estimatedCost Decimal? @db.Decimal(12, 2)
 
+  isSelected Boolean @default(true)
+
   source ItemSource @default(USER_ADDED)
 
   notes    String? @db.Text
@@ -282,6 +284,7 @@ model TripActivity {
   @@index([category])
   @@index([source])
   @@index([position])
+  @@index([isSelected])
 }
 
 enum ActivityCategory {
@@ -431,6 +434,8 @@ model MealSuggestion {
 
   estimatedCost Decimal? @db.Decimal(12, 2)
 
+  isSelected Boolean @default(true)
+
   source ItemSource @default(USER_ADDED)
   notes  String?    @db.Text
 
@@ -440,6 +445,7 @@ model MealSuggestion {
   @@index([tripId])
   @@index([tripDayId])
   @@index([mealType])
+  @@index([isSelected])
 }
 
 enum MealType {
