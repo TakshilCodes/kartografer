@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
     Edit3,
@@ -21,6 +21,8 @@ import {
     Church,
     Car,
     Archive,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-react";
 
 import {
@@ -400,6 +402,22 @@ export default function ItineraryEditor({
             setMessage(result.message);
             setIsEditDayOpen(false);
             router.refresh();
+        });
+    }
+
+    const dayTabsScrollRef = useRef<HTMLDivElement | null>(null);
+
+    function scrollDayTabsLeft() {
+        dayTabsScrollRef.current?.scrollBy({
+            left: -320,
+            behavior: "smooth",
+        });
+    }
+
+    function scrollDayTabsRight() {
+        dayTabsScrollRef.current?.scrollBy({
+            left: 320,
+            behavior: "smooth",
         });
     }
 
@@ -842,34 +860,57 @@ export default function ItineraryEditor({
                     </button>
                 </div>
 
-                <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
-                    {days.map((day) => {
-                        const isActive = day.id === selectedDayId;
-                        const dayDisplayTitle = getDisplayDayTitle(day);
+                <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-[28px] border border-border bg-card/70 p-3 shadow-sm">
+                    <button
+                        type="button"
+                        onClick={scrollDayTabsLeft}
+                        className="hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-md transition hover:bg-card-hover lg:flex"
+                        aria-label="Scroll days left"
+                    >
+                        <ChevronLeft className="h-5 w-5" />
+                    </button>
 
-                        return (
-                            <button
-                                key={day.id}
-                                type="button"
-                                onClick={() => onSelectDay(day.id)}
-                                className={`min-w-45 cursor-pointer rounded-2xl border px-4 py-3 text-left transition ${isActive
-                                    ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/15"
-                                    : "border-border bg-dashboard text-foreground hover:bg-card-secondary"
-                                    }`}
-                            >
-                                <p className="text-sm font-black">Day {day.dayNumber}</p>
+                    <div
+                        ref={dayTabsScrollRef}
+                        className="scrollbar-hide flex min-w-0 gap-3 overflow-x-auto scroll-smooth"
+                    >
+                        {days.map((day) => {
+                            const isActive = day.id === selectedDayId;
+                            const customTitle = getDisplayDayTitle(day);
 
-                                <p
-                                    className={`mt-0.5 line-clamp-1 text-xs font-semibold ${isActive
-                                        ? "text-primary-foreground/80"
-                                        : "text-secondary-foreground"
+                            return (
+                                <button
+                                    key={day.id}
+                                    type="button"
+                                    onClick={() => onSelectDay(day.id)}
+                                    className={`min-w-67.5 shrink-0 rounded-2xl border px-5 py-4 text-left transition ${isActive
+                                            ? "border-primary bg-primary text-primary-foreground shadow-md"
+                                            : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-card-hover"
                                         }`}
                                 >
-                                    {dayDisplayTitle || "---"}
-                                </p>
-                            </button>
-                        );
-                    })}
+                                    <p className="text-sm font-black">Day {day.dayNumber}</p>
+
+                                    <p
+                                        className={`mt-1 line-clamp-1 text-xs font-semibold ${isActive
+                                                ? "text-primary-foreground/85"
+                                                : "text-secondary-foreground"
+                                            }`}
+                                    >
+                                        {customTitle || "Plan your day"}
+                                    </p>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={scrollDayTabsRight}
+                        className="hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-md transition hover:bg-card-hover lg:flex"
+                        aria-label="Scroll days right"
+                    >
+                        <ChevronRight className="h-5 w-5" />
+                    </button>
                 </div>
 
                 {message ? (
@@ -1359,10 +1400,10 @@ export default function ItineraryEditor({
                     initialValues={
                         selectedDay
                             ? {
-                                  dayTitle: selectedDay.title,
-                                  dayDescription: selectedDay.description ?? "",
-                                  dayNotes: selectedDay.notes ?? "",
-                              }
+                                dayTitle: selectedDay.title,
+                                dayDescription: selectedDay.description ?? "",
+                                dayNotes: selectedDay.notes ?? "",
+                            }
                             : null
                     }
                     onClose={() => {

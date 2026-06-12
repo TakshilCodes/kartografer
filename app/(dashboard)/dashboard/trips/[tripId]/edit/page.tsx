@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
 import EditTripClient from "./EditTripClient";
+import { generateTextWithGemini } from "@/lib/ai/gemini.provider";
 
 type EditTripPageProps = {
   params: Promise<{

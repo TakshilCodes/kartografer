@@ -323,14 +323,6 @@ export default async function TripPreviewPage({
           <div className="flex flex-wrap gap-2">
             <Link
               href={`/dashboard/trips/${trip.id}/edit`}
-              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-border bg-dashboard px-4 py-2 text-sm font-black text-foreground transition hover:bg-card-secondary"
-            >
-              <Plus className="h-4 w-4" />
-              Add item
-            </Link>
-
-            <Link
-              href={`/dashboard/trips/${trip.id}/edit`}
               className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-black text-primary-foreground shadow-lg shadow-primary/15 transition hover:bg-primary-hover"
             >
               <Edit3 className="h-4 w-4" />

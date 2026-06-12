@@ -5,6 +5,9 @@ import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { createTripSchema } from "@/lib/validations/trip.validation";
+import { generateTripWithAi } from "@/lib/ai/ai-client";
+import { saveGeneratedTrip } from "@/lib/trips/save-generated-trip";
+import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
 import {
     FoodPreference,
@@ -160,6 +163,10 @@ export async function createTripAction(
         const fromName = normalizePlaceName(fromPlaceInput.name);
         const destinationName = normalizePlaceName(toPlaceInput.name);
 
+        const tripType = mapTripType(data.tripType);
+        const transportPreference = mapTransportPreference(data.transport);
+        const foodPreference = mapFoodPreference(data.food);
+        const travelPace = mapTravelPace(data.pace);
 
         const result = await prisma.$transaction(async (tx) => {
             const fromPlace = await findOrCreatePlace(tx, fromPlaceInput);
@@ -181,10 +188,10 @@ export async function createTripAction(
                     budgetAmount: data.budget,
                     currency: "INR",
 
-                    tripType: mapTripType(data.tripType),
-                    transportPreference: mapTransportPreference(data.transport),
-                    foodPreference: mapFoodPreference(data.food),
-                    travelPace: mapTravelPace(data.pace),
+                    tripType,
+                    transportPreference,
+                    foodPreference,
+                    travelPace,
 
                     specialNotes: data.notes || null,
 
@@ -208,11 +215,60 @@ export async function createTripAction(
                 },
                 select: {
                     id: true,
+                    fromPlace: {
+                        select: {
+                            formattedName: true,
+                            name: true,
+                        },
+                    },
+                    toPlace: {
+                        select: {
+                            formattedName: true,
+                            name: true,
+                        },
+                    },
                 },
             });
 
             return trip;
         });
+
+        try {
+            const generatedTrip = await generateTripWithAi({
+                fromPlace: result.fromPlace?.formattedName ?? fromName,
+                toPlace: result.toPlace?.formattedName ?? destinationName,
+                daysCount: data.days,
+                peopleCount: data.people,
+                budgetAmount: data.budget ?? null,
+                currency: "INR",
+                tripType,
+                travelPace,
+                foodPreference,
+                transportPreference,
+                specialNotes: data.notes || null,
+            });
+
+            await saveGeneratedTrip({
+                tripId: result.id,
+                generatedTrip,
+            });
+
+            await recalculateTripCost(result.id);
+        } catch (aiError) {
+            console.error("AI_TRIP_GENERATION_ERROR", aiError);
+
+            await prisma.trip.update({
+                where: {
+                    id: result.id,
+                },
+                data: {
+                    status: TripStatus.DRAFT,
+                    isAiGenerated: false,
+                    summary:
+                        "We could not generate the AI itinerary. You can still edit this trip manually.",
+                },
+            });
+        }
 
         return {
             ok: true,

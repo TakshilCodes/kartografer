@@ -151,7 +151,7 @@ export default function TripPreviewDayPanel({
               onSelectDay={handleSelectDay}
             />
 
-            <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="mt-5 relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.22em] text-secondary-foreground">
                   <Route className="h-3.5 w-3.5 text-primary" />

@@ -1,66 +1,97 @@
 "use client";
 
-type PreviewDay = {
-  id: string;
-  dayNumber: number;
-  title: string;
-};
+import { useRef } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type TripPreviewDayTabsProps = {
-  days: PreviewDay[];
-  selectedDayId?: string;
-  onSelectDay: (day: PreviewDay) => void;
-  disabled?: boolean;
+  days: {
+    id: string;
+    dayNumber: number;
+    title: string;
+  }[];
+  selectedDayId: string;
+  onSelectDay: (day: {
+    id: string;
+    dayNumber: number;
+    title: string;
+  }) => void;
 };
-
-function getTabDayLabel(day: PreviewDay) {
-  const defaultTitle = `Day ${day.dayNumber}`;
-
-  if (!day.title || day.title.trim() === defaultTitle) {
-    return "";
-  }
-
-  return day.title.trim();
-}
 
 export default function TripPreviewDayTabs({
   days,
   selectedDayId,
   onSelectDay,
-  disabled = false,
 }: TripPreviewDayTabsProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  function scrollLeft() {
+    scrollRef.current?.scrollBy({
+      left: -360,
+      behavior: "smooth",
+    });
+  }
+
+  function scrollRight() {
+    scrollRef.current?.scrollBy({
+      left: 360,
+      behavior: "smooth",
+    });
+  }
+
   return (
-    <div className="mb-4 flex gap-2 overflow-x-auto pb-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
-      {days.map((day) => {
-        const isActive = day.id === selectedDayId;
-        const dayLabel = getTabDayLabel(day);
+    <div className="relative overflow-hidden rounded-[28px] border border-border bg-card/70 p-3 shadow-sm">
+      <button
+        type="button"
+        onClick={scrollLeft}
+        className="absolute left-4 top-1/2 z-20 hidden cursor-pointer h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/95 text-foreground shadow-md backdrop-blur transition hover:scale-105 hover:bg-card-hover lg:flex"
+        aria-label="Scroll days left"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </button>
 
-        return (
-          <button
-            key={day.id}
-            type="button"
-            onClick={() => onSelectDay(day)}
-            disabled={disabled}
-            className={`min-w-45 shrink-0 cursor-pointer rounded-2xl border px-4 py-3 text-left transition disabled:cursor-wait disabled:opacity-80 ${
-              isActive
-                ? "border-primary bg-primary text-primary-foreground shadow-lg shadow-primary/15"
-                : "border-border bg-dashboard text-foreground hover:bg-card-secondary"
-            }`}
-          >
-            <p className="text-sm font-black">Day {day.dayNumber}</p>
+      <div className="pointer-events-none absolute bottom-3 left-0 top-3 z-10 w-10 bg-linear-to-r from-card via-card/90 to-transparent sm:w-16 lg:w-24" />
+      <div className="pointer-events-none absolute bottom-3 right-0 top-3 z-10 w-10 bg-linear-to-l from-card via-card/90 to-transparent sm:w-16 lg:w-24" />
 
-            <p
-              className={`mt-0.5 line-clamp-1 text-xs font-semibold ${
-                isActive
-                  ? "text-primary-foreground/80"
-                  : "text-secondary-foreground"
-              }`}
+      <div
+        ref={scrollRef}
+        className="scrollbar-hide flex gap-3 overflow-x-auto scroll-smooth px-1 lg:px-16"
+      >
+        {days.map((day) => {
+          const isSelected = day.id === selectedDayId;
+
+          return (
+            <button
+              key={day.id}
+              type="button"
+              onClick={() => onSelectDay(day)}
+              className={`min-w-67.5 shrink-0 rounded-2xl border px-5 py-4 text-left transition cursor-pointer ${isSelected
+                  ? "border-primary bg-primary text-primary-foreground shadow-md"
+                  : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-card-hover"
+                }`}
             >
-              {dayLabel || "---"}
-            </p>
-          </button>
-        );
-      })}
+              <p className="text-sm font-black">Day {day.dayNumber}</p>
+
+              <p
+                className={`mt-1 line-clamp-1 text-xs font-semibold ${isSelected
+                    ? "text-primary-foreground/85"
+                    : "text-secondary-foreground"
+                  }`}
+              >
+                {day.title}
+              </p>
+            </button>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={scrollRight}
+        className="absolute right-4 top-1/2 z-20 hidden cursor-pointer h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background/95 text-foreground shadow-md backdrop-blur transition hover:scale-105 hover:bg-card-hover lg:flex"
+        aria-label="Scroll days right"
+      >
+        <ChevronRight className="h-5 w-5" />
+      </button>
     </div>
   );
 }
