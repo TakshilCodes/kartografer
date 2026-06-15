@@ -12,6 +12,19 @@ function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+export function getGeminiApiKeys() {
+  const keys = (process.env.GEMINI_API_KEYS ?? "")
+    .split(",")
+    .map((key) => key.trim())
+    .filter(Boolean);
+
+  if (keys.length === 0) {
+    throw new Error("GEMINI_API_KEYS is missing. Add one or more comma-separated Gemini API keys.");
+  }
+
+  return keys;
+}
+
 function getErrorStatus(error: unknown) {
   if (
     typeof error === "object" &&
@@ -28,7 +41,20 @@ function getErrorStatus(error: unknown) {
 function isRetryableGeminiError(error: unknown) {
   const status = getErrorStatus(error);
 
-  return status === 429 || status === 500 || status === 502 || status === 503 || status === 504;
+  return (
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504
+  );
+}
+
+function getGeminiModels() {
+  return [
+    process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
+    process.env.GEMINI_FALLBACK_MODEL ?? "gemini-2.5-flash-lite",
+  ];
 }
 
 async function generateWithModel({
@@ -57,55 +83,57 @@ async function generateWithModel({
 export async function generateTextWithGemini(
   input: GenerateTextWithGeminiInput
 ): Promise<GenerateTextWithGeminiResult> {
-  const apiKey = process.env.GEMINI_API_KEY_DEV;
-
-  const models = [
-    process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
-    process.env.GEMINI_FALLBACK_MODEL ?? "gemini-2.5-flash-lite",
-  ];
-
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY_DEV is missing.");
-  }
-
-  const ai = new GoogleGenAI({
-    apiKey,
-  });
-
+  const apiKeys = getGeminiApiKeys();
+  const models = getGeminiModels();
   let lastError: unknown = null;
 
-  for (const model of models) {
-    for (let attempt = 1; attempt <= 3; attempt++) {
-      try {
-        const text = await generateWithModel({
-          ai,
-          model,
-          prompt: input.prompt,
-        });
+  for (const [keyIndex, apiKey] of apiKeys.entries()) {
+    const ai = new GoogleGenAI({
+      apiKey,
+    });
 
-        return {
-          text,
-        };
-      } catch (error) {
-        lastError = error;
+    for (const [modelIndex, model] of models.entries()) {
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const text = await generateWithModel({
+            ai,
+            model,
+            prompt: input.prompt,
+          });
 
-        const isLastAttempt = attempt === 3;
+          return {
+            text,
+          };
+        } catch (error) {
+          lastError = error;
 
-        if (!isRetryableGeminiError(error) || isLastAttempt) {
-          break;
+          if (!isRetryableGeminiError(error)) {
+            throw error;
+          }
+
+          const isLastAttempt = attempt === 3;
+
+          if (!isLastAttempt) {
+            const delay = attempt * 1500;
+
+            console.warn(
+              `Gemini request failed with retryable error. Retrying ${attempt + 1}/3 in ${delay}ms...`
+            );
+
+            await sleep(delay);
+          }
         }
+      }
 
-        const delay = attempt * 1500;
+      const hasNextModelForSameKey = modelIndex < models.length - 1;
+      const hasNextApiKey = keyIndex < apiKeys.length - 1;
 
-        console.warn(
-          `Gemini model ${model} failed. Retrying ${attempt + 1}/3 in ${delay}ms...`
-        );
-
-        await sleep(delay);
+      if (hasNextModelForSameKey) {
+        console.warn("Switching Gemini model...");
+      } else if (hasNextApiKey) {
+        console.warn("Switching Gemini API key...");
       }
     }
-
-    console.warn(`Switching from Gemini model ${model} to fallback model...`);
   }
 
   throw lastError instanceof Error

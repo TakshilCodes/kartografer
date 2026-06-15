@@ -6,17 +6,16 @@ import { useMemo, useRef, useState, useTransition } from "react";
 import {
   ArrowLeft,
   ArrowRight,
-  CheckCircle2,
   Loader2,
   MailCheck,
   RotateCcw,
   ShieldCheck,
 } from "lucide-react";
 
-import { resendSignupOtpAction } from "@/actions/auth/resend-signup-otp.action";
-import { verifySignupOtpAction } from "@/actions/auth/verify-signup-otp.action";
+import { resendPasswordResetOtpAction } from "@/actions/auth/resend-password-reset-otp.action";
+import { verifyPasswordResetOtpAction } from "@/actions/auth/verify-password-reset-otp.action";
 
-type VerifyOtpClientProps = {
+type ResetPasswordOtpClientProps = {
   email: string;
 };
 
@@ -29,10 +28,7 @@ function getActionErrorMessage(error: unknown) {
 
   if (typeof error === "object") {
     const fieldErrors = error as Record<string, string[] | undefined>;
-
-    const firstError = Object.values(fieldErrors)
-      .flat()
-      .find(Boolean);
+    const firstError = Object.values(fieldErrors).flat().find(Boolean);
 
     if (firstError) return firstError;
   }
@@ -40,16 +36,15 @@ function getActionErrorMessage(error: unknown) {
   return "Something went wrong. Please try again.";
 }
 
-export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
+export default function ResetPasswordOtpClient({
+  email,
+}: ResetPasswordOtpClientProps) {
   const router = useRouter();
-
   const [otpValues, setOtpValues] = useState(["", "", "", "", "", ""]);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
-
   const [isVerifyPending, startVerifyTransition] = useTransition();
   const [isResendPending, startResendTransition] = useTransition();
-
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const otp = useMemo(() => otpValues.join(""), [otpValues]);
@@ -57,8 +52,8 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
 
   function handleOtpChange(index: number, value: string) {
     const digit = value.replace(/\D/g, "").slice(-1);
-
     const nextOtp = [...otpValues];
+
     nextOtp[index] = digit;
     setOtpValues(nextOtp);
     setError(null);
@@ -95,11 +90,13 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
 
     if (!pastedValue) return;
 
-    const nextOtp = Array.from({ length: 6 }, (_, index) => pastedValue[index] ?? "");
-    setOtpValues(nextOtp);
+    const nextOtp = Array.from(
+      { length: 6 },
+      (_, index) => pastedValue[index] ?? ""
+    );
 
-    const focusIndex = Math.min(pastedValue.length, 6) - 1;
-    inputRefs.current[focusIndex]?.focus();
+    setOtpValues(nextOtp);
+    inputRefs.current[Math.min(pastedValue.length, 6) - 1]?.focus();
   }
 
   function handleVerify(event: React.FormEvent<HTMLFormElement>) {
@@ -113,21 +110,20 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
     }
 
     startVerifyTransition(async () => {
-      const result = await verifySignupOtpAction({
+      const result = await verifyPasswordResetOtpAction({
         email,
         otp,
       });
 
-      if (!result.ok) {
+      if (!result.ok || !result.resetToken) {
         setError(getActionErrorMessage(result.error));
         return;
       }
 
-      setSuccessMsg("Account verified successfully. Redirecting to sign in...");
-
-      setTimeout(() => {
-        router.push("/signin");
-      }, 900);
+      setSuccessMsg("Code verified. Opening password reset...");
+      router.push(
+        `/reset-password/new-password?token=${encodeURIComponent(result.resetToken)}`
+      );
     });
   }
 
@@ -136,7 +132,7 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
     setSuccessMsg(null);
 
     startResendTransition(async () => {
-      const result = await resendSignupOtpAction({
+      const result = await resendPasswordResetOtpAction({
         email,
       });
 
@@ -146,25 +142,22 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
       }
 
       setOtpValues(["", "", "", "", "", ""]);
-      setSuccessMsg("A new verification code was sent.");
+      setSuccessMsg("A new reset code was sent.");
     });
   }
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      {/* Background */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-1/2 top-[-280px] h-[560px] w-[920px] -translate-x-1/2 rounded-full bg-card-secondary/50 blur-3xl" />
         <div className="absolute right-[-220px] top-24 h-[440px] w-[440px] rounded-full bg-accent/10 blur-3xl" />
         <div className="absolute bottom-[-260px] left-[-180px] h-[480px] w-[480px] rounded-full bg-primary/10 blur-3xl" />
-
         <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:44px_44px] opacity-30" />
         <div className="absolute inset-0 bg-linear-to-b from-background/10 via-background/80 to-background" />
       </div>
 
-      {/* Back button */}
       <Link
-        href="/signup"
+        href="/forgot-password"
         className="group fixed left-4 top-4 z-20 inline-flex items-center gap-2 rounded-full border border-white/60 bg-white/45 px-4 py-2 text-sm font-bold text-foreground shadow-[0_14px_40px_rgba(93,62,29,0.12)] backdrop-blur-2xl transition hover:bg-white/70 hover:shadow-[0_18px_50px_rgba(93,62,29,0.16)] sm:left-6 sm:top-6"
       >
         <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-0.5" />
@@ -173,11 +166,10 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
 
       <section className="relative z-10 flex min-h-screen items-center justify-center px-4 py-24">
         <div className="w-full max-w-[460px]">
-          {/* Top title */}
           <div className="mb-6 text-center">
             <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-white/45 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-secondary-foreground shadow-sm backdrop-blur-xl">
               <ShieldCheck className="h-3.5 w-3.5" />
-              Email verification
+              Password reset
             </div>
 
             <h1 className="text-3xl font-black tracking-[-0.05em] text-foreground sm:text-4xl">
@@ -185,16 +177,13 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
             </h1>
 
             <p className="mt-2 text-sm font-semibold leading-6 text-muted-foreground">
-              We sent a 6-digit verification code to{" "}
+              Enter the 6-digit reset code sent to{" "}
               <span className="font-black text-primary">{email}</span>.
             </p>
           </div>
 
-          {/* Card */}
           <div className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white/35 p-2 shadow-[0_30px_100px_rgba(93,62,29,0.18)] backdrop-blur-2xl">
             <div className="absolute inset-0 bg-linear-to-b from-white/60 via-white/30 to-white/10" />
-            <div className="absolute left-1/2 top-[-120px] h-60 w-60 -translate-x-1/2 rounded-full bg-card-secondary/45 blur-3xl" />
-            <div className="absolute bottom-[-120px] right-[-120px] h-72 w-72 rounded-full bg-accent/10 blur-3xl" />
 
             <div className="relative rounded-[1.55rem] border border-white/55 bg-card/90 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] sm:p-7">
               <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-background shadow-sm">
@@ -203,7 +192,7 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
 
               <form onSubmit={handleVerify}>
                 <label className="mb-3 block text-center text-sm font-black text-foreground">
-                  Enter verification code
+                  Enter reset code
                 </label>
 
                 <div className="flex justify-center gap-2 sm:gap-3">
@@ -228,18 +217,17 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
                   ))}
                 </div>
 
-                {error && (
+                {error ? (
                   <div className="mt-5 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm font-bold text-danger">
                     {error}
                   </div>
-                )}
+                ) : null}
 
-                {successMsg && (
-                  <div className="mt-5 flex items-center gap-2 rounded-2xl border border-success/25 bg-success/10 px-4 py-3 text-sm font-bold text-success">
-                    <CheckCircle2 className="h-4 w-4" />
+                {successMsg ? (
+                  <div className="mt-5 rounded-2xl border border-success/25 bg-success/10 px-4 py-3 text-sm font-bold text-success">
                     {successMsg}
                   </div>
-                )}
+                ) : null}
 
                 <button
                   type="submit"
@@ -253,7 +241,7 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
                     </>
                   ) : (
                     <>
-                      Verify account
+                      Verify code
                       <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
                     </>
                   )}
@@ -275,15 +263,12 @@ export default function VerifyOtpClient({ email }: VerifyOtpClientProps) {
                   Resend code
                 </button>
 
-                <p className="text-xs font-semibold leading-5 text-muted-foreground">
-                  Wrong email?{" "}
-                  <Link
-                    href="/signup"
-                    className="font-black text-secondary-foreground transition hover:text-primary-hover hover:underline"
-                  >
-                    Create account again
-                  </Link>
-                </p>
+                <Link
+                  href="/signin"
+                  className="text-xs font-black text-secondary-foreground transition hover:text-primary-hover hover:underline"
+                >
+                  Back to sign in
+                </Link>
               </div>
             </div>
           </div>
