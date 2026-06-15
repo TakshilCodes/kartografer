@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
     CalendarDays,
     Car,
@@ -16,6 +16,7 @@ import { useRouter } from "next/navigation";
 import { createTripAction } from "@/actions/trips/create-trip.action";
 import PlaceAutocomplete from "@/components/dashboard/PlaceAutocomplete";
 import CustomSelect from "@/components/shared/CustomSelect";
+import TripGenerationLoading from "@/components/trips/new/TripGenerationLoading";
 
 const tripTypeOptions = [
     { label: "Family Trip", value: "Family Trip" },
@@ -59,11 +60,89 @@ export default function NewTripClient() {
     const [food, setFood] = useState("Any");
     const [pace, setPace] = useState("Balanced");
 
+    const [isGenerating, setIsGenerating] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [loadingMessage, setLoadingMessage] = useState(
+        "Checking your trip details..."
+    );
+
+    useEffect(() => {
+        if (!isGenerating) return;
+
+        const steps = [
+            {
+                progress: 8,
+                message: "Checking your trip details...",
+            },
+            {
+                progress: 18,
+                message: "Preparing your travel preferences...",
+            },
+            {
+                progress: 32,
+                message: "Finding the best route...",
+            },
+            {
+                progress: 46,
+                message: "Planning your day-wise itinerary...",
+            },
+            {
+                progress: 60,
+                message: "Choosing stays and local transport...",
+            },
+            {
+                progress: 74,
+                message: "Adding meals, activities, and backup options...",
+            },
+            {
+                progress: 88,
+                message: "Calculating your estimated budget...",
+            },
+            {
+                progress: 96,
+                message: "Finalizing your trip...",
+            },
+        ];
+
+        let index = 0;
+
+        setProgress(5);
+        setLoadingMessage("Checking your trip details...");
+
+        const interval = window.setInterval(() => {
+            const step = steps[index];
+
+            if (!step) {
+                window.clearInterval(interval);
+                return;
+            }
+
+            setProgress(step.progress);
+            setLoadingMessage(step.message);
+
+            index += 1;
+        }, 2200);
+
+        return () => window.clearInterval(interval);
+    }, [isGenerating]);
+
+    if (isGenerating) {
+        return (
+            <TripGenerationLoading
+                progress={progress}
+                message={loadingMessage}
+            />
+        );
+    }
+
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
         setError(null);
         setIsLoading(true);
+        setIsGenerating(true);
+        setProgress(5);
+        setLoadingMessage("Checking your trip details...");
 
         const formData = new FormData(e.currentTarget);
 
@@ -85,11 +164,19 @@ export default function NewTripClient() {
         setIsLoading(false);
 
         if (!result.ok) {
+            setIsGenerating(false);
+            setProgress(0);
+            setLoadingMessage("Checking your trip details...");
             setError(result.error);
             return;
         }
 
-        router.push(`/dashboard/trips/${result.tripId}`);
+        setProgress(100);
+        setLoadingMessage("Trip ready. Opening your itinerary...");
+
+        window.setTimeout(() => {
+            router.push(`/dashboard/trips/${result.tripId}`);
+        }, 900);
     }
     return (
         <section className="min-h-screen bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
