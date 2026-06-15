@@ -79,7 +79,9 @@ export async function updateTripBasicInfoAction(
 
     revalidatePath(`/dashboard/trips/${tripId}`);
     revalidatePath(`/dashboard/trips/${tripId}/edit`);
+    revalidatePath("/dashboard", "layout");
     revalidatePath("/dashboard/new");
+    revalidatePath("/dashboard/trips");
 
     return {
       success: true,

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 
 import prisma from "@/lib/prisma";
@@ -11,6 +12,7 @@ import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
 import {
     FoodPreference,
+    Prisma,
     TransportPreference,
     TravelPace,
     TripStatus,
@@ -23,11 +25,13 @@ type CreateTripActionResult =
         ok: true;
         tripId: string;
         error: null;
+        errorKind?: null;
     }
     | {
         ok: false;
-        tripId: null;
+        tripId: string | null;
         error: string;
+        errorKind?: "AUTH" | "VALIDATION" | "AI_RATE_LIMIT" | "AI_BUSY" | "AI_FAILED" | "UNKNOWN";
     };
 
 function mapTripType(value: string): TripType {
@@ -85,8 +89,66 @@ function normalizePlaceName(value: string) {
     return value.trim().replace(/\s+/g, " ");
 }
 
+function revalidateTripShell(tripId: string) {
+    revalidatePath("/dashboard", "layout");
+    revalidatePath("/dashboard/new");
+    revalidatePath("/dashboard/trips");
+    revalidatePath(`/dashboard/trips/${tripId}`);
+}
+
+function getAiErrorDetails(error: unknown): {
+    error: string;
+    errorKind: "AI_RATE_LIMIT" | "AI_BUSY" | "AI_FAILED";
+} {
+    const status =
+        typeof error === "object" &&
+            error !== null &&
+            "status" in error &&
+            typeof error.status === "number"
+            ? error.status
+            : null;
+
+    const message =
+        error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
+
+    if (
+        status === 429 ||
+        message.includes("quota") ||
+        message.includes("rate limit") ||
+        message.includes("resource_exhausted")
+    ) {
+        return {
+            errorKind: "AI_RATE_LIMIT",
+            error:
+                "AI trip generation limit has been reached for now. Your trip draft was saved, but the itinerary could not be generated yet.",
+        };
+    }
+
+    if (
+        status === 500 ||
+        status === 502 ||
+        status === 503 ||
+        status === 504 ||
+        message.includes("overloaded") ||
+        message.includes("unavailable") ||
+        message.includes("busy")
+    ) {
+        return {
+            errorKind: "AI_BUSY",
+            error:
+                "Kartografer AI is in high demand right now. Your trip draft was saved, but the itinerary could not be generated yet.",
+        };
+    }
+
+    return {
+        errorKind: "AI_FAILED",
+        error:
+            "Kartografer AI could not generate the itinerary right now. Your trip draft was saved, so you can open it and edit manually.",
+    };
+}
+
 async function findOrCreatePlace(
-    tx: any,
+    tx: Prisma.TransactionClient,
     placeInput: {
         provider: "MANUAL" | "GEOAPIFY" | "MAPBOX" | "GOOGLE" | "NOMINATIM";
         providerPlaceId: string;
@@ -142,6 +204,7 @@ export async function createTripAction(
                 ok: false,
                 tripId: null,
                 error: "You must be logged in to create a trip.",
+                errorKind: "AUTH",
             };
         }
 
@@ -152,6 +215,7 @@ export async function createTripAction(
                 ok: false,
                 tripId: null,
                 error: parsed.error.issues[0]?.message ?? "Invalid trip details.",
+                errorKind: "VALIDATION",
             };
         }
 
@@ -254,8 +318,17 @@ export async function createTripAction(
             });
 
             await recalculateTripCost(result.id);
+            revalidateTripShell(result.id);
+
+            return {
+                ok: true,
+                tripId: result.id,
+                error: null,
+                errorKind: null,
+            };
         } catch (aiError) {
             console.error("AI_TRIP_GENERATION_ERROR", aiError);
+            const aiErrorDetails = getAiErrorDetails(aiError);
 
             await prisma.trip.update({
                 where: {
@@ -265,16 +338,19 @@ export async function createTripAction(
                     status: TripStatus.DRAFT,
                     isAiGenerated: false,
                     summary:
-                        "We could not generate the AI itinerary. You can still edit this trip manually.",
+                        "AI generation failed. This trip was created as an empty draft.",
                 },
             });
-        }
 
-        return {
-            ok: true,
-            tripId: result.id,
-            error: null,
-        };
+            revalidateTripShell(result.id);
+
+            return {
+                ok: false,
+                tripId: result.id,
+                error: aiErrorDetails.error,
+                errorKind: aiErrorDetails.errorKind,
+            };
+        }
     } catch (error) {
         console.error("CREATE_TRIP_ACTION_ERROR", error);
 
@@ -282,6 +358,7 @@ export async function createTripAction(
             ok: false,
             tripId: null,
             error: "Something went wrong while creating your trip.",
+            errorKind: "UNKNOWN",
         };
     }
 }

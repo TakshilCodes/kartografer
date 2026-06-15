@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import {
+    AlertTriangle,
+    ArrowRight,
     CalendarDays,
     Car,
     IndianRupee,
@@ -49,11 +51,88 @@ const paceOptions = [
     { label: "Fast", value: "Fast" },
 ];
 
+type AiDraftRecovery = {
+    tripId: string;
+    message: string;
+    errorKind?: string | null;
+};
+
+function getRecoveryTitle(errorKind?: string | null) {
+    if (errorKind === "AI_RATE_LIMIT") return "AI limit reached";
+    if (errorKind === "AI_BUSY") return "AI is busy right now";
+
+    return "Trip draft saved";
+}
+
+function AiDraftRecoveryScreen({
+    recovery,
+    onOpenDraft,
+    onBackToForm,
+}: {
+    recovery: AiDraftRecovery;
+    onOpenDraft: () => void;
+    onBackToForm: () => void;
+}) {
+    return (
+        <section className="min-h-screen bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
+            <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-3xl items-center">
+                <div className="w-full rounded-[28px] border border-border bg-card p-5 shadow-sm sm:p-6">
+                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-warning/10 text-warning">
+                            <AlertTriangle className="h-6 w-6" />
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                            <p className="text-xs font-black uppercase tracking-[0.18em] text-secondary-foreground">
+                                Draft saved
+                            </p>
+
+                            <h1 className="mt-2 text-2xl font-black text-foreground sm:text-3xl">
+                                {getRecoveryTitle(recovery.errorKind)}
+                            </h1>
+
+                            <p className="mt-3 text-sm font-semibold leading-6 text-secondary-foreground">
+                                {recovery.message}
+                            </p>
+
+                            <div className="mt-5 rounded-2xl border border-border bg-dashboard px-4 py-3 text-sm font-bold leading-6 text-secondary-foreground">
+                                You can open the saved draft now and add itinerary items manually.
+                                The trip is also available in Recent Trips.
+                            </div>
+
+                            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                                <button
+                                    type="button"
+                                    onClick={onOpenDraft}
+                                    className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground transition hover:bg-primary-hover"
+                                >
+                                    Open draft trip
+                                    <ArrowRight className="h-4 w-4" />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={onBackToForm}
+                                    className="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-border bg-card px-5 py-3 text-sm font-black text-foreground transition hover:bg-card-secondary"
+                                >
+                                    Back to form
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
 export default function NewTripClient() {
     const [isLoading, setIsLoading] = useState(false);
 
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
+    const [aiDraftRecovery, setAiDraftRecovery] =
+        useState<AiDraftRecovery | null>(null);
 
     const [tripType, setTripType] = useState("Family Trip");
     const [transport, setTransport] = useState("Any");
@@ -106,9 +185,6 @@ export default function NewTripClient() {
 
         let index = 0;
 
-        setProgress(5);
-        setLoadingMessage("Checking your trip details...");
-
         const interval = window.setInterval(() => {
             const step = steps[index];
 
@@ -126,6 +202,24 @@ export default function NewTripClient() {
         return () => window.clearInterval(interval);
     }, [isGenerating]);
 
+    if (aiDraftRecovery) {
+        return (
+            <AiDraftRecoveryScreen
+                recovery={aiDraftRecovery}
+                onOpenDraft={() => {
+                    router.refresh();
+                    router.push(`/dashboard/trips/${aiDraftRecovery.tripId}`);
+                }}
+                onBackToForm={() => {
+                    setAiDraftRecovery(null);
+                    setError(null);
+                    setProgress(0);
+                    setLoadingMessage("Checking your trip details...");
+                }}
+            />
+        );
+    }
+
     if (isGenerating) {
         return (
             <TripGenerationLoading
@@ -139,6 +233,7 @@ export default function NewTripClient() {
         e.preventDefault();
 
         setError(null);
+        setAiDraftRecovery(null);
         setIsLoading(true);
         setIsGenerating(true);
         setProgress(5);
@@ -164,6 +259,19 @@ export default function NewTripClient() {
         setIsLoading(false);
 
         if (!result.ok) {
+            if (result.tripId) {
+                router.refresh();
+                setIsGenerating(false);
+                setProgress(0);
+                setLoadingMessage("Checking your trip details...");
+                setAiDraftRecovery({
+                    tripId: result.tripId,
+                    message: result.error,
+                    errorKind: result.errorKind,
+                });
+                return;
+            }
+
             setIsGenerating(false);
             setProgress(0);
             setLoadingMessage("Checking your trip details...");
@@ -173,6 +281,7 @@ export default function NewTripClient() {
 
         setProgress(100);
         setLoadingMessage("Trip ready. Opening your itinerary...");
+        router.refresh();
 
         window.setTimeout(() => {
             router.push(`/dashboard/trips/${result.tripId}`);

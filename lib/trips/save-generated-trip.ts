@@ -29,69 +29,75 @@ export async function saveGeneratedTrip({
     throw new Error("Trip not found while saving generated trip.");
   }
 
-  await prisma.$transaction(async (tx) => {
-    await tx.trip.update({
-      where: {
-        id: tripId,
-      },
-      data: {
-        title: generatedTrip.title,
-        summary: generatedTrip.summary ?? null,
-        isAiGenerated: true,
-        status: "GENERATED",
-      },
-    });
-
-    await tx.tripActivity.deleteMany({
-      where: {
-        tripId,
-      },
-    });
-
-    await tx.transportOption.deleteMany({
-      where: {
-        tripId,
-      },
-    });
-
-    await tx.stayOption.deleteMany({
-      where: {
-        tripId,
-      },
-    });
-
-    await tx.mealSuggestion.deleteMany({
-      where: {
-        tripId,
-      },
-    });
-
-    await tx.tripDay.deleteMany({
-      where: {
-        tripId,
-      },
-    });
-
-    for (const generatedDay of generatedTrip.days) {
-      const day = await tx.tripDay.create({
+  await prisma.$transaction(
+    async (tx) => {
+      await tx.trip.update({
+        where: {
+          id: tripId,
+        },
         data: {
-          tripId,
-          dayNumber: generatedDay.dayNumber,
-          title: generatedDay.title,
-          description: generatedDay.description ?? null,
-          notes: generatedDay.notes ?? null,
+          title: generatedTrip.title,
+          summary: generatedTrip.summary ?? null,
+          isAiGenerated: true,
+          status: "GENERATED",
         },
       });
 
-      await saveDayItems({
-        tx,
-        tripId,
-        tripDayId: day.id,
-        selectedItems: generatedDay.selected,
-        optionItems: generatedDay.options,
+      await tx.tripActivity.deleteMany({
+        where: {
+          tripId,
+        },
       });
+
+      await tx.transportOption.deleteMany({
+        where: {
+          tripId,
+        },
+      });
+
+      await tx.stayOption.deleteMany({
+        where: {
+          tripId,
+        },
+      });
+
+      await tx.mealSuggestion.deleteMany({
+        where: {
+          tripId,
+        },
+      });
+
+      await tx.tripDay.deleteMany({
+        where: {
+          tripId,
+        },
+      });
+
+      for (const generatedDay of generatedTrip.days) {
+        const day = await tx.tripDay.create({
+          data: {
+            tripId,
+            dayNumber: generatedDay.dayNumber,
+            title: generatedDay.title,
+            description: generatedDay.description ?? null,
+            notes: generatedDay.notes ?? null,
+          },
+        });
+
+        await saveDayItems({
+          tx,
+          tripId,
+          tripDayId: day.id,
+          selectedItems: generatedDay.selected,
+          optionItems: generatedDay.options,
+        });
+      }
+    },
+    {
+      maxWait: 10000,
+      timeout: 30000,
     }
-  });
+  );
 }
 
 type PrismaTransactionClient = Parameters<
