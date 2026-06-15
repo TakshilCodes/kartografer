@@ -235,6 +235,10 @@ export const generatedTripSchema = z.object({
   days: z.array(generatedTripDaySchema).min(1),
 });
 
+export const generatedTripChunkSchema = z.object({
+  days: z.array(generatedTripDaySchema).min(1),
+});
+
 export type GeneratedTransport = z.infer<typeof generatedTransportSchema>;
 export type GeneratedStay = z.infer<typeof generatedStaySchema>;
 export type GeneratedMeal = z.infer<typeof generatedMealSchema>;
@@ -242,3 +246,4 @@ export type GeneratedActivity = z.infer<typeof generatedActivitySchema>;
 export type GeneratedDayItems = z.infer<typeof generatedDayItemsSchema>;
 export type GeneratedTripDay = z.infer<typeof generatedTripDaySchema>;
 export type GeneratedTrip = z.infer<typeof generatedTripSchema>;
+export type GeneratedTripChunk = z.infer<typeof generatedTripChunkSchema>;

@@ -6,7 +6,7 @@ import { getServerSession } from "next-auth";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { createTripSchema } from "@/lib/validations/trip.validation";
-import { generateTripWithAi } from "@/lib/ai/ai-client";
+import { generateTripSmartly } from "@/lib/ai/generate-trip-smartly";
 import { getAiGenerationErrorDetails } from "@/lib/ai/ai-error-details";
 import { saveGeneratedTrip } from "@/lib/trips/save-generated-trip";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
@@ -248,7 +248,7 @@ export async function createTripAction(
         });
 
         try {
-            const generatedTrip = await generateTripWithAi({
+            const generatedTrip = await generateTripSmartly({
                 fromPlace: result.fromPlace?.formattedName ?? fromName,
                 toPlace: result.toPlace?.formattedName ?? destinationName,
                 daysCount: data.days,

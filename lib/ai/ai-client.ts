@@ -19,7 +19,7 @@ export type GenerateTripInput = {
   specialNotes?: string | null;
 };
 
-function extractJsonFromAiText(text: string) {
+export function extractJsonFromAiText(text: string) {
   const cleanedText = text
     .trim()
     .replace(/^```json/i, "")
