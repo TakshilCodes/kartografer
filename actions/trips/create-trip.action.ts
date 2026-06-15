@@ -7,6 +7,7 @@ import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { createTripSchema } from "@/lib/validations/trip.validation";
 import { generateTripWithAi } from "@/lib/ai/ai-client";
+import { getAiGenerationErrorDetails } from "@/lib/ai/ai-error-details";
 import { saveGeneratedTrip } from "@/lib/trips/save-generated-trip";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
@@ -94,57 +95,6 @@ function revalidateTripShell(tripId: string) {
     revalidatePath("/dashboard/new");
     revalidatePath("/dashboard/trips");
     revalidatePath(`/dashboard/trips/${tripId}`);
-}
-
-function getAiErrorDetails(error: unknown): {
-    error: string;
-    errorKind: "AI_RATE_LIMIT" | "AI_BUSY" | "AI_FAILED";
-} {
-    const status =
-        typeof error === "object" &&
-            error !== null &&
-            "status" in error &&
-            typeof error.status === "number"
-            ? error.status
-            : null;
-
-    const message =
-        error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase();
-
-    if (
-        status === 429 ||
-        message.includes("quota") ||
-        message.includes("rate limit") ||
-        message.includes("resource_exhausted")
-    ) {
-        return {
-            errorKind: "AI_RATE_LIMIT",
-            error:
-                "AI trip generation limit has been reached for now. Your trip draft was saved, but the itinerary could not be generated yet.",
-        };
-    }
-
-    if (
-        status === 500 ||
-        status === 502 ||
-        status === 503 ||
-        status === 504 ||
-        message.includes("overloaded") ||
-        message.includes("unavailable") ||
-        message.includes("busy")
-    ) {
-        return {
-            errorKind: "AI_BUSY",
-            error:
-                "Kartografer AI is in high demand right now. Your trip draft was saved, but the itinerary could not be generated yet.",
-        };
-    }
-
-    return {
-        errorKind: "AI_FAILED",
-        error:
-            "Kartografer AI could not generate the itinerary right now. Your trip draft was saved, so you can open it and edit manually.",
-    };
 }
 
 async function findOrCreatePlace(
@@ -328,7 +278,7 @@ export async function createTripAction(
             };
         } catch (aiError) {
             console.error("AI_TRIP_GENERATION_ERROR", aiError);
-            const aiErrorDetails = getAiErrorDetails(aiError);
+            const aiErrorDetails = getAiGenerationErrorDetails(aiError);
 
             await prisma.trip.update({
                 where: {

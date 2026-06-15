@@ -10,9 +10,9 @@ import {
   Map,
   MapPin,
   Navigation,
-  Plus,
 } from "lucide-react";
 
+import EmptyTripRecovery from "@/components/trips/preview/EmptyTripRecovery";
 import TripPreviewDayPanel from "@/components/trips/preview/TripPreviewDayPanel";
 import { buildPreviewDayPanels } from "@/lib/trips/build-preview-day-panels";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
@@ -130,6 +130,20 @@ function getBudgetStatusClass(status?: string) {
     default:
       return "border border-border bg-card text-secondary-foreground";
   }
+}
+
+function hasAnyItineraryItems(count: {
+  transportOptions: number;
+  stayOptions: number;
+  mealSuggestions: number;
+  activities: number;
+}) {
+  return (
+    count.transportOptions > 0 ||
+    count.stayOptions > 0 ||
+    count.mealSuggestions > 0 ||
+    count.activities > 0
+  );
 }
 
 export default async function TripPreviewPage({
@@ -259,6 +273,14 @@ export default async function TripPreviewPage({
           position: true,
         },
       },
+      _count: {
+        select: {
+          transportOptions: true,
+          stayOptions: true,
+          mealSuggestions: true,
+          activities: true,
+        },
+      },
     },
   });
 
@@ -290,6 +312,7 @@ export default async function TripPreviewPage({
   );
   const budgetStatus = trip.costBreakdown?.budgetStatus ?? "UNKNOWN";
   const remainingAmount = budgetAmount - estimatedTotal;
+  const hasItineraryItems = hasAnyItineraryItems(trip._count);
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background px-3 py-4 sm:px-5 lg:px-6">
@@ -461,11 +484,12 @@ export default async function TripPreviewPage({
           </div>
         </Surface>
 
-        <TripPreviewDayPanel
-          tripId={trip.id}
-          dayPanels={dayPanels}
-          initialDayNumber={selectedDayFromUrl}
-          costSidebar={
+        {hasItineraryItems ? (
+          <TripPreviewDayPanel
+            tripId={trip.id}
+            dayPanels={dayPanels}
+            initialDayNumber={selectedDayFromUrl}
+            costSidebar={
             <Surface className="overflow-hidden">
               <div className="border-b border-border bg-card-secondary/50 px-4 py-3">
                 <div className="flex items-center gap-2">
@@ -558,8 +582,11 @@ export default async function TripPreviewPage({
                 </Link>
               </div>
             </Surface>
-          }
-        />
+            }
+          />
+        ) : (
+          <EmptyTripRecovery tripId={trip.id} />
+        )}
       </div>
     </div>
   );

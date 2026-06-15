@@ -56,6 +56,11 @@ Do not include explanations before or after the JSON.
 
 Required JSON shape:
 
+Enum rule:
+- Fields shown as "A | B | C" mean choose exactly one token from that list.
+- Return the token only, for example "HOTEL", not "Hotel", "hotel", "luxury hotel", or "HOTEL | RESORT".
+- Do this for mode, costType, stayType, budgetLevel, mealType, and category.
+
 {
   "title": "string",
   "summary": "string",
