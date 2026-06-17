@@ -864,49 +864,56 @@ export default function ItineraryEditor({
                     <button
                         type="button"
                         onClick={scrollDayTabsLeft}
-                        className="hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-md transition hover:bg-card-hover lg:flex"
+                        className="hidden h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-foreground shadow-md transition hover:bg-card-hover lg:flex"
                         aria-label="Scroll days left"
                     >
                         <ChevronLeft className="h-5 w-5" />
                     </button>
 
-                    <div
-                        ref={dayTabsScrollRef}
-                        className="scrollbar-hide flex min-w-0 gap-3 overflow-x-auto scroll-smooth"
-                    >
-                        {days.map((day) => {
-                            const isActive = day.id === selectedDayId;
-                            const customTitle = getDisplayDayTitle(day);
+                    <div className="relative min-w-0 overflow-hidden">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-8 bg-linear-to-r from-card/95 to-transparent" />
+                        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-8 bg-linear-to-l from-card/95 to-transparent" />
 
-                            return (
-                                <button
-                                    key={day.id}
-                                    type="button"
-                                    onClick={() => onSelectDay(day.id)}
-                                    className={`min-w-67.5 shrink-0 rounded-2xl border px-5 py-4 text-left transition ${isActive
-                                            ? "border-primary bg-primary text-primary-foreground shadow-md"
-                                            : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-card-hover"
-                                        }`}
-                                >
-                                    <p className="text-sm font-black">Day {day.dayNumber}</p>
+                        <div
+                            ref={dayTabsScrollRef}
+                            className="scrollbar-hide flex min-w-0 gap-3 overflow-x-auto scroll-smooth px-1"
+                        >
+                            {days.map((day) => {
+                                const isActive = day.id === selectedDayId;
+                                const customTitle = getDisplayDayTitle(day);
 
-                                    <p
-                                        className={`mt-1 line-clamp-1 text-xs font-semibold ${isActive
-                                                ? "text-primary-foreground/85"
-                                                : "text-secondary-foreground"
+                                return (
+                                    <button
+                                        key={day.id}
+                                        type="button"
+                                        onClick={() => onSelectDay(day.id)}
+                                        className={`min-w-67.5 shrink-0 cursor-pointer rounded-2xl border px-5 py-4 text-left transition ${isActive
+                                                ? "border-primary bg-primary text-primary-foreground shadow-md"
+                                                : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-card-hover"
                                             }`}
                                     >
-                                        {customTitle || "Plan your day"}
-                                    </p>
-                                </button>
-                            );
-                        })}
+                                        <p className="text-sm font-black">
+                                            Day {day.dayNumber}
+                                        </p>
+
+                                        <p
+                                            className={`mt-1 line-clamp-1 text-xs font-semibold ${isActive
+                                                    ? "text-primary-foreground/85"
+                                                    : "text-secondary-foreground"
+                                                }`}
+                                        >
+                                            {customTitle || "Plan your day"}
+                                        </p>
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
 
                     <button
                         type="button"
                         onClick={scrollDayTabsRight}
-                        className="hidden h-11 w-11 items-center justify-center rounded-full border border-border bg-background text-foreground shadow-md transition hover:bg-card-hover lg:flex"
+                        className="hidden h-11 w-11 cursor-pointer items-center justify-center rounded-full border border-border bg-background text-foreground shadow-md transition hover:bg-card-hover lg:flex"
                         aria-label="Scroll days right"
                     >
                         <ChevronRight className="h-5 w-5" />

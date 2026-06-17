@@ -1,8 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { Bot, Loader2, MessageCircle, Send } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+  Bot,
+  CheckCircle2,
+  Loader2,
+  MessageCircle,
+  Send,
+  Sparkles,
+  XCircle,
+} from "lucide-react";
 
+import { applyAiTripChangesAction } from "@/actions/trips/apply-ai-trip-changes.action";
+import { dismissAiTripChangesAction } from "@/actions/trips/dismiss-ai-trip-changes.action";
 import {
   sendTripChatMessageAction,
   type ChatMessageDto,
@@ -43,10 +54,14 @@ export function AiChatContent({
   tripId,
   initialMessages,
 }: AiChatContentProps) {
+  const router = useRouter();
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [pendingProposalId, setPendingProposalId] = useState<string | null>(
+    null
+  );
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -83,6 +98,62 @@ export function AiChatContent({
     });
   }
 
+  function updateProposalStatus(
+    proposalId: string,
+    status: "applied" | "dismissed"
+  ) {
+    setMessages((currentMessages) => {
+      return currentMessages.map((message) => {
+        if (message.proposal?.id !== proposalId) return message;
+
+        return {
+          ...message,
+          proposal: {
+            ...message.proposal,
+            status,
+          },
+        };
+      });
+    });
+  }
+
+  async function handleApplyProposal(proposalId: string) {
+    setError(null);
+    setPendingProposalId(proposalId);
+
+    const result = await applyAiTripChangesAction({
+      proposalId,
+    });
+
+    setPendingProposalId(null);
+
+    if (!result.ok) {
+      setError(getActionErrorMessage(result.error));
+      return;
+    }
+
+    updateProposalStatus(proposalId, "applied");
+    router.refresh();
+  }
+
+  async function handleDismissProposal(proposalId: string) {
+    setError(null);
+    setPendingProposalId(proposalId);
+
+    const result = await dismissAiTripChangesAction({
+      proposalId,
+    });
+
+    setPendingProposalId(null);
+
+    if (!result.ok) {
+      setError(getActionErrorMessage(result.error));
+      return;
+    }
+
+    updateProposalStatus(proposalId, "dismissed");
+  }
+
   function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     sendMessage(input);
@@ -94,21 +165,106 @@ export function AiChatContent({
         {messages.length === 0 ? <EmptyAssistantState /> : null}
 
         {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${
-              message.role === "user" ? "justify-end" : "justify-start"
-            }`}
-          >
+          <div key={message.id} className="space-y-2">
             <div
-              className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-6 ${
-                message.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-dashboard text-secondary-foreground"
+              className={`flex ${
+                message.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
-              {message.content}
+              <div
+                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3 py-2 text-sm leading-6 ${
+                  message.role === "user"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-dashboard text-secondary-foreground"
+                }`}
+              >
+                {message.content}
+              </div>
             </div>
+
+            {message.proposal ? (
+              <div className="flex justify-start">
+                <div className="w-full rounded-2xl border border-border bg-card-secondary/50 p-3">
+                  <div className="mb-3 flex items-start gap-2">
+                    <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <Sparkles className="h-3.5 w-3.5" />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-black text-foreground">
+                        Suggested changes
+                      </p>
+
+                      {message.proposal.summary ? (
+                        <p className="mt-1 text-xs font-semibold leading-5 text-secondary-foreground">
+                          {message.proposal.summary}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {message.proposal.changes.map((change, index) => (
+                      <div
+                        key={`${message.proposal?.id}-${change.type}-${index}`}
+                        className="rounded-xl bg-card px-3 py-2"
+                      >
+                        <p className="text-xs font-black text-foreground">
+                          {change.label}
+                        </p>
+                        <p className="mt-1 text-xs font-semibold leading-5 text-secondary-foreground">
+                          {change.reason}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {message.proposal.status === "pending" ? (
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                      <button
+                        type="button"
+                        disabled={pendingProposalId !== null}
+                        onClick={() => handleApplyProposal(message.proposal!.id)}
+                        className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2 text-xs font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {pendingProposalId === message.proposal.id ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                        )}
+                        Apply changes
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={pendingProposalId !== null}
+                        onClick={() =>
+                          handleDismissProposal(message.proposal!.id)
+                        }
+                        className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-black text-secondary-foreground transition hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <XCircle className="h-3.5 w-3.5" />
+                        Dismiss
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="mt-3 inline-flex items-center gap-2 rounded-xl bg-card px-3 py-2 text-xs font-black text-secondary-foreground">
+                      {message.proposal.status === "applied" ? (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                          Applied
+                        </>
+                      ) : (
+                        <>
+                          <XCircle className="h-3.5 w-3.5 text-secondary-foreground" />
+                          Dismissed
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : null}
           </div>
         ))}
 

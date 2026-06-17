@@ -3,14 +3,51 @@ import { getServerSession } from "next-auth";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { tripAiChangeResponseSchema } from "@/lib/ai/schemas/trip-ai-change.schema";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
 import EditTripClient from "./EditTripClient";
+import type { AiChangeProposalDto } from "@/actions/trips/send-trip-chat-message.action";
 
 type EditTripPageProps = {
   params: Promise<{
     tripId: string;
   }>;
 };
+
+function buildChatProposal(message: {
+  id: string;
+  role: "USER" | "ASSISTANT" | "SYSTEM";
+  proposedChangesJson: unknown;
+  changeSummary: string | null;
+  status: "NONE" | "PENDING" | "APPLIED" | "DISCARDED";
+}) {
+  const parsedChanges = tripAiChangeResponseSchema.shape.proposedChanges.safeParse(
+    message.proposedChangesJson
+  );
+  const changes = parsedChanges.success ? parsedChanges.data : [];
+
+  if (message.role !== "ASSISTANT" || changes.length === 0 || message.status === "NONE") {
+    return null;
+  }
+
+  const status: AiChangeProposalDto["status"] =
+    message.status === "APPLIED"
+      ? "applied"
+      : message.status === "DISCARDED"
+        ? "dismissed"
+        : "pending";
+
+  return {
+    id: message.id,
+    status,
+    summary: message.changeSummary,
+    changes: changes.map((change) => ({
+      type: change.type,
+      label: change.label,
+      reason: change.reason,
+    })),
+  };
+}
 
 export default async function EditTripPage({ params }: EditTripPageProps) {
   const session = await getServerSession(authOptions);
@@ -143,6 +180,9 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
           role: true,
           content: true,
           createdAt: true,
+          proposedChangesJson: true,
+          changeSummary: true,
+          status: true,
         },
       },
     },
@@ -263,6 +303,7 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
             role: message.role === "USER" ? "user" : "assistant",
             content: message.content,
             createdAt: message.createdAt.toISOString(),
+            proposal: buildChatProposal(message),
           })),
       }}
     />

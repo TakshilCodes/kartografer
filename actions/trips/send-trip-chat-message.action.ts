@@ -4,10 +4,16 @@ import { getServerSession } from "next-auth";
 import { z } from "zod";
 
 import { authOptions } from "@/lib/auth";
+import { extractJsonFromAiText } from "@/lib/ai/ai-client";
 import { getRetryAiErrorMessage } from "@/lib/ai/ai-error-details";
 import { generateTextWithGemini } from "@/lib/ai/gemini.provider";
 import { buildTripChatPrompt } from "@/lib/ai/prompts/trip-chat.prompt";
+import {
+  tripAiChangeResponseSchema,
+  type TripAiChange,
+} from "@/lib/ai/schemas/trip-ai-change.schema";
 import prisma from "@/lib/prisma";
+import type { TripChatPromptItem } from "@/lib/ai/prompts/trip-chat.prompt";
 
 const sendTripChatMessageSchema = z.object({
   tripId: z.string().trim().min(1, "Trip id is required."),
@@ -25,6 +31,18 @@ export type ChatMessageDto = {
   role: "user" | "assistant";
   content: string;
   createdAt: string;
+  proposal: AiChangeProposalDto | null;
+};
+
+export type AiChangeProposalDto = {
+  id: string;
+  status: "pending" | "applied" | "dismissed";
+  summary: string | null;
+  changes: Array<{
+    type: TripAiChange["type"];
+    label: string;
+    reason: string;
+  }>;
 };
 
 type SendTripChatMessageResult =
@@ -39,19 +57,46 @@ type SendTripChatMessageResult =
       error: string;
     };
 
-type SelectedItemByDay = Record<string, string[]>;
+type SelectedItemByDay = Record<string, TripChatPromptItem[]>;
 
 function toMessageDto(message: {
   id: string;
   role: "USER" | "ASSISTANT" | "SYSTEM";
   content: string;
   createdAt: Date;
+  proposedChangesJson?: unknown;
+  changeSummary?: string | null;
+  status?: "NONE" | "PENDING" | "APPLIED" | "DISCARDED";
 }): ChatMessageDto {
+  const parsedProposal = tripAiChangeResponseSchema.shape.proposedChanges.safeParse(
+    message.proposedChangesJson
+  );
+  const changes = parsedProposal.success ? parsedProposal.data : [];
+  const status = message.status ?? "NONE";
+
   return {
     id: message.id,
     role: message.role === "USER" ? "user" : "assistant",
     content: message.content,
     createdAt: message.createdAt.toISOString(),
+    proposal:
+      message.role === "ASSISTANT" && changes.length > 0 && status !== "NONE"
+        ? {
+            id: message.id,
+            status:
+              status === "APPLIED"
+                ? "applied"
+                : status === "DISCARDED"
+                  ? "dismissed"
+                  : "pending",
+            summary: message.changeSummary ?? null,
+            changes: changes.map((change) => ({
+              type: change.type,
+              label: change.label,
+              reason: change.reason,
+            })),
+          }
+        : null,
   };
 }
 
@@ -63,16 +108,86 @@ function getNumberText(value: unknown) {
   return Number.isNaN(numberValue) ? null : numberValue.toString();
 }
 
-function addItem(map: SelectedItemByDay, tripDayId: string | null, value: string) {
+function addItem(
+  map: SelectedItemByDay,
+  tripDayId: string | null,
+  item: TripChatPromptItem
+) {
   if (!tripDayId) return;
 
-  map[tripDayId] = [...(map[tripDayId] ?? []), value];
+  map[tripDayId] = [...(map[tripDayId] ?? []), item];
 }
 
 function formatCost(label: string, value: unknown) {
   const cost = getNumberText(value);
 
   return cost ? `${label}: ${cost}` : null;
+}
+
+function parseAiChatResponse(text: string) {
+  try {
+    const json = extractJsonFromAiText(text);
+    const parsed = tripAiChangeResponseSchema.safeParse(json);
+
+    if (parsed.success) {
+      return parsed.data;
+    }
+
+    console.error("TRIP_CHAT_PROPOSAL_VALIDATION_ERROR", parsed.error.flatten());
+
+    if (
+      typeof json === "object" &&
+      json !== null &&
+      "assistantMessage" in json &&
+      typeof json.assistantMessage === "string" &&
+      json.assistantMessage.trim()
+    ) {
+      return {
+        assistantMessage: json.assistantMessage.trim(),
+        proposedChanges: [],
+      };
+    }
+  } catch (error) {
+    console.error("TRIP_CHAT_JSON_PARSE_ERROR", error);
+  }
+
+  return {
+    assistantMessage: text.trim(),
+    proposedChanges: [],
+  };
+}
+
+function isLikelyChangeRequest(message: string) {
+  return /\b(add|apply|change|cheaper|delete|include|improve|make|move|reduce|remove|replace|switch|update)\b/i.test(
+    message
+  );
+}
+
+function buildProposalRepairPrompt({
+  originalPrompt,
+  previousResponse,
+  userMessage,
+}: {
+  originalPrompt: string;
+  previousResponse: string;
+  userMessage: string;
+}) {
+  return `
+${originalPrompt}
+
+The previous AI response did not include a valid proposedChanges array for an itinerary change request.
+
+User change request:
+${userMessage}
+
+Previous invalid response:
+${previousResponse}
+
+Return corrected JSON only.
+Because the user is asking to change the itinerary, proposedChanges must contain at least one safe valid change if a matching day or item exists in the context.
+If the user is modifying an existing activity, use UPDATE_ACTIVITY with the exact activityId from the context.
+Do not return plain text outside JSON.
+`;
 }
 
 export async function sendTripChatMessageAction(
@@ -155,6 +270,7 @@ export async function sendTripChatMessageAction(
             createdAt: "asc",
           },
           select: {
+            id: true,
             tripDayId: true,
             title: true,
             mode: true,
@@ -171,6 +287,7 @@ export async function sendTripChatMessageAction(
             createdAt: "asc",
           },
           select: {
+            id: true,
             tripDayId: true,
             name: true,
             area: true,
@@ -187,6 +304,7 @@ export async function sendTripChatMessageAction(
             createdAt: "asc",
           },
           select: {
+            id: true,
             tripDayId: true,
             mealType: true,
             title: true,
@@ -202,6 +320,7 @@ export async function sendTripChatMessageAction(
             position: "asc",
           },
           select: {
+            id: true,
             tripDayId: true,
             title: true,
             category: true,
@@ -232,6 +351,9 @@ export async function sendTripChatMessageAction(
         role: true,
         content: true,
         createdAt: true,
+        proposedChangesJson: true,
+        changeSummary: true,
+        status: true,
       },
     });
 
@@ -262,16 +384,19 @@ export async function sendTripChatMessageAction(
       addItem(
         transportsByDay,
         transport.tripDayId,
-        [
-          transport.title,
-          transport.mode,
-          transport.fromText && transport.toText
-            ? `${transport.fromText} to ${transport.toText}`
-            : null,
-          formatCost("cost", transport.totalCost),
-        ]
-          .filter(Boolean)
-          .join(" | ")
+        {
+          id: transport.id,
+          title: [
+            transport.title,
+            transport.mode,
+            transport.fromText && transport.toText
+              ? `${transport.fromText} to ${transport.toText}`
+              : null,
+            formatCost("cost", transport.totalCost),
+          ]
+            .filter(Boolean)
+            .join(" | "),
+        }
       );
     }
 
@@ -279,14 +404,17 @@ export async function sendTripChatMessageAction(
       addItem(
         staysByDay,
         stay.tripDayId,
-        [
-          stay.name,
-          stay.area ?? stay.city,
-          stay.stayType,
-          formatCost("cost", stay.totalCost),
-        ]
-          .filter(Boolean)
-          .join(" | ")
+        {
+          id: stay.id,
+          title: [
+            stay.name,
+            stay.area ?? stay.city,
+            stay.stayType,
+            formatCost("cost", stay.totalCost),
+          ]
+            .filter(Boolean)
+            .join(" | "),
+        }
       );
     }
 
@@ -294,14 +422,17 @@ export async function sendTripChatMessageAction(
       addItem(
         mealsByDay,
         meal.tripDayId,
-        [
-          meal.mealType,
-          meal.title,
-          meal.locationName,
-          formatCost("cost", meal.estimatedCost),
-        ]
-          .filter(Boolean)
-          .join(" | ")
+        {
+          id: meal.id,
+          title: [
+            meal.mealType,
+            meal.title,
+            meal.locationName,
+            formatCost("cost", meal.estimatedCost),
+          ]
+            .filter(Boolean)
+            .join(" | "),
+        }
       );
     }
 
@@ -309,16 +440,19 @@ export async function sendTripChatMessageAction(
       addItem(
         activitiesByDay,
         activity.tripDayId,
-        [
-          activity.startTime && activity.endTime
-            ? `${activity.startTime}-${activity.endTime}`
-            : null,
-          activity.title,
-          activity.category,
-          formatCost("cost", activity.estimatedCost),
-        ]
-          .filter(Boolean)
-          .join(" | ")
+        {
+          id: activity.id,
+          title: [
+            activity.startTime && activity.endTime
+              ? `${activity.startTime}-${activity.endTime}`
+              : null,
+            activity.title,
+            activity.category,
+            formatCost("cost", activity.estimatedCost),
+          ]
+            .filter(Boolean)
+            .join(" | "),
+        }
       );
     }
 
@@ -343,6 +477,7 @@ export async function sendTripChatMessageAction(
         ),
         budgetStatus: trip.costBreakdown?.budgetStatus ?? null,
         days: trip.days.map((day) => ({
+          id: day.id,
           dayNumber: day.dayNumber,
           title: day.title,
           description: day.description,
@@ -358,13 +493,32 @@ export async function sendTripChatMessageAction(
     });
 
     let assistantContent = "";
+    let proposedChanges: TripAiChange[] = [];
+    const shouldRequireProposal = isLikelyChangeRequest(message);
 
     try {
       const aiResult = await generateTextWithGemini({
         prompt,
       });
 
-      assistantContent = aiResult.text.trim();
+      const parsedAiResponse = parseAiChatResponse(aiResult.text);
+
+      assistantContent = parsedAiResponse.assistantMessage.trim();
+      proposedChanges = parsedAiResponse.proposedChanges;
+
+      if (shouldRequireProposal && proposedChanges.length === 0) {
+        const repairResult = await generateTextWithGemini({
+          prompt: buildProposalRepairPrompt({
+            originalPrompt: prompt,
+            previousResponse: aiResult.text,
+            userMessage: message,
+          }),
+        });
+        const repairedResponse = parseAiChatResponse(repairResult.text);
+
+        assistantContent = repairedResponse.assistantMessage.trim();
+        proposedChanges = repairedResponse.proposedChanges;
+      }
     } catch (aiError) {
       console.error("TRIP_CHAT_AI_ERROR", aiError);
 
@@ -381,18 +535,36 @@ export async function sendTripChatMessageAction(
       };
     }
 
+    if (shouldRequireProposal && proposedChanges.length === 0) {
+      return {
+        ok: false,
+        error:
+          "Kartografer AI could not create a safe change preview. Please try again with a more specific day or item name.",
+      };
+    }
+
     const assistantMessage = await prisma.tripChatMessage.create({
       data: {
         tripId,
         userId: session.user.id,
         role: "ASSISTANT",
         content: assistantContent,
+        proposedChangesJson:
+          proposedChanges.length > 0 ? proposedChanges : undefined,
+        changeSummary:
+          proposedChanges.length > 0
+            ? proposedChanges.map((change) => change.label).join("\n")
+            : undefined,
+        status: proposedChanges.length > 0 ? "PENDING" : "NONE",
       },
       select: {
         id: true,
         role: true,
         content: true,
         createdAt: true,
+        proposedChangesJson: true,
+        changeSummary: true,
+        status: true,
       },
     });
 
