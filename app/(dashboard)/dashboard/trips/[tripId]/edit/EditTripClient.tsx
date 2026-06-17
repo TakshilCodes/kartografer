@@ -10,6 +10,7 @@ import ItineraryEditor from "@/components/trips/edit/ItineraryEditor";
 import CostEstimator from "@/components/trips/edit/CostEstimator";
 import AiAssistantPanel, {
   AiChatContent,
+  type ChatMessageDto,
 } from "@/components/trips/edit/AiAssistantPanel";
 import MobileEditorFooter from "@/components/trips/edit/MobileEditorFooter";
 import MobilePanelDrawer from "@/components/trips/edit/MobilePanelDrawer";
@@ -120,6 +121,7 @@ type EditTripClientProps = {
     stayOptions: StayOption[];
     mealSuggestions: MealSuggestion[];
     activities: TripActivity[];
+    chatMessages: ChatMessageDto[];
   };
 };
 
@@ -171,7 +173,10 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
         </main>
 
         <aside className="hidden min-h-0 min-w-0 xl:block xl:h-full xl:overflow-hidden">
-          <AiAssistantPanel />
+          <AiAssistantPanel
+            tripId={trip.id}
+            initialMessages={trip.chatMessages}
+          />
         </aside>
       </div>
 
@@ -199,7 +204,10 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
           onClose={() => setMobilePanel(null)}
         >
           <div className="flex h-[70vh] flex-col overflow-hidden rounded-2xl border border-border bg-card">
-            <AiChatContent />
+            <AiChatContent
+              tripId={trip.id}
+              initialMessages={trip.chatMessages}
+            />
           </div>
         </MobilePanelDrawer>
       ) : null}

@@ -5,7 +5,6 @@ import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
 import EditTripClient from "./EditTripClient";
-import { generateTextWithGemini } from "@/lib/ai/gemini.provider";
 
 type EditTripPageProps = {
   params: Promise<{
@@ -135,6 +134,17 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
           position: true,
         },
       },
+      chatMessages: {
+        orderBy: {
+          createdAt: "asc",
+        },
+        select: {
+          id: true,
+          role: true,
+          content: true,
+          createdAt: true,
+        },
+      },
     },
   });
 
@@ -244,6 +254,16 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
           notes: activity.notes,
           position: activity.position,
         })),
+        chatMessages: trip.chatMessages
+          .filter((message) => {
+            return message.role === "USER" || message.role === "ASSISTANT";
+          })
+          .map((message) => ({
+            id: message.id,
+            role: message.role === "USER" ? "user" : "assistant",
+            content: message.content,
+            createdAt: message.createdAt.toISOString(),
+          })),
       }}
     />
   );
