@@ -19,6 +19,12 @@ import { createTripAction } from "@/actions/trips/create-trip.action";
 import PlaceAutocomplete from "@/components/dashboard/PlaceAutocomplete";
 import CustomSelect from "@/components/shared/CustomSelect";
 import TripGenerationLoading from "@/components/trips/new/TripGenerationLoading";
+import {
+    countNonWhitespaceCharacters,
+    MAX_SPECIAL_NOTES_LENGTH,
+    MAX_TRIP_DAYS,
+    MAX_TRIP_PEOPLE,
+} from "@/lib/trips/trip-limits";
 
 const tripTypeOptions = [
     { label: "Family Trip", value: "Family Trip" },
@@ -138,6 +144,9 @@ export default function NewTripClient() {
     const [transport, setTransport] = useState("Any");
     const [food, setFood] = useState("Any");
     const [pace, setPace] = useState("Balanced");
+    const [specialNotes, setSpecialNotes] = useState("");
+    const specialNotesCharacterCount =
+        countNonWhitespaceCharacters(specialNotes);
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -213,6 +222,7 @@ export default function NewTripClient() {
                 onBackToForm={() => {
                     setAiDraftRecovery(null);
                     setError(null);
+                    setSpecialNotes("");
                     setProgress(0);
                     setLoadingMessage("Checking your trip details...");
                 }}
@@ -342,7 +352,9 @@ export default function NewTripClient() {
                                 name="days"
                                 type="number"
                                 min="1"
+                                max={MAX_TRIP_DAYS.toString()}
                                 placeholder="7"
+                                helperText={`Maximum ${MAX_TRIP_DAYS} days per trip.`}
                             />
 
                             <InputField
@@ -351,7 +363,9 @@ export default function NewTripClient() {
                                 name="people"
                                 type="number"
                                 min="1"
+                                max={MAX_TRIP_PEOPLE.toString()}
                                 placeholder="3"
+                                helperText={`Maximum ${MAX_TRIP_PEOPLE} people per trip.`}
                             />
 
                             <InputField
@@ -425,9 +439,26 @@ export default function NewTripClient() {
                                 id="notes"
                                 name="notes"
                                 rows={5}
+                                value={specialNotes}
+                                onChange={(event) => {
+                                    const nextValue = event.currentTarget.value;
+
+                                    if (
+                                        countNonWhitespaceCharacters(nextValue) <=
+                                        MAX_SPECIAL_NOTES_LENGTH
+                                    ) {
+                                        setSpecialNotes(nextValue);
+                                    }
+                                }}
                                 placeholder="Example: Need family-friendly hotels, avoid risky roads, include snow places, keep budget low..."
                                 className="w-full resize-none rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:bg-input-hover focus:border-ring focus:ring-4 focus:ring-ring/20"
                             />
+                            <div className="mt-1.5 flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
+                                <span>Keep requests short and relevant to this trip.</span>
+                                <span className="shrink-0 tabular-nums">
+                                    {specialNotesCharacterCount}/{MAX_SPECIAL_NOTES_LENGTH}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -478,6 +509,8 @@ type InputFieldProps = {
     placeholder: string;
     type?: string;
     min?: string;
+    max?: string;
+    helperText?: string;
 };
 
 function InputField({
@@ -487,6 +520,8 @@ function InputField({
     placeholder,
     type = "text",
     min,
+    max,
+    helperText,
 }: InputFieldProps) {
     return (
         <div>
@@ -505,10 +540,17 @@ function InputField({
                     name={name}
                     type={type}
                     min={min}
+                    max={max}
                     placeholder={placeholder}
                     className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground/70"
                 />
             </div>
+
+            {helperText ? (
+                <p className="mt-1.5 text-xs font-semibold text-muted-foreground">
+                    {helperText}
+                </p>
+            ) : null}
         </div>
     );
 }

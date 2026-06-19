@@ -181,6 +181,89 @@ td {
   line-height: 1.5;
 }
 
+[data-dashboard-shell]:has(.trip-export-page) [data-dashboard-sidebar] {
+  display: none;
+}
+
+[data-dashboard-shell]:has(.trip-export-page) [data-dashboard-main] {
+  margin-left: 0;
+  padding-top: 0;
+}
+
+.trip-export-document {
+  width: 210mm;
+  min-height: 297mm;
+  box-shadow: 0 18px 50px rgba(52, 34, 17, 0.14);
+}
+
+.pdf-page-break-after {
+  break-after: page;
+  page-break-after: always;
+}
+
+.pdf-break-inside-avoid {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.trip-export-cover {
+  page: cover;
+}
+
+.trip-export-content {
+  page: itinerary;
+}
+
+@page {
+  size: A4;
+  margin: 0;
+  background: #fffdf8;
+}
+
+@page cover {
+  size: A4;
+  margin: 0;
+  background: #fffdf8;
+}
+
+@page itinerary {
+  size: A4;
+  margin: 0;
+  background: #fffdf8;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  html,
+  body,
+  [data-dashboard-shell],
+  [data-dashboard-main],
+  .trip-export-page,
+  .trip-export-page main {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fffdf8 !important;
+  }
+
+  .trip-export-document {
+    width: 210mm !important;
+    min-height: 297mm !important;
+    box-shadow: none !important;
+  }
+
+  .trip-export-cover {
+    min-height: 297mm;
+  }
+
+  .trip-export-content {
+    width: 210mm !important;
+    padding: 12mm 14mm !important;
+  }
+}
+
 .font-semibold.text-muted-foreground,
 .font-semibold.text-secondary-foreground {
   font-weight: 500;

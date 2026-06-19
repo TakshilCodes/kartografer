@@ -10,6 +10,10 @@ import { getRetryAiErrorMessage } from "@/lib/ai/ai-error-details";
 import prisma from "@/lib/prisma";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 import { saveGeneratedTrip } from "@/lib/trips/save-generated-trip";
+import {
+  MAX_TRIP_DAYS,
+  MAX_TRIP_PEOPLE,
+} from "@/lib/trips/trip-limits";
 
 const generateTripItinerarySchema = z.object({
   tripId: z.string().trim().min(1, "Trip id is required."),
@@ -131,6 +135,22 @@ export async function generateTripItineraryAction(
         ok: false,
         tripId,
         error: "Trip not found.",
+      };
+    }
+
+    if (trip.daysCount > MAX_TRIP_DAYS) {
+      return {
+        ok: false,
+        tripId,
+        error: `Trips cannot be more than ${MAX_TRIP_DAYS} days.`,
+      };
+    }
+
+    if (trip.peopleCount > MAX_TRIP_PEOPLE) {
+      return {
+        ok: false,
+        tripId,
+        error: `A trip cannot have more than ${MAX_TRIP_PEOPLE} people.`,
       };
     }
 

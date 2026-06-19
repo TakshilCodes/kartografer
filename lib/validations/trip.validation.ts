@@ -1,9 +1,20 @@
 import { z } from "zod";
 
+import {
+  countNonWhitespaceCharacters,
+  MAX_SPECIAL_NOTES_LENGTH,
+  MAX_TRIP_DAYS,
+  MAX_TRIP_PEOPLE,
+} from "@/lib/trips/trip-limits";
+
 const optionalNotes = z
   .string()
   .trim()
-  .max(1000, "Special notes should be less than 1000 characters.")
+  .refine(
+    (value) =>
+      countNonWhitespaceCharacters(value) <= MAX_SPECIAL_NOTES_LENGTH,
+    `Special notes cannot be more than ${MAX_SPECIAL_NOTES_LENGTH} characters, excluding spaces.`
+  )
   .optional()
   .or(z.literal(""));
 
@@ -81,13 +92,19 @@ export const createTripSchema = z.object({
     .number()
     .int("Number of days must be a whole number.")
     .min(1, "Trip must be at least 1 day.")
-    .max(60, "For V1, trips cannot be more than 60 days."),
+    .max(
+      MAX_TRIP_DAYS,
+      `Trips cannot be more than ${MAX_TRIP_DAYS} days.`
+    ),
 
   people: z.coerce
     .number()
     .int("People count must be a whole number.")
     .min(1, "At least 1 person is required.")
-    .max(50, "For V1, people count cannot be more than 50."),
+    .max(
+      MAX_TRIP_PEOPLE,
+      `A trip cannot have more than ${MAX_TRIP_PEOPLE} people.`
+    ),
 
   budget: budgetSchema,
 

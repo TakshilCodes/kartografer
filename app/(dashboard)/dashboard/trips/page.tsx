@@ -16,6 +16,10 @@ function getPlaceLabel(place: { name: string; formattedName: string } | null) {
   return place.formattedName || place.name;
 }
 
+function serializeNullableDate(value: Date | null) {
+  return value ? value.toISOString() : null;
+}
+
 export default async function MyTripsPage() {
   const session = await getServerSession(authOptions);
 
@@ -100,7 +104,7 @@ export default async function MyTripsPage() {
     publicShareUrl: trip.publicShareSlug
       ? getPublicTripShareUrl(trip.publicShareSlug)
       : null,
-    publicSharedAt: trip.publicSharedAt?.toISOString() ?? null,
+    publicSharedAt: serializeNullableDate(trip.publicSharedAt),
   }));
 
   return (

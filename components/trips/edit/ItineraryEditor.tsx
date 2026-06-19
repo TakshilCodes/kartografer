@@ -77,6 +77,7 @@ import {
     updateTripActivityAction,
 } from "@/actions/trips/trip-activity.action";
 import ItemActionsMenu from "@/components/trips/edit/ItemActionsMenu";
+import { MAX_TRIP_DAYS } from "@/lib/trips/trip-limits";
 
 type TripDay = {
     id: string;
@@ -361,6 +362,11 @@ export default function ItineraryEditor({
 
     function handleCreateDay() {
         setMessage("");
+
+        if (days.length >= MAX_TRIP_DAYS) {
+            setMessage(`A trip cannot have more than ${MAX_TRIP_DAYS} days.`);
+            return;
+        }
 
         startTransition(async () => {
             const result = await createTripDayAction({
@@ -851,12 +857,21 @@ export default function ItineraryEditor({
 
                     <button
                         type="button"
-                        disabled={isPending}
+                        disabled={isPending || days.length >= MAX_TRIP_DAYS}
                         onClick={handleCreateDay}
+                        title={
+                            days.length >= MAX_TRIP_DAYS
+                                ? `${MAX_TRIP_DAYS}-day limit reached`
+                                : "Add another day"
+                        }
                         className="inline-flex items-center justify-center cursor-pointer gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-black text-foreground transition hover:bg-card-secondary disabled:cursor-not-allowed disabled:opacity-70"
                     >
                         <Plus className="h-3.5 w-3.5" />
-                        {isPending ? "Adding..." : "Add day"}
+                        {isPending
+                            ? "Adding..."
+                            : days.length >= MAX_TRIP_DAYS
+                              ? `${MAX_TRIP_DAYS}-day limit`
+                              : "Add day"}
                     </button>
                 </div>
 

@@ -7,6 +7,7 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
+import { MAX_TRIP_DAYS } from "@/lib/trips/trip-limits";
 
 const createTripDaySchema = z.object({
   tripId: z.string().trim().min(1, "Trip id is required."),
@@ -103,6 +104,14 @@ export async function createTripDayAction(input: CreateTripDayInput) {
     }
 
     const highestDayNumber = trip.days[0]?.dayNumber ?? 0;
+
+    if (Math.max(trip.daysCount, highestDayNumber) >= MAX_TRIP_DAYS) {
+      return {
+        success: false,
+        message: `A trip cannot have more than ${MAX_TRIP_DAYS} days.`,
+      };
+    }
+
     const newDayNumber = highestDayNumber + 1;
 
     const newDay = await prisma.tripDay.create({

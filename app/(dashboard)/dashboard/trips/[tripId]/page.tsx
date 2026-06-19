@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   Compass,
   Edit3,
+  FileDown,
   IndianRupee,
   Map,
   MapPin,
@@ -346,6 +347,14 @@ export default async function TripPreviewPage({
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <Link
+              href={`/dashboard/trips/${trip.id}/export`}
+              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-2 text-sm font-black text-foreground transition hover:bg-card-secondary"
+            >
+              <FileDown className="h-4 w-4" />
+              Export PDF
+            </Link>
+
             <TripShareDialog
               tripId={trip.id}
               tripTitle={trip.title}
