@@ -64,7 +64,7 @@ export default function TripPreviewDayTabs({
               key={day.id}
               type="button"
               onClick={() => onSelectDay(day)}
-              className={`min-w-67.5 shrink-0 rounded-2xl border px-5 py-4 text-left transition cursor-pointer ${isSelected
+              className={`h-20 w-52 shrink-0 rounded-2xl border px-4 py-3 text-left transition cursor-pointer ${isSelected
                   ? "border-primary bg-primary text-primary-foreground shadow-md"
                   : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-card-hover"
                 }`}

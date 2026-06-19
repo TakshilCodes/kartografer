@@ -158,6 +158,14 @@ function parseAiChatResponse(text: string) {
 }
 
 function isLikelyChangeRequest(message: string) {
+  const normalizedMessage = message.trim().toLowerCase();
+
+  const isAdviceQuestion =
+    /^(can|could|should|would)\s+i\b/.test(normalizedMessage) ||
+    /^(how|what)\s+(can|could|should|would)\s+i\b/.test(normalizedMessage);
+
+  if (isAdviceQuestion) return false;
+
   return /\b(add|apply|change|cheaper|delete|include|improve|make|move|reduce|remove|replace|switch|update)\b/i.test(
     message
   );
@@ -532,14 +540,6 @@ export async function sendTripChatMessageAction(
       return {
         ok: false,
         error: "Kartografer AI returned an empty response. Please try again.",
-      };
-    }
-
-    if (shouldRequireProposal && proposedChanges.length === 0) {
-      return {
-        ok: false,
-        error:
-          "Kartografer AI could not create a safe change preview. Please try again with a more specific day or item name.",
       };
     }
 

@@ -887,7 +887,7 @@ export default function ItineraryEditor({
                                         key={day.id}
                                         type="button"
                                         onClick={() => onSelectDay(day.id)}
-                                        className={`min-w-67.5 shrink-0 cursor-pointer rounded-2xl border px-5 py-4 text-left transition ${isActive
+                                        className={`h-20 w-52 shrink-0 cursor-pointer rounded-2xl border px-4 py-3 text-left transition ${isActive
                                                 ? "border-primary bg-primary text-primary-foreground shadow-md"
                                                 : "border-border bg-background text-foreground hover:border-primary/40 hover:bg-card-hover"
                                             }`}

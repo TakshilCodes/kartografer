@@ -53,6 +53,10 @@
 }
 
 @theme inline {
+  --font-sans: "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: "Segoe UI Variable Display", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-sans);
+
   --color-background: var(--background);
   --color-dashboard: var(--dashboard);
   --color-card: var(--card);
@@ -98,15 +102,88 @@
 
 * {
   box-sizing: border-box;
+  letter-spacing: 0;
 }
 
 html {
   scroll-behavior: smooth;
+  font-family: var(--font-sans);
+  font-optical-sizing: auto;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+  text-wrap: balance;
+}
+
+h1,
+h2 {
+  font-weight: 900;
+  line-height: 1.12;
+}
+
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.font-extrabold,
+.font-black {
+  font-family: var(--font-display);
+}
+
+button,
+[role="button"],
+label,
+legend,
+nav a,
+th {
+  font-family: inherit;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+input::placeholder,
+textarea::placeholder {
+  font-family: inherit;
+  font-weight: 500;
+}
+
+td {
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.font-semibold.text-muted-foreground,
+.font-semibold.text-secondary-foreground {
+  font-weight: 500;
 }
 
 @keyframes fade-up {

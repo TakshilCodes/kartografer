@@ -114,6 +114,8 @@ Response rules:
 - "assistantMessage" is normal text shown to the user.
 - "proposedChanges" is an array of structured changes.
 - If the user only asks a general question, use an empty proposedChanges array.
+- Advice questions such as "Can I make Day 1 cheaper?" or "How can I reduce the trip cost?" may use an empty proposedChanges array and should receive a useful normal answer.
+- Requests directed at you, such as "Make Day 1 cheaper" or "Can you update this activity?", should include valid proposed changes when matching items exist.
 - If the user asks to make, update, add, remove, replace, include, move, reduce, or improve itinerary content, proposedChanges must contain at least one valid change when a matching day/item exists.
 - Use only IDs that appear in the trip context below.
 - Do not invent IDs.
