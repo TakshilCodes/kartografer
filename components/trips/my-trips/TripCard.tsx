@@ -5,9 +5,10 @@ import {
   CircleDot,
   Edit3,
   MapPin,
-  Navigation,
   Users,
 } from "lucide-react";
+
+import TripShareDialog from "@/components/trips/share/TripShareDialog";
 
 export type MyTripCardData = {
   id: string;
@@ -27,6 +28,9 @@ export type MyTripCardData = {
   budgetStatus: string | null;
   dayCount: number;
   activityCount: number;
+  isPublicShareEnabled: boolean;
+  publicShareUrl: string | null;
+  publicSharedAt: string | null;
 };
 
 type TripCardProps = {
@@ -109,10 +113,6 @@ function TripMapPlaceholder({ trip }: TripCardProps) {
           </span>
         </div>
       </div>
-
-      <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-card/90 text-primary">
-        <Navigation className="h-3.5 w-3.5" />
-      </span>
     </div>
   );
 }
@@ -126,10 +126,22 @@ export default function TripCard({ trip }: TripCardProps) {
   const costLabel = estimatedCost ? "Estimated cost" : "Planned budget";
 
   return (
-    <article className="group min-w-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md">
-      <Link href={previewHref} aria-label={`View ${trip.title}`}>
-        <TripMapPlaceholder trip={trip} />
-      </Link>
+    <article className="group min-w-0 overflow-hidden rounded-lg border border-border bg-card shadow-sm transition duration-200 hover:border-primary/35 hover:shadow-md">
+      <div className="relative">
+        <Link href={previewHref} aria-label={`View ${trip.title}`}>
+          <TripMapPlaceholder trip={trip} />
+        </Link>
+        <div className="absolute right-3 top-3 z-20">
+          <TripShareDialog
+            tripId={trip.id}
+            tripTitle={trip.title}
+            initialEnabled={trip.isPublicShareEnabled}
+            initialPublicUrl={trip.publicShareUrl}
+            initialSharedAt={trip.publicSharedAt}
+            triggerVariant="icon"
+          />
+        </div>
+      </div>
 
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">

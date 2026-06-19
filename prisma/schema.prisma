@@ -144,6 +144,10 @@ model Trip {
 
   isAiGenerated Boolean @default(false)
 
+  isPublicShareEnabled Boolean   @default(false)
+  publicShareSlug      String?   @unique
+  publicSharedAt       DateTime?
+
   originalTripId String?
 
   publishedAt DateTime?

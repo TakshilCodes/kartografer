@@ -14,6 +14,8 @@ import {
 
 import EmptyTripRecovery from "@/components/trips/preview/EmptyTripRecovery";
 import TripPreviewDayPanel from "@/components/trips/preview/TripPreviewDayPanel";
+import TripShareDialog from "@/components/trips/share/TripShareDialog";
+import { getPublicTripShareUrl } from "@/lib/app-url";
 import { buildPreviewDayPanels } from "@/lib/trips/build-preview-day-panels";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
 import prisma from "@/lib/prisma";
@@ -344,6 +346,18 @@ export default async function TripPreviewPage({
           </div>
 
           <div className="flex flex-wrap gap-2">
+            <TripShareDialog
+              tripId={trip.id}
+              tripTitle={trip.title}
+              initialEnabled={trip.isPublicShareEnabled}
+              initialPublicUrl={
+                trip.publicShareSlug
+                  ? getPublicTripShareUrl(trip.publicShareSlug)
+                  : null
+              }
+              initialSharedAt={trip.publicSharedAt?.toISOString() ?? null}
+            />
+
             <Link
               href={`/dashboard/trips/${trip.id}/edit`}
               className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-5 py-2 text-sm font-black text-primary-foreground shadow-lg shadow-primary/15 transition hover:bg-primary-hover"

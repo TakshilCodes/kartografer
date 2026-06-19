@@ -7,6 +7,7 @@ import EmptyTripsState from "@/components/trips/my-trips/EmptyTripsState";
 import MyTripsGrid from "@/components/trips/my-trips/MyTripsGrid";
 import type { MyTripCardData } from "@/components/trips/my-trips/TripCard";
 import { authOptions } from "@/lib/auth";
+import { getPublicTripShareUrl } from "@/lib/app-url";
 import prisma from "@/lib/prisma";
 
 function getPlaceLabel(place: { name: string; formattedName: string } | null) {
@@ -46,6 +47,9 @@ export default async function MyTripsPage() {
       isAiGenerated: true,
       createdAt: true,
       updatedAt: true,
+      isPublicShareEnabled: true,
+      publicShareSlug: true,
+      publicSharedAt: true,
       fromPlace: {
         select: {
           name: true,
@@ -92,6 +96,11 @@ export default async function MyTripsPage() {
     budgetStatus: trip.costBreakdown?.budgetStatus ?? null,
     dayCount: trip._count.days,
     activityCount: trip._count.activities,
+    isPublicShareEnabled: trip.isPublicShareEnabled,
+    publicShareUrl: trip.publicShareSlug
+      ? getPublicTripShareUrl(trip.publicShareSlug)
+      : null,
+    publicSharedAt: trip.publicSharedAt?.toISOString() ?? null,
   }));
 
   return (
