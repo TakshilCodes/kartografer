@@ -11,6 +11,10 @@ import { getAiGenerationErrorDetails } from "@/lib/ai/ai-error-details";
 import { saveGeneratedTrip } from "@/lib/trips/save-generated-trip";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 import { createUniquePublicShareSlug } from "@/lib/trips/public-share-slug";
+import {
+    consumeAiTripGenerationLimit,
+    getAiRateLimitErrorMessage,
+} from "@/lib/rate-limit/ai-rate-limit";
 
 import {
     FoodPreference,
@@ -171,6 +175,20 @@ export async function createTripAction(
         }
 
         const data = parsed.data;
+
+        const aiRateLimit = await consumeAiTripGenerationLimit({
+            userId: session.user.id,
+            isLongTrip: data.days > 7,
+        });
+
+        if (!aiRateLimit.allowed) {
+            return {
+                ok: false,
+                tripId: null,
+                error: getAiRateLimitErrorMessage(aiRateLimit),
+                errorKind: "AI_RATE_LIMIT",
+            };
+        }
 
         const userSettings = await prisma.userSettings.findUnique({
             where: {

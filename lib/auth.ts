@@ -6,7 +6,10 @@ import bcrypt from "bcryptjs";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
-
+import {
+  clearLoginEmailLimit,
+  consumeLoginAttempt,
+} from "@/lib/rate-limit/login-rate-limit";
 const LoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
@@ -39,7 +42,21 @@ export const authOptions: NextAuthOptions = {
         },
       },
 
-      async authorize(credentials) {
+      async authorize(credentials, req) {
+        const attemptedEmail =
+          typeof credentials?.email === "string" ? credentials.email : "";
+
+        const rateLimit = await consumeLoginAttempt({
+          email: attemptedEmail,
+          headers: req.headers,
+        });
+
+        if (!rateLimit.allowed) {
+          throw new Error(
+            "LOGIN_RATE_LIMITED:" + rateLimit.retryAfterSeconds
+          );
+        }
+
         const parsed = LoginSchema.safeParse(credentials);
 
         if (!parsed.success) return null;
@@ -70,6 +87,8 @@ export const authOptions: NextAuthOptions = {
         );
 
         if (!isPasswordValid) return null;
+
+        await clearLoginEmailLimit(email);
 
         return {
           id: user.id,

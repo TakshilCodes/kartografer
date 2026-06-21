@@ -59,6 +59,25 @@ export default function SigninClient() {
             });
 
             if (result?.error) {
+                if (result.error.startsWith("LOGIN_RATE_LIMITED:")) {
+                    const retryAfterSeconds = Number(
+                        result.error.split(":")[1]
+                    );
+                    const retryAfterMinutes = Math.max(
+                        1,
+                        Math.ceil(retryAfterSeconds / 60)
+                    );
+                    const minuteLabel =
+                        retryAfterMinutes === 1 ? " minute." : " minutes.";
+
+                    setError(
+                        "Too many login attempts. Try again in " +
+                            retryAfterMinutes +
+                            minuteLabel
+                    );
+                    return;
+                }
+
                 setError("Invalid email or password.");
                 return;
             }

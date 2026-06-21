@@ -11,6 +11,10 @@ import prisma from "@/lib/prisma";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 import { saveGeneratedTrip } from "@/lib/trips/save-generated-trip";
 import {
+  consumeAiTripGenerationLimit,
+  getAiRateLimitErrorMessage,
+} from "@/lib/rate-limit/ai-rate-limit";
+import {
   MAX_TRIP_DAYS,
   MAX_TRIP_PEOPLE,
 } from "@/lib/trips/trip-limits";
@@ -168,6 +172,19 @@ export async function generateTripItineraryAction(
         tripId,
         error:
           "This trip already has itinerary items. Continue editing manually from the trip editor.",
+      };
+    }
+
+    const aiRateLimit = await consumeAiTripGenerationLimit({
+      userId: session.user.id,
+      isLongTrip: trip.daysCount > 7,
+    });
+
+    if (!aiRateLimit.allowed) {
+      return {
+        ok: false,
+        tripId,
+        error: getAiRateLimitErrorMessage(aiRateLimit),
       };
     }
 

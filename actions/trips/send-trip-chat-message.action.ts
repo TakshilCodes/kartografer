@@ -13,6 +13,10 @@ import {
   type TripAiChange,
 } from "@/lib/ai/schemas/trip-ai-change.schema";
 import prisma from "@/lib/prisma";
+import {
+  consumeAiChatLimit,
+  getAiRateLimitErrorMessage,
+} from "@/lib/rate-limit/ai-rate-limit";
 import type { TripChatPromptItem } from "@/lib/ai/prompts/trip-chat.prompt";
 
 const sendTripChatMessageSchema = z.object({
@@ -344,6 +348,18 @@ export async function sendTripChatMessageAction(
       return {
         ok: false,
         error: "Trip not found.",
+      };
+    }
+
+    const aiRateLimit = await consumeAiChatLimit({
+      userId: session.user.id,
+      tripId,
+    });
+
+    if (!aiRateLimit.allowed) {
+      return {
+        ok: false,
+        error: getAiRateLimitErrorMessage(aiRateLimit),
       };
     }
 

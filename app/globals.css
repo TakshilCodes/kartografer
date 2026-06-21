@@ -97,7 +97,7 @@
   --selected-foreground: #e1dcc9;
 } */
 
-.dark {
+[data-dashboard-shell].dark {
   --background: #050505;
   --dashboard: #070707;
 

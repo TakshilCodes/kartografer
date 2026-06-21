@@ -40,8 +40,18 @@ function getInitialPreference(initialPreference: ThemePreferenceValue) {
 
 function applyTheme(preference: ThemePreferenceValue) {
   const resolved = resolveTheme(preference);
-  document.documentElement.classList.toggle("dark", resolved === "dark");
-  document.documentElement.dataset.theme = resolved;
+  const dashboardShell = document.querySelector<HTMLElement>(
+    "[data-dashboard-shell]"
+  );
+
+  document.documentElement.classList.remove("dark");
+  delete document.documentElement.dataset.theme;
+
+  if (dashboardShell) {
+    dashboardShell.classList.toggle("dark", resolved === "dark");
+    dashboardShell.dataset.theme = resolved;
+  }
+
   return resolved;
 }
 
