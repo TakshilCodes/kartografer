@@ -6,6 +6,7 @@ import { signIn } from "next-auth/react";
 import {
     ArrowLeft,
     ArrowRight,
+    CheckCircle2,
     Eye,
     EyeOff,
     Loader2,
@@ -29,6 +30,21 @@ export default function SigninClient() {
     const searchParams = useSearchParams();
 
     const callbackUrl = searchParams.get("callbackUrl") || "/dashboard/new";
+    const emailChanged = searchParams.get("emailChanged") === "1";
+    const accountDeleted = searchParams.get("accountDeleted") === "1";
+    const successMessage = emailChanged
+        ? "Email changed successfully. Sign in with your new email."
+        : accountDeleted
+          ? "Your Kartografer account and its data were permanently deleted."
+          : null;
+    const oauthError = searchParams.get("error");
+    const providerError =
+        oauthError === "GoogleAccountReadyForSignup"
+            ? "The old Google link was removed. Continue with Google again to create a new account for that email."
+            : oauthError
+              ? "Google sign-in could not be completed. Please try again."
+              : null;
+    const visibleError = error ?? providerError;
 
     function handleCredentialsSignIn(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
@@ -191,9 +207,16 @@ export default function SigninClient() {
                                     </div>
                                 </div>
 
-                                {error && (
+                                {successMessage && !visibleError && (
+                                    <div className="flex items-start gap-2 rounded-2xl border border-success/25 bg-success/10 px-4 py-3 text-sm font-bold text-success">
+                                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0" />
+                                        {successMessage}
+                                    </div>
+                                )}
+
+                                {visibleError && (
                                     <div className="rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm font-bold text-danger">
-                                        {error}
+                                        {visibleError}
                                     </div>
                                 )}
 

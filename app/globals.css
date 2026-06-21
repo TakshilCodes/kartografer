@@ -37,7 +37,7 @@
   --ring: #C0843E;
 
   /* States */
-  
+
   --danger: #4A2A16;
   --danger-hover: #5A341C;
   --danger-foreground: #FFF8ED;
@@ -50,6 +50,96 @@
   --selected: #D8B98C;
   --selected-hover: #CFAE7E;
   --selected-foreground: #2B1A0A;
+}
+
+/* .dark {
+  --background: #050505;
+  --dashboard: #070707;
+
+  --card: #0d0d0d;
+  --card-secondary: #141414;
+  --card-hover: #1c1c1c;
+
+  --foreground: #f5f5f5;
+  --muted-foreground: #a3a3a3;
+  --secondary-foreground: #d4d4d4;
+
+  --primary: #e1dcc9;
+  --primary-foreground: #050505;
+  --primary-hover: #f3eedc;
+
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ededed;
+  --secondary-hover: #242424;
+
+  --accent: #c9ff5d;
+  --accent-foreground: #050505;
+
+  --border: #262626;
+  --input: #111111;
+  --input-hover: #191919;
+  --ring: #e1dcc9;
+
+  --danger: #fb7185;
+  --danger-hover: #fda4af;
+  --danger-foreground: #190308;
+
+  --warning: #fbbf24;
+  --warning-hover: #facc15;
+  --warning-foreground: #1f1300;
+
+  --success: #86efac;
+  --success-hover: #bbf7d0;
+  --success-foreground: #02140a;
+
+  --selected: #1f150c;
+  --selected-hover: #412d15;
+  --selected-foreground: #e1dcc9;
+} */
+
+.dark {
+  --background: #050505;
+  --dashboard: #070707;
+
+  --card: #0d0d0d;
+  --card-secondary: #141414;
+  --card-hover: #1c1c1c;
+
+  --foreground: #f5f5f5;
+  --muted-foreground: #a3a3a3;
+  --secondary-foreground: #d4d4d4;
+
+  --primary: #e1dcc9;
+  --primary-foreground: #050505;
+  --primary-hover: #f3eedc;
+
+  --secondary: #1a1a1a;
+  --secondary-foreground: #ededed;
+  --secondary-hover: #242424;
+
+  --accent: #c9ff5d;
+  --accent-foreground: #050505;
+
+  --border: #262626;
+  --input: #111111;
+  --input-hover: #191919;
+  --ring: #e1dcc9;
+
+  --danger: #fb7185;
+  --danger-hover: #fda4af;
+  --danger-foreground: #190308;
+
+  --warning: #fbbf24;
+  --warning-hover: #facc15;
+  --warning-foreground: #1f1300;
+
+  --success: #86efac;
+  --success-hover: #bbf7d0;
+  --success-foreground: #02140a;
+
+  --selected: #1f150c;
+  --selected-hover: #412d15;
+  --selected-foreground: #e1dcc9;
 }
 
 @theme inline {
@@ -81,6 +171,7 @@
 
   --color-border: var(--border);
   --color-input: var(--input);
+  --color-input-hover: var(--input-hover, var(--input));
   --color-ring: var(--ring);
 
   --color-danger: var(--danger);

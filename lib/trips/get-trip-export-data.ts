@@ -104,6 +104,12 @@ export type TripExportData = {
   } | null;
   days: TripExportDay[];
   hasItineraryDetails: boolean;
+  exportPreferences: {
+    includeEstimatedBudget: boolean;
+    includePlannedBudget: boolean;
+    includeTravelerNotes: boolean;
+    includeKartograferBranding: boolean;
+  };
 };
 
 export async function getTripExportData(
@@ -117,6 +123,18 @@ export async function getTripExportData(
     },
     select: {
       id: true,
+      user: {
+        select: {
+          settings: {
+            select: {
+              exportIncludeEstimatedBudget: true,
+              exportIncludePlannedBudget: true,
+              exportIncludeTravelerNotes: true,
+              exportIncludeKartograferBranding: true,
+            },
+          },
+        },
+      },
       title: true,
       summary: true,
       daysCount: true,
@@ -328,5 +346,15 @@ export async function getTripExportData(
       : null,
     days,
     hasItineraryDetails,
+    exportPreferences: {
+      includeEstimatedBudget:
+        trip.user.settings?.exportIncludeEstimatedBudget ?? true,
+      includePlannedBudget:
+        trip.user.settings?.exportIncludePlannedBudget ?? true,
+      includeTravelerNotes:
+        trip.user.settings?.exportIncludeTravelerNotes ?? true,
+      includeKartograferBranding:
+        trip.user.settings?.exportIncludeKartograferBranding ?? true,
+    },
   };
 }

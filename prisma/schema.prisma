@@ -20,11 +20,42 @@ model User {
 
   trips        Trip[]
   chatMessages TripChatMessage[]
+  settings     UserSettings?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([email])
+}
+
+model UserSettings {
+  id String @id @default(cuid())
+
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  defaultCurrency String @default("INR")
+
+  themePreference ThemePreference @default(SYSTEM)
+
+  defaultTripVisibility        TripVisibility @default(PRIVATE)
+  enablePublicSharingByDefault Boolean        @default(false)
+
+  exportIncludeEstimatedBudget     Boolean @default(true)
+  exportIncludePlannedBudget       Boolean @default(true)
+  exportIncludeTravelerNotes       Boolean @default(true)
+  exportIncludeKartograferBranding Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
 }
 
 model Account {

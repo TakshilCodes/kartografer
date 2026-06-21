@@ -10,6 +10,7 @@ import { generateTripSmartly } from "@/lib/ai/generate-trip-smartly";
 import { getAiGenerationErrorDetails } from "@/lib/ai/ai-error-details";
 import { saveGeneratedTrip } from "@/lib/trips/save-generated-trip";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
+import { createUniquePublicShareSlug } from "@/lib/trips/public-share-slug";
 
 import {
     FoodPreference,
@@ -171,6 +172,22 @@ export async function createTripAction(
 
         const data = parsed.data;
 
+        const userSettings = await prisma.userSettings.findUnique({
+            where: {
+                userId: session.user.id,
+            },
+            select: {
+                defaultTripVisibility: true,
+                enablePublicSharingByDefault: true,
+            },
+        });
+
+        const enablePublicSharing =
+            userSettings?.enablePublicSharingByDefault ?? false;
+        const publicShareSlug = enablePublicSharing
+            ? await createUniquePublicShareSlug()
+            : null;
+
         const fromPlaceInput = data.fromPlace;
         const toPlaceInput = data.toPlace;
 
@@ -209,9 +226,15 @@ export async function createTripAction(
 
                     specialNotes: data.notes || null,
 
-                    visibility: TripVisibility.PRIVATE,
+                    visibility:
+                        userSettings?.defaultTripVisibility ??
+                        TripVisibility.PRIVATE,
                     status: TripStatus.DRAFT,
                     isAiGenerated: false,
+
+                    isPublicShareEnabled: enablePublicSharing,
+                    publicShareSlug,
+                    publicSharedAt: enablePublicSharing ? new Date() : null,
 
                     days: {
                         create: Array.from({ length: data.days }, (_, index) => ({

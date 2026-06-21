@@ -235,7 +235,15 @@ function ActivityLines({
   });
 }
 
-function DaySection({ day, currency }: { day: TripExportDay; currency: string }) {
+function DaySection({
+  day,
+  currency,
+  includeTravelerNotes,
+}: {
+  day: TripExportDay;
+  currency: string;
+  includeTravelerNotes: boolean;
+}) {
   const defaultTitle = `Day ${day.dayNumber}`;
   const displayTitle =
     day.title.trim() && day.title.trim() !== defaultTitle
@@ -307,7 +315,7 @@ function DaySection({ day, currency }: { day: TripExportDay; currency: string })
         </p>
       )}
 
-      {day.notes ? (
+      {includeTravelerNotes && day.notes ? (
         <div className="pdf-break-inside-avoid ml-13 mt-2 border-l-2 border-[#caa46e] bg-[#fbf6ed] px-3 py-2">
           <p className="text-[8px] font-black uppercase text-[#8b6b45]">Day note</p>
           <p className="mt-1 text-[9px] leading-4 text-[#5c4937]">{day.notes}</p>
@@ -320,6 +328,8 @@ function DaySection({ day, currency }: { day: TripExportDay; currency: string })
 function CostTable({ trip }: TripExportDocumentProps) {
   const costs = trip.costBreakdown;
   const budget = costs?.userBudget ?? trip.budgetAmount;
+  const { includeEstimatedBudget, includePlannedBudget } =
+    trip.exportPreferences;
   const rows = [
     ["Transport", costs?.transportCost ?? null],
     ["Stay", costs?.stayCost ?? null],
@@ -329,60 +339,70 @@ function CostTable({ trip }: TripExportDocumentProps) {
   ] as const;
 
   return (
-    <div className="pdf-break-inside-avoid grid gap-5 md:grid-cols-[minmax(0,1fr)_220px]">
-      <div className="overflow-hidden rounded-lg border border-[#dfd1bd]">
-        <table className="w-full border-collapse text-left">
-          <thead className="bg-[#f3e7d3]">
-            <tr>
-              <th className="px-4 py-2.5 text-[9px] font-black uppercase text-[#65401f]">
-                Category
-              </th>
-              <th className="px-4 py-2.5 text-right text-[9px] font-black uppercase text-[#65401f]">
-                Estimate
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map(([label, value]) => (
-              <tr key={label} className="border-t border-[#eadfce]">
-                <td className="px-4 py-2 text-[10px] font-semibold text-[#5c4937]">
-                  {label}
+    <div
+      className={
+        "pdf-break-inside-avoid grid gap-5 " +
+        (includeEstimatedBudget && includePlannedBudget
+          ? "md:grid-cols-[minmax(0,1fr)_220px]"
+          : "grid-cols-1")
+      }
+    >
+      {includeEstimatedBudget ? (
+        <div className="overflow-hidden rounded-lg border border-[#dfd1bd]">
+          <table className="w-full border-collapse text-left">
+            <thead className="bg-[#f3e7d3]">
+              <tr>
+                <th className="px-4 py-2.5 text-[9px] font-black uppercase text-[#65401f]">
+                  Category
+                </th>
+                <th className="px-4 py-2.5 text-right text-[9px] font-black uppercase text-[#65401f]">
+                  Estimate
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map(([label, value]) => (
+                <tr key={label} className="border-t border-[#eadfce]">
+                  <td className="px-4 py-2 text-[10px] font-semibold text-[#5c4937]">
+                    {label}
+                  </td>
+                  <td className="px-4 py-2 text-right text-[10px] font-black text-[#2d1e11]">
+                    {formatMoney(value, trip.currency)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot className="border-t-2 border-[#65401f] bg-[#fbf6ed]">
+              <tr>
+                <td className="px-4 py-3 text-[11px] font-black text-[#2d1e11]">
+                  Total estimated cost
                 </td>
-                <td className="px-4 py-2 text-right text-[10px] font-black text-[#2d1e11]">
-                  {formatMoney(value, trip.currency)}
+                <td className="px-4 py-3 text-right text-[13px] font-black text-[#65401f]">
+                  {formatMoney(costs?.totalEstimatedCost ?? null, trip.currency)}
                 </td>
               </tr>
-            ))}
-          </tbody>
-          <tfoot className="border-t-2 border-[#65401f] bg-[#fbf6ed]">
-            <tr>
-              <td className="px-4 py-3 text-[11px] font-black text-[#2d1e11]">
-                Total estimated cost
-              </td>
-              <td className="px-4 py-3 text-right text-[13px] font-black text-[#65401f]">
-                {formatMoney(costs?.totalEstimatedCost ?? null, trip.currency)}
-              </td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
+            </tfoot>
+          </table>
+        </div>
+      ) : null}
 
-      <div className="rounded-lg bg-[#65401f] p-5 text-[#fff8ed]">
-        <CircleDollarSign className="h-5 w-5" />
-        <p className="mt-5 text-[9px] font-black uppercase text-[#e8cfaa]">
-          Planned budget
-        </p>
-        <p className="mt-1 text-[20px] font-black">
-          {formatMoney(budget, trip.currency)}
-        </p>
-        <p className="mt-4 border-t border-white/20 pt-3 text-[9px] leading-4 text-[#f4e5ce]">
-          Status: {formatEnum(costs?.budgetStatus ?? "UNKNOWN")}
-        </p>
-      </div>
+      {includePlannedBudget ? (
+        <div className="rounded-lg bg-[#65401f] p-5 text-[#fff8ed]">
+          <CircleDollarSign className="h-5 w-5" />
+          <p className="mt-5 text-[9px] font-black uppercase text-[#e8cfaa]">
+            Planned budget
+          </p>
+          <p className="mt-1 text-[20px] font-black">
+            {formatMoney(budget, trip.currency)}
+          </p>
+          <p className="mt-4 border-t border-white/20 pt-3 text-[9px] leading-4 text-[#f4e5ce]">
+            Status: {formatEnum(costs?.budgetStatus ?? "UNKNOWN")}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
-
 export default function TripExportDocument({ trip }: TripExportDocumentProps) {
   const fromName = trip.fromPlace?.name ?? "Starting point";
   const toName = trip.toPlace?.name ?? "Destination";
@@ -393,17 +413,21 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
         <div className="absolute left-0 top-0 h-full w-[5mm] bg-[#65401f]" />
 
         <div className="relative flex items-start justify-between gap-5 border-b border-[#d7c5ab] pb-5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#65401f] text-[#fff8ed]">
-              <Compass className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="text-[16px] font-black">Kartografer</p>
-              <p className="text-[9px] font-bold uppercase text-[#80684e]">
-                Thoughtful journeys, clearly planned
-              </p>
+          {trip.exportPreferences.includeKartograferBranding ? (
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#65401f] text-[#fff8ed]">
+                <Compass className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-[16px] font-black">Kartografer</p>
+                <p className="text-[9px] font-bold uppercase text-[#80684e]">
+                  Thoughtful journeys, clearly planned
+                </p>
+              </div>
             </div>
-          </div>
+          ) : (
+            <span />
+          )}
           <div className="text-right">
             <p className="text-[9px] font-black uppercase text-[#8b6b45]">
               Private travel proposal
@@ -525,7 +549,7 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
               value={formatEnum(trip.transportPreference)}
             />
           </div>
-          {trip.specialNotes ? (
+          {trip.exportPreferences.includeTravelerNotes && trip.specialNotes ? (
             <div className="mt-6 rounded-lg border border-[#dfd1bd] bg-[#fbf6ed] p-4">
               <p className="text-[9px] font-black uppercase text-[#8b6b45]">
                 Traveler notes
@@ -537,14 +561,17 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
           ) : null}
         </section>
 
-        <section className="mb-10">
-          <SectionHeading
-            eyebrow="Estimated investment"
-            title="Trip cost summary"
-            description="A planning estimate based on the selected itinerary. Final prices may change at booking."
-          />
-          <CostTable trip={trip} />
-        </section>
+        {trip.exportPreferences.includeEstimatedBudget ||
+        trip.exportPreferences.includePlannedBudget ? (
+          <section className="mb-10">
+            <SectionHeading
+              eyebrow="Estimated investment"
+              title="Trip cost summary"
+              description="A planning estimate based on the selected itinerary. Final prices may change at booking."
+            />
+            <CostTable trip={trip} />
+          </section>
+        ) : null}
 
         <section>
           <SectionHeading
@@ -556,7 +583,14 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
           {trip.hasItineraryDetails ? (
             <div className="space-y-7">
               {trip.days.map((day) => (
-                <DaySection key={day.id} day={day} currency={trip.currency} />
+                <DaySection
+                  key={day.id}
+                  day={day}
+                  currency={trip.currency}
+                  includeTravelerNotes={
+                    trip.exportPreferences.includeTravelerNotes
+                  }
+                />
               ))}
             </div>
           ) : (
@@ -573,7 +607,8 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
           )}
         </section>
 
-        <footer className="pdf-break-inside-avoid mt-10 border-t border-[#d7c5ab] pt-5">
+        {trip.exportPreferences.includeKartograferBranding ? (
+<footer className="pdf-break-inside-avoid mt-10 border-t border-[#d7c5ab] pt-5">
           <div className="flex items-start justify-between gap-8">
             <div className="flex items-center gap-2">
               <Compass className="h-4 w-4 text-[#65401f]" />
@@ -587,6 +622,7 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
             </p>
           </div>
         </footer>
+        ) : null}
       </div>
     </article>
   );

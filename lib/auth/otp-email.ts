@@ -1,9 +1,11 @@
+import { randomInt } from "node:crypto";
+
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 export function generateOtp() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return randomInt(100000, 1000000).toString();
 }
 
 export function assertOtpEmailConfig() {

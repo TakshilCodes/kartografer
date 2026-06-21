@@ -82,7 +82,45 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ account, profile }) {
+      if (account?.provider !== "google" || !account.providerAccountId) {
+        return true;
+      }
+
+      const linkedAccount = await prisma.account.findUnique({
+        where: {
+          provider_providerAccountId: {
+            provider: account.provider,
+            providerAccountId: account.providerAccountId,
+          },
+        },
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      });
+
+      const googleEmail = profile?.email?.toLowerCase().trim();
+      const currentEmail = linkedAccount?.user.email?.toLowerCase().trim();
+
+      if (linkedAccount && googleEmail && currentEmail !== googleEmail) {
+        await prisma.account.delete({
+          where: {
+            provider_providerAccountId: {
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+            },
+          },
+        });
+
+        return "/signin?error=GoogleAccountReadyForSignup";
+      }
+
+      return true;
+    },    async jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;
       }
