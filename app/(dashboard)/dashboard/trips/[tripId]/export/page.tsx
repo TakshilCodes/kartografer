@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import TripExportActions from "@/components/trips/export/TripExportActions";
 import TripExportDocument from "@/components/trips/export/TripExportDocument";
+import TripExportPreviewCanvas from "@/components/trips/export/TripExportPreviewCanvas";
 import { authOptions } from "@/lib/auth";
 import { getTripExportData } from "@/lib/trips/get-trip-export-data";
 
@@ -47,12 +48,16 @@ export default async function TripExportPage({
 
       <main
         className={
-          isPdfMode
-            ? "bg-white"
-            : "overflow-x-auto px-3 py-6 sm:px-6 sm:py-10"
+          isPdfMode ? "bg-white" : "px-2 py-4 sm:px-6 sm:py-10"
         }
       >
-        <TripExportDocument trip={trip} />
+        {isPdfMode ? (
+          <TripExportDocument trip={trip} />
+        ) : (
+          <TripExportPreviewCanvas>
+            <TripExportDocument trip={trip} />
+          </TripExportPreviewCanvas>
+        )}
       </main>
     </div>
   );

@@ -54,12 +54,12 @@ export default function TripExportActions({ tripId }: TripExportActionsProps) {
   }
 
   return (
-    <div className="no-print sticky top-0 z-30 border-b border-border bg-card/95 px-4 py-3 backdrop-blur-xl">
+    <div className="no-print sticky top-0 z-30 border-b border-border bg-card/95 px-3 py-3 backdrop-blur-xl sm:px-4">
       <div className="mx-auto flex max-w-5xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Link
             href={`/dashboard/trips/${tripId}`}
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-black text-foreground transition hover:bg-card-secondary"
+            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-border bg-card px-3 text-sm font-black text-foreground transition hover:bg-card-secondary sm:px-4"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to trip
