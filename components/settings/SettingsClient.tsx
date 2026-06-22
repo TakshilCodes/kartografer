@@ -56,10 +56,10 @@ const themeOptions: Array<{
   description: string;
   icon: typeof Sun;
 }> = [
-  { value: "LIGHT", label: "Light", description: "Warm paper and cream surfaces", icon: Sun },
-  { value: "DARK", label: "Dark", description: "Warm night palette with soft contrast", icon: Moon },
-  { value: "SYSTEM", label: "System", description: "Follow this device automatically", icon: Globe2 },
-];
+    { value: "LIGHT", label: "Light", description: "Warm paper and cream surfaces", icon: Sun },
+    { value: "DARK", label: "Dark", description: "Warm night palette with soft contrast", icon: Moon },
+    { value: "SYSTEM", label: "System", description: "Follow this device automatically", icon: Globe2 },
+  ];
 
 const currencyOptions = [
   {
@@ -508,8 +508,13 @@ export default function SettingsClient({
                     : "border-border bg-card hover:bg-card-secondary")
                 }
               >
-                <Icon className="h-5 w-5" />
-                <span className="mt-5 block text-sm font-black">{option.label}</span>
+                <Icon
+                  className={
+                    "h-5 w-5 " +
+                    (selected ? "text-primary-foreground" : "text-muted-foreground")
+                  }
+                />
+                <span className={`mt-5 block text-sm font-black ${selected ? "text-primary-foreground" : "text-muted-foreground"}`}>{option.label}</span>
                 <span className={"mt-1 block text-xs leading-5 " + (selected ? "text-primary-foreground/75" : "text-muted-foreground")}>
                   {option.description}
                 </span>

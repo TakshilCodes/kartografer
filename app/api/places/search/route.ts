@@ -179,10 +179,10 @@ function mapGeoapifyFeature(feature: GeoapifyFeature): PlaceResult | null {
     props.village ??
     props.suburb ??
     (props.result_type === "city" ||
-    props.result_type === "town" ||
-    props.result_type === "village" ||
-    props.result_type === "locality" ||
-    props.result_type === "suburb"
+      props.result_type === "town" ||
+      props.result_type === "village" ||
+      props.result_type === "locality" ||
+      props.result_type === "suburb"
       ? name
       : null);
 
@@ -332,7 +332,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ places: [] });
     }
 
-    const dbPlaces = removeDuplicatePlaces(await searchPlacesFromDb(query));
+    const normalizedQuery = query.toLowerCase();
+
+    const dbPlaces = removeDuplicatePlaces(
+      await searchPlacesFromDb(normalizedQuery)
+    );
 
     if (dbPlaces.length >= MIN_DB_RESULTS) {
       return NextResponse.json({
@@ -343,7 +347,7 @@ export async function GET(req: Request) {
 
     const autocompleteFeatures = await fetchGeoapifyPlaces({
       endpoint: "autocomplete",
-      text: query,
+      text: normalizedQuery,
       apiKey,
     });
 
@@ -358,7 +362,7 @@ export async function GET(req: Request) {
     if (mergedPlaces.length < MIN_DB_RESULTS) {
       const searchFeatures = await fetchGeoapifyPlaces({
         endpoint: "search",
-        text: `${query} India`,
+        text: `${normalizedQuery} India`,
         apiKey,
       });
 

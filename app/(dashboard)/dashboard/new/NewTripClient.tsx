@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
     AlertTriangle,
     ArrowRight,
@@ -9,6 +9,7 @@ import {
     IndianRupee,
     Loader2,
     MapPin,
+    PencilLine,
     Route,
     Sparkles,
     Users,
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createTripAction } from "@/actions/trips/create-trip.action";
+import { createManualTripAction } from "@/actions/trips/create-manual-trip.action";
 import PlaceAutocomplete from "@/components/dashboard/PlaceAutocomplete";
 import CustomSelect from "@/components/shared/CustomSelect";
 import TripGenerationLoading from "@/components/trips/new/TripGenerationLoading";
@@ -134,6 +136,10 @@ function AiDraftRecoveryScreen({
 
 export default function NewTripClient() {
     const [isLoading, setIsLoading] = useState(false);
+    const [submittingMode, setSubmittingMode] = useState<
+        "ai" | "manual" | null
+    >(null);
+    const submissionLockRef = useRef(false);
 
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
@@ -242,15 +248,25 @@ export default function NewTripClient() {
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
 
+        if (submissionLockRef.current) return;
+        submissionLockRef.current = true;
+
+        const submitter = (e.nativeEvent as SubmitEvent)
+            .submitter as HTMLButtonElement | null;
+        const mode = submitter?.value === "manual" ? "manual" : "ai";
+
         setError(null);
         setAiDraftRecovery(null);
         setIsLoading(true);
-        setIsGenerating(true);
-        setProgress(5);
-        setLoadingMessage("Checking your trip details...");
+        setSubmittingMode(mode);
+
+        if (mode === "ai") {
+            setIsGenerating(true);
+            setProgress(5);
+            setLoadingMessage("Checking your trip details...");
+        }
 
         const formData = new FormData(e.currentTarget);
-
         const payload = {
             fromPlace: formData.get("fromPlace"),
             toPlace: formData.get("toPlace"),
@@ -264,38 +280,70 @@ export default function NewTripClient() {
             notes: formData.get("notes"),
         };
 
-        const result = await createTripAction(payload);
+        try {
+            if (mode === "manual") {
+                const result = await createManualTripAction(payload);
 
-        setIsLoading(false);
+                setIsLoading(false);
 
-        if (!result.ok) {
-            if (result.tripId) {
+                if (!result.ok) {
+                    submissionLockRef.current = false;
+                    setSubmittingMode(null);
+                    setError(result.error);
+                    return;
+                }
+
                 router.refresh();
-                setIsGenerating(false);
-                setProgress(0);
-                setLoadingMessage("Checking your trip details...");
-                setAiDraftRecovery({
-                    tripId: result.tripId,
-                    message: result.error,
-                    errorKind: result.errorKind,
-                });
+                router.push(
+                    "/dashboard/trips/" + result.tripId + "/edit"
+                );
                 return;
             }
 
+            const result = await createTripAction(payload);
+            setIsLoading(false);
+
+            if (!result.ok) {
+                submissionLockRef.current = false;
+                setSubmittingMode(null);
+
+                if (result.tripId) {
+                    router.refresh();
+                    setIsGenerating(false);
+                    setProgress(0);
+                    setLoadingMessage("Checking your trip details...");
+                    setAiDraftRecovery({
+                        tripId: result.tripId,
+                        message: result.error,
+                        errorKind: result.errorKind,
+                    });
+                    return;
+                }
+
+                setIsGenerating(false);
+                setProgress(0);
+                setLoadingMessage("Checking your trip details...");
+                setError(result.error);
+                return;
+            }
+
+            setProgress(100);
+            setLoadingMessage("Trip ready. Opening your itinerary...");
+            router.refresh();
+
+            window.setTimeout(() => {
+                router.push("/dashboard/trips/" + result.tripId);
+            }, 900);
+        } catch (submissionError) {
+            console.error("CREATE_TRIP_SUBMISSION_ERROR", submissionError);
+            submissionLockRef.current = false;
+            setIsLoading(false);
             setIsGenerating(false);
+            setSubmittingMode(null);
             setProgress(0);
             setLoadingMessage("Checking your trip details...");
-            setError(result.error);
-            return;
+            setError("Something went wrong while creating your trip.");
         }
-
-        setProgress(100);
-        setLoadingMessage("Trip ready. Opening your itinerary...");
-        router.refresh();
-
-        window.setTimeout(() => {
-            router.push(`/dashboard/trips/${result.tripId}`);
-        }, 900);
     }
     return (
         <section className="min-h-screen bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
@@ -470,29 +518,51 @@ export default function NewTripClient() {
                                 </div>
                             )}
 
-                            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                <p className="px-2 text-xs font-bold text-muted-foreground">
-                                    This will create a basic trip draft. AI generation will be added
-                                    later.
-                                </p>
+                            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                                <div className="px-2">
+                                    <p className="text-sm font-black text-foreground">
+                                        Choose how you want to begin
+                                    </p>
+                                    <p className="mt-1 max-w-xl text-xs font-semibold leading-5 text-muted-foreground">
+                                        Create an empty trip and plan everything yourself, or let AI build the first itinerary.
+                                    </p>
+                                </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={isLoading}
-                                    className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-black text-primary-foreground shadow-sm transition hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-70"
-                                >
-                                    {isLoading ? (
-                                        <>
+                                <div className="flex flex-col gap-2 sm:flex-row">
+                                    <button
+                                        type="submit"
+                                        name="creationMode"
+                                        value="manual"
+                                        disabled={isLoading}
+                                        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-card px-5 py-3 text-sm font-black text-foreground transition hover:bg-secondary disabled:pointer-events-none disabled:opacity-70"
+                                    >
+                                        {isLoading && submittingMode === "manual" ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
-                                            Creating Trip...
-                                        </>
-                                    ) : (
-                                        <>
+                                        ) : (
+                                            <PencilLine className="h-4 w-4" />
+                                        )}
+                                        {isLoading && submittingMode === "manual"
+                                            ? "Creating trip..."
+                                            : "Create Manually"}
+                                    </button>
+
+                                    <button
+                                        type="submit"
+                                        name="creationMode"
+                                        value="ai"
+                                        disabled={isLoading}
+                                        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-black text-primary-foreground shadow-sm transition hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-70"
+                                    >
+                                        {isLoading && submittingMode === "ai" ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
                                             <Sparkles className="h-4 w-4" />
-                                            Create Trip
-                                        </>
-                                    )}
-                                </button>
+                                        )}
+                                        {isLoading && submittingMode === "ai"
+                                            ? "Generating trip..."
+                                            : "Generate with AI"}
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
