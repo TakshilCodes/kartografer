@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
 
 :root {
 
@@ -456,4 +457,227 @@ td {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+.border-glow-card {
+  --edge-proximity: 0;
+  --cursor-angle: 45deg;
+  --edge-sensitivity: 30;
+  --color-sensitivity: calc(var(--edge-sensitivity) + 20);
+  --border-radius: 28px;
+  --glow-padding: 40px;
+  --cone-spread: 25;
+
+  position: relative;
+  display: grid;
+  isolation: isolate;
+  overflow: visible;
+  border-radius: var(--border-radius);
+  border: 1px solid rgb(216 197 168 / 85%);
+  background: var(--card-bg, #f7ecdb);
+  transform: translate3d(0, 0, 0.01px);
+  box-shadow:
+    0 30px 80px rgba(74, 46, 23, 0.14),
+    0 8px 24px rgba(74, 46, 23, 0.08),
+    0 0 0 1px rgb(214 168 79 / 14%);
+  transition:
+    box-shadow 300ms ease,
+    transform 300ms ease,
+    border-color 300ms ease;
+}
+
+.border-glow-card::before,
+.border-glow-card::after,
+.border-glow-card>.edge-light {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  transition: opacity 0.25s ease-out;
+}
+
+.border-glow-card:not(:hover):not(.sweep-active)::before,
+.border-glow-card:not(:hover):not(.sweep-active)::after,
+.border-glow-card:not(:hover):not(.sweep-active)>.edge-light {
+  opacity: 0.16;
+  transition: opacity 0.75s ease-in-out;
+}
+.border-glow-card:hover {
+  border-color: rgb(190 139 72 / 72%);
+  box-shadow:
+    0 34px 88px rgba(74, 46, 23, 0.18),
+    0 10px 28px rgba(74, 46, 23, 0.1),
+    0 0 0 1px rgb(214 168 79 / 42%),
+    0 0 34px rgb(214 168 79 / 18%);
+}
+
+.border-glow-card:hover::before {
+  opacity: 0.9;
+}
+
+.border-glow-card:hover::after {
+  opacity: var(--fill-opacity, 0.22);
+}
+
+.border-glow-card:hover>.edge-light {
+  opacity: 0.82;
+}
+
+.border-glow-card::before {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--card-bg, #f7ecdb) 0 100%) padding-box,
+    linear-gradient(rgb(255 255 255 / 0%) 0% 100%) border-box,
+    var(--gradient-one) border-box,
+    var(--gradient-two) border-box,
+    var(--gradient-three) border-box,
+    var(--gradient-four) border-box,
+    var(--gradient-five) border-box,
+    var(--gradient-six) border-box,
+    var(--gradient-seven) border-box,
+    var(--gradient-base) border-box;
+
+  opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+
+  mask-image: conic-gradient(from var(--cursor-angle) at center,
+      black calc(var(--cone-spread) * 1%),
+      transparent calc((var(--cone-spread) + 15) * 1%),
+      transparent calc((100 - var(--cone-spread) - 15) * 1%),
+      black calc((100 - var(--cone-spread)) * 1%));
+}
+
+.border-glow-card::after {
+  border: 1px solid transparent;
+  background:
+    var(--gradient-one) padding-box,
+    var(--gradient-two) padding-box,
+    var(--gradient-three) padding-box,
+    var(--gradient-four) padding-box,
+    var(--gradient-five) padding-box,
+    var(--gradient-six) padding-box,
+    var(--gradient-seven) padding-box,
+    var(--gradient-base) padding-box;
+
+  mask-image:
+    linear-gradient(to bottom, black, black),
+    radial-gradient(ellipse at 50% 50%, black 40%, transparent 65%),
+    radial-gradient(ellipse at 66% 66%, black 5%, transparent 40%),
+    radial-gradient(ellipse at 33% 33%, black 5%, transparent 40%),
+    radial-gradient(ellipse at 66% 33%, black 5%, transparent 40%),
+    radial-gradient(ellipse at 33% 66%, black 5%, transparent 40%),
+    conic-gradient(from var(--cursor-angle) at center,
+      transparent 5%,
+      black 15%,
+      black 85%,
+      transparent 95%);
+
+  mask-composite: subtract, add, add, add, add, add;
+  opacity: calc(var(--fill-opacity, 0.22) * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  mix-blend-mode: soft-light;
+}
+
+.border-glow-card>.edge-light {
+  inset: calc(var(--glow-padding) * -1);
+  z-index: 1;
+  pointer-events: none;
+  mix-blend-mode: plus-lighter;
+  opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+
+  mask-image: conic-gradient(from var(--cursor-angle) at center,
+      black 2.5%,
+      transparent 10%,
+      transparent 90%,
+      black 97.5%);
+}
+
+.border-glow-card>.edge-light::before {
+  content: "";
+  position: absolute;
+  inset: var(--glow-padding);
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 1px var(--glow-color),
+    inset 0 0 1px 0 var(--glow-color-60),
+    inset 0 0 3px 0 var(--glow-color-50),
+    inset 0 0 6px 0 var(--glow-color-40),
+    inset 0 0 15px 0 var(--glow-color-30),
+    inset 0 0 25px 2px var(--glow-color-20),
+    inset 0 0 50px 2px var(--glow-color-10),
+    0 0 1px 0 var(--glow-color-60),
+    0 0 3px 0 var(--glow-color-50),
+    0 0 6px 0 var(--glow-color-40),
+    0 0 15px 0 var(--glow-color-30),
+    0 0 25px 2px var(--glow-color-20),
+    0 0 50px 2px var(--glow-color-10);
+}
+
+.border-glow-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: inherit;
+}
+
+@keyframes storyStepProgress {
+  from {
+    width: 0%;
+  }
+
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes storyItemIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes storyRouteMove {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -90;
+  }
+}
+
+@keyframes movingOptionToPlan {
+  0% {
+    opacity: 0;
+    transform: translate(40px, -10px) scale(0.94);
+  }
+
+  20% {
+    opacity: 1;
+  }
+
+  70% {
+    opacity: 1;
+    transform: translate(-210px, 72px) scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate(-260px, 92px) scale(0.92);
+  }
+}
+
+.landing-story-route {
+  animation: storyRouteMove 9s linear infinite;
+}
+
+.landing-moving-option {
+  animation: movingOptionToPlan 2.7s ease-in-out infinite;
 }

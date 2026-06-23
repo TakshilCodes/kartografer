@@ -8,7 +8,6 @@ import {
   Compass,
   Edit3,
   FolderOpen,
-  Map,
   Menu,
   Plus,
   Settings,
@@ -21,6 +20,7 @@ import {
 import { deleteTripAction, renameTripAction } from "@/actions/trips/trip.action";
 import ItemActionsMenu from "@/components/trips/edit/ItemActionsMenu";
 import LogoutButton from "@/components/shared/LogoutButton";
+import BrandLogo from "@/components/shared/BrandLogo";
 import { useConfirmStore } from "@/stores/use-confirm-store";
 
 type RecentTrip = {
@@ -55,11 +55,10 @@ function SidebarLink({ href, icon, label, onClick }: SidebarLinkProps) {
     <Link
       href={href}
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition ${
-        active
-          ? "bg-primary text-primary-foreground shadow-sm"
-          : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
-      }`}
+      className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition ${active
+        ? "bg-primary text-primary-foreground shadow-sm"
+        : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
+        }`}
     >
       <span className="shrink-0">{icon}</span>
       <span className="truncate">{label}</span>
@@ -172,23 +171,9 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
   return (
     <>
       <header className="fixed left-0 top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-dashboard/95 px-4 backdrop-blur lg:hidden">
-        <Link
-          href="/dashboard/new"
-          className="flex items-center gap-3"
-          onClick={closeMobileSidebar}
-        >
-          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-            <Map className="h-4 w-4" />
-          </div>
 
-          <div>
-            <h1 className="text-base font-black leading-none text-foreground">
-              Kartografer
-            </h1>
-            <p className="mt-0.5 text-[11px] font-semibold text-muted-foreground">
-              Travel workspace
-            </p>
-          </div>
+        <Link href="/dashboard/new" onClick={closeMobileSidebar} aria-label="Kartografer home">
+          <BrandLogo themeAware priority compactClassName="h-9 w-9" wordmarkClassName="h-8 w-auto" />
         </Link>
 
         <button
@@ -211,29 +196,13 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
       )}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-72 shrink-0 flex-col border-r border-border bg-dashboard p-4 transition-transform duration-300 lg:z-40 lg:translate-x-0 ${
-          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed left-0 top-0 z-50 flex h-screen w-72 shrink-0 flex-col border-r border-border bg-dashboard p-4 transition-transform duration-300 lg:z-40 lg:translate-x-0 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="mb-6 flex items-center justify-between">
-          <Link
-            href="/dashboard/new"
-            className="flex items-center gap-3"
-            onClick={closeMobileSidebar}
-          >
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
-              <Map className="h-5 w-5" />
-            </div>
-
-            <div>
-              <h1 className="text-lg font-black leading-none text-foreground">
-                Kartografer
-              </h1>
-              <p className="mt-1 text-xs font-semibold text-muted-foreground">
-                Travel workspace
-              </p>
-            </div>
-          </Link>
+          <Link href="/dashboard/new" onClick={closeMobileSidebar} aria-label="Kartografer home">
+          <BrandLogo themeAware priority compactClassName="h-10 w-10" wordmarkClassName="h-auto w-44" />
+        </Link>
 
           <button
             type="button"
@@ -284,11 +253,10 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
                 return (
                   <div
                     key={trip.id}
-                    className={`flex items-center gap-2 rounded-2xl py-1.5 pl-3 pr-1.5 text-sm font-bold transition ${
-                      active
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
-                    }`}
+                    className={`flex items-center gap-2 rounded-2xl py-1.5 pl-3 pr-1.5 text-sm font-bold transition ${active
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
+                      }`}
                   >
                     <Link
                       href={href}

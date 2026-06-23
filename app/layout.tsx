@@ -5,12 +5,14 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: {
-    default: "Kartografer",
-    template: "%s | Kartografer",
-  },
+  title: "Kartografer - AI Travel Planner",
   description:
-    "Create personalized AI-powered travel itineraries, organize every day, estimate trip costs, and share your journey with Kartografer.",
+    "Plan editable AI-powered trips with day-wise itineraries, stays, transport, meals, hidden spots, cost estimates, sharing, and PDF export.",
+  applicationName: "Kartografer",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

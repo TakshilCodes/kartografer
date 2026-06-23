@@ -1,55 +1,88 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Globe2 } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const navLinks = [
-  {
-    label: "Home",
-    href: "/",
-  },
-  {
-    label: "Explore",
-    href: "/explore",
-  },
+  { label: "Homes", href: "/" },
+  { label: "Explore", href: "/#explore" }
 ];
 
-export default function NavbarLinks() {
-  const pathname = usePathname();
+type NavbarLinksProps = {
+  isLoggedIn: boolean;
+};
+
+export default function NavbarLinks({ isLoggedIn }: NavbarLinksProps) {
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 items-center rounded-full border border-white/40 bg-white/25 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_10px_35px_rgba(93,62,29,0.08)] backdrop-blur-2xl md:flex">
-      {navLinks.map((link) => {
-        const isActive =
-          link.href === "/"
-            ? pathname === "/"
-            : pathname.startsWith(link.href);
-
-        return (
+    <>
+      <div className="absolute left-1/2 top-1/2 z-10 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 rounded-full border border-[#e2d3bf] bg-white/72 p-1 shadow-sm backdrop-blur-xl md:flex">
+        {navLinks.map((link) => (
           <Link
             key={link.href}
             href={link.href}
-            className={`group relative overflow-hidden rounded-full px-5 py-2.5 text-sm font-bold transition duration-300 ${
-              isActive
-                ? "text-primary-foreground"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className="rounded-full px-4 py-2 text-sm font-extrabold text-[#765f49] transition hover:bg-[#f4e7d4] hover:text-[#4e2d16]"
           >
-            {/* Active background */}
-            {isActive && (
-              <span className="absolute inset-0 rounded-full bg-primary shadow-[0_10px_30px_rgba(93,62,29,0.22)]" />
-            )}
-
-            {/* Hover background */}
-            {!isActive && (
-              <span className="absolute inset-0 scale-75 rounded-full bg-card/70 opacity-0 transition duration-300 group-hover:scale-100 group-hover:opacity-100" />
-            )}
-
-            <span className="relative z-10">{link.label}</span>
+            {link.label}
           </Link>
-        );
-      })}
-    </div>
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => setIsOpen((open) => !open)}
+        className="relative z-20 flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[#dfcdb4] bg-white/80 text-[#5b351a] md:hidden"
+        aria-label={isOpen ? "Close navigation" : "Open navigation"}
+        aria-expanded={isOpen}
+      >
+        {isOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+      </button>
+
+      {isOpen ? (
+        <div className="absolute left-0 right-0 top-[78px] z-50 rounded-3xl border border-[#dfcdb4] bg-white p-3 shadow-[0_24px_60px_rgba(70,43,20,0.18)] md:hidden">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setIsOpen(false)}
+              className="block rounded-2xl px-4 py-3 text-sm font-extrabold text-[#5b351a] transition hover:bg-[#f5e8d5]"
+            >
+              {link.label}
+            </Link>
+          ))}
+
+          <div className="mt-2 border-t border-[#ead9c0] pt-3">
+            {isLoggedIn ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setIsOpen(false)}
+                className="block rounded-2xl bg-[#5b351a] px-4 py-3 text-center text-sm font-extrabold text-white shadow-[0_14px_34px_rgba(93,62,29,0.22)] transition hover:bg-[#704522]"
+              >
+                Workspace
+              </Link>
+            ) : (
+              <div className="grid gap-2">
+                <Link
+                  href="/signin"
+                  onClick={() => setIsOpen(false)}
+                  className="block rounded-2xl border border-[#dfcdb4] bg-white px-4 py-3 text-center text-sm font-extrabold text-[#5b351a] transition hover:bg-[#f5e8d5]"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/signup"
+                  onClick={() => setIsOpen(false)}
+                  className="block rounded-2xl bg-[#5b351a] px-4 py-3 text-center text-sm font-extrabold text-white shadow-[0_14px_34px_rgba(93,62,29,0.22)] transition hover:bg-[#704522]"
+                >
+                  Start planning
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 }

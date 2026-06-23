@@ -1,3 +1,7 @@
+import Image from "next/image";
+import kartograferMark from "@/public/logo.png";
+import kartograferWordmark from "@/public/logo&text_forlight.png";
+
 import type { ReactNode } from "react";
 import {
   ArrowRight,
@@ -414,16 +418,16 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
 
         <div className="relative flex items-start justify-between gap-5 border-b border-[#d7c5ab] pb-5">
           {trip.exportPreferences.includeKartograferBranding ? (
-            <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#65401f] text-[#fff8ed]">
-                <Compass className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-[16px] font-black">Kartografer</p>
-                <p className="text-[9px] font-bold uppercase text-[#80684e]">
-                  Thoughtful journeys, clearly planned
-                </p>
-              </div>
+            <div className="flex items-center gap-4">
+              <Image
+                src={kartograferWordmark}
+                alt="Kartografer"
+                className="h-auto w-[170px] object-contain"
+                priority
+              />
+              <p className="max-w-[170px] border-l border-[#d7c5ab] pl-4 text-[8px] font-bold uppercase leading-4 text-[#80684e]">
+                Thoughtful journeys, clearly planned
+              </p>
             </div>
           ) : (
             <span />
@@ -611,7 +615,7 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
 <footer className="pdf-break-inside-avoid mt-10 border-t border-[#d7c5ab] pt-5">
           <div className="flex items-start justify-between gap-8">
             <div className="flex items-center gap-2">
-              <Compass className="h-4 w-4 text-[#65401f]" />
+              <Image src={kartograferMark} alt="" className="h-5 w-5 object-contain" />
               <p className="text-[10px] font-black text-[#2d1e11]">
                 Generated with Kartografer
               </p>

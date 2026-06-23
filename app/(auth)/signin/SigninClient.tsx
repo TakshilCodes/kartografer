@@ -1,5 +1,7 @@
 "use client";
 
+import BrandLogo from "@/components/shared/BrandLogo";
+
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
@@ -124,10 +126,12 @@ export default function SigninClient() {
                 <div className="w-full max-w-110">
                     {/* Top mini brand text */}
                     <div className="mb-6 text-center">
-                        <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-white/45 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-secondary-foreground shadow-sm backdrop-blur-xl">
-                            <ShieldCheck className="h-3.5 w-3.5" />
-                            Kartografer
-                        </div>
+                        <BrandLogo
+                            className="mb-4 w-full justify-center"
+                            compactClassName="h-12 w-12"
+                            wordmarkClassName="h-auto w-44 sm:w-48"
+                            priority
+                        />
 
                         <h1 className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
                             Welcome back

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth";
 import VerifyOtpClient from "./VerifyOtpClient";
+import { getKartograferEmailLogoUrl } from "@/lib/auth/otp-email";
 
 type VerifyOtpPageProps = {
   searchParams: Promise<{

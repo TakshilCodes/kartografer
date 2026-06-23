@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Lottie from "lottie-react";
+import BrandLogo from "@/components/shared/BrandLogo";
 
 type TripGenerationLoadingProps = {
     progress: number;
@@ -138,6 +139,7 @@ export default function TripGenerationLoading({
                 <TripLoadingAnimation animationPath={currentStage.animationPath} />
 
                 <div className="mt-6">
+                    <BrandLogo themeAware className="mb-4 justify-center" compactClassName="h-11 w-11" wordmarkClassName="h-auto w-48" />
                     <p className="text-xs font-black uppercase tracking-[0.28em] text-secondary-foreground">
                         Kartografer AI
                     </p>

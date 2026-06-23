@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 
 import { ThemePreferenceSync } from "@/components/providers/ThemeProvider";
@@ -5,6 +6,12 @@ import Sidebar from "@/components/dashboard/Sidebar";
 import ConfirmDialog from "@/components/shared/ConfirmDialogProvider";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+
+export const metadata: Metadata = {
+  title: "Workspace | Kartografer",
+  description:
+    "Manage your Kartografer trips, edit itineraries, use AI planning tools, track budgets, share public links, and export polished travel PDFs.",
+};
 
 export default async function DashboardLayout({
   children,

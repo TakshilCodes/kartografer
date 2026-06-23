@@ -6,6 +6,7 @@ import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import redis from "@/lib/redis";
+import { getKartograferEmailLogoUrl } from "@/lib/auth/otp-email";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -135,6 +136,7 @@ export async function sendSignupOtpAction(values: SendSignupOtpInput) {
           purpose: "create your Kartografer account",
           expiresInMinutes: "10",
           otp,
+          logoUrl: getKartograferEmailLogoUrl(),
         },
       },
     });

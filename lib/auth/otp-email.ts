@@ -3,6 +3,15 @@ import { randomInt } from "node:crypto";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+export function getKartograferEmailLogoUrl() {
+  const configuredUrl =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    process.env.NEXTAUTH_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ??
+    "http://localhost:3000";
+
+  return new URL("/logo%26text_forlight.png", configuredUrl).toString();
+}
 
 export function generateOtp() {
   return randomInt(100000, 1000000).toString();
@@ -46,6 +55,7 @@ export async function sendOtpEmail({
         purpose,
         expiresInMinutes: "10",
         otp,
+        logoUrl: getKartograferEmailLogoUrl(),
       },
     },
   });

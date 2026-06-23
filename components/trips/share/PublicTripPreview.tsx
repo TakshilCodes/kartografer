@@ -6,12 +6,12 @@ import {
   Car,
   Compass,
   IndianRupee,
-  Map,
   MapPin,
   Route,
   Utensils,
 } from "lucide-react";
 
+import BrandLogo from "@/components/shared/BrandLogo";
 import TripPreviewDayTabs from "@/components/trips/preview/TripPreviewDayTabs";
 import type { PreviewDayPanel } from "@/lib/trips/build-preview-day-panels";
 
@@ -100,12 +100,12 @@ export default function PublicTripPreview({
       <div className="mx-auto w-full max-w-330 space-y-5">
         <header className="flex flex-col gap-4 border-b border-border pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
-            <div className="mb-3 flex items-center gap-2 text-sm font-black text-primary">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Map className="h-4 w-4" />
-              </span>
-              Kartografer
-            </div>
+            <BrandLogo
+              className="mb-4"
+              compactClassName="h-10 w-10"
+              wordmarkClassName="h-auto w-48"
+              priority
+            />
             <h1 className="wrap-break-word text-2xl font-black text-foreground sm:text-4xl">
               {trip.title}
             </h1>
