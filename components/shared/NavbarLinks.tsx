@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react";
 
 const navLinks = [
   { label: "Homes", href: "/" },
-  { label: "Explore", href: "/#explore" }
+  { label: "Explore", href: "/explore" }
 ];
 
 type NavbarLinksProps = {
@@ -41,7 +41,7 @@ export default function NavbarLinks({ isLoggedIn }: NavbarLinksProps) {
       </button>
 
       {isOpen ? (
-        <div className="absolute left-0 right-0 top-[78px] z-50 rounded-3xl border border-[#dfcdb4] bg-white p-3 shadow-[0_24px_60px_rgba(70,43,20,0.18)] md:hidden">
+        <div className="absolute left-0 right-0 top-19.5 z-50 rounded-3xl border border-[#dfcdb4] bg-white p-3 shadow-[0_24px_60px_rgba(70,43,20,0.18)] md:hidden">
           {navLinks.map((link) => (
             <Link
               key={link.href}

@@ -179,6 +179,17 @@ model Trip {
   publicShareSlug      String?   @unique
   publicSharedAt       DateTime?
 
+  isPublic          Boolean   @default(false)
+  publicTitle       String?
+  publicDescription String?   @db.Text
+  coverImageUrl     String?
+  destination       String?
+  durationDays      Int?
+  budgetStyle       String?
+  travelStyle       String?
+  tags              String[]  @default([])
+  copiedCount       Int       @default(0)
+
   originalTripId String?
 
   publishedAt DateTime?
@@ -199,6 +210,13 @@ model Trip {
   @@index([toPlaceId])
   @@index([visibility])
   @@index([status])
+  @@index([isPublic])
+  @@index([destination])
+  @@index([durationDays])
+  @@index([budgetStyle])
+  @@index([travelStyle])
+  @@index([publishedAt])
+  @@index([copiedCount])
   @@index([createdAt])
 }
 

@@ -223,7 +223,7 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
           />
 
           <SidebarLink
-            href="/dashboard/explore"
+            href="/explore"
             icon={<Compass className="h-4 w-4" />}
             label="Explore"
             onClick={closeMobileSidebar}

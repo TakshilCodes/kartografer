@@ -16,6 +16,7 @@ import {
 import EmptyTripRecovery from "@/components/trips/preview/EmptyTripRecovery";
 import TripPreviewDayPanel from "@/components/trips/preview/TripPreviewDayPanel";
 import TripShareDialog from "@/components/trips/share/TripShareDialog";
+import TripExplorePublishDialog from "@/components/explore/TripExplorePublishDialog";
 import { getPublicTripShareUrl } from "@/lib/app-url";
 import { buildPreviewDayPanels } from "@/lib/trips/build-preview-day-panels";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
@@ -365,6 +366,19 @@ export default async function TripPreviewPage({
                   : null
               }
               initialSharedAt={trip.publicSharedAt?.toISOString() ?? null}
+            />
+
+            <TripExplorePublishDialog
+              tripId={trip.id}
+              tripTitle={trip.title}
+              initialIsPublic={trip.isPublic}
+              initialPublicTitle={trip.publicTitle}
+              initialPublicDescription={trip.publicDescription}
+              initialDestination={trip.destination ?? trip.toPlace?.name ?? null}
+              initialCoverImageUrl={trip.coverImageUrl}
+              initialBudgetStyle={trip.budgetStyle}
+              initialTravelStyle={trip.travelStyle}
+              initialTags={trip.tags}
             />
 
             <Link
