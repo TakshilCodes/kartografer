@@ -26,7 +26,7 @@ function createPdfFilename(title: string) {
   return `${safeTitle || "trip"}-itinerary.pdf`;
 }
 
-function parseRequestCookies(cookieHeader: string, origin: string) {
+function parseCookieHeader(cookieHeader: string) {
   return cookieHeader
     .split(";")
     .map((part) => part.trim())
@@ -39,12 +39,19 @@ function parseRequestCookies(cookieHeader: string, origin: string) {
       return {
         name: part.slice(0, separatorIndex),
         value: part.slice(separatorIndex + 1),
-        url: origin,
+        domain: undefined,
+        path: "/",
       };
     })
     .filter(
-      (cookie): cookie is { name: string; value: string; url: string } =>
-        cookie !== null
+      (
+        cookie
+      ): cookie is {
+        name: string;
+        value: string;
+        domain: undefined;
+        path: string;
+      } => cookie !== null
     );
 }
 
@@ -65,42 +72,46 @@ export async function GET(request: NextRequest, { params }: PdfRouteContext) {
     return NextResponse.json({ error: "Trip not found." }, { status: 404 });
   }
 
-  const { chromium } = await import("playwright");
-
-  const browser = await chromium.launch({ headless: true }).catch((error) => {
-    console.error("PDF_BROWSER_LAUNCH_ERROR", error);
-    return null;
-  });
-
-  if (!browser) {
-    return NextResponse.json(
-      {
-        error:
-          "PDF generation is unavailable because the server browser is not installed.",
-      },
-      { status: 503 }
-    );
-  }
+  let browser: Awaited<ReturnType<typeof import("puppeteer-core").launch>> | null =
+    null;
 
   try {
-    const context = await browser.newContext();
+    const puppeteer = await import("puppeteer-core");
+    const chromium = (await import("@sparticuz/chromium")).default;
+
+    browser = await puppeteer.launch({
+      args: [
+        ...chromium.args,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
+      executablePath: await chromium.executablePath(),
+      headless: true,
+      defaultViewport: {
+        width: 1240,
+        height: 1754,
+      },
+    });
+
+    const page = await browser.newPage();
+
     const cookieHeader = request.headers.get("cookie");
 
     if (cookieHeader) {
-      await context.addCookies(
-        parseRequestCookies(cookieHeader, request.nextUrl.origin)
-      );
+      await page.setCookie(...parseCookieHeader(cookieHeader));
     }
 
-    const page = await context.newPage();
     const exportUrl = new URL(
       `/dashboard/trips/${encodeURIComponent(tripId)}/export`,
       request.nextUrl.origin
     );
+
     exportUrl.searchParams.set("pdf", "1");
 
     const response = await page.goto(exportUrl.toString(), {
-      waitUntil: "networkidle",
+      waitUntil: "networkidle0",
       timeout: 60_000,
     });
 
@@ -108,8 +119,9 @@ export async function GET(request: NextRequest, { params }: PdfRouteContext) {
       throw new Error("The authenticated export page could not be loaded.");
     }
 
-    await page.emulateMedia({ media: "print" });
-    await page.evaluate(() => document.fonts.ready);
+    await page.emulateMediaType("print");
+
+    await page.evaluate(() => document.fonts.ready.then(() => true));
 
     const pdf = await page.pdf({
       format: "A4",
@@ -143,6 +155,6 @@ export async function GET(request: NextRequest, { params }: PdfRouteContext) {
       { status: 500 }
     );
   } finally {
-    await browser.close();
+    await browser?.close();
   }
 }
