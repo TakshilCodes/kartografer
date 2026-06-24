@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./public/kartografer-logo.png" alt="Kartografer Logo" width="220" />
+  <img src="./public/logo&text_fordark.png" alt="Kartografer Logo" width="220" />
 </p>
 
 <div align="center">
@@ -20,7 +20,6 @@ A full-stack AI travel planner that turns a rough travel idea into a structured,
 ![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
-![Gemini AI](https://img.shields.io/badge/Gemini_AI-4285F4?style=for-the-badge&logo=google&logoColor=white)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-3448C5?style=for-the-badge&logo=cloudinary&logoColor=white)
 
 </div>
