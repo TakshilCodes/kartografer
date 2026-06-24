@@ -4,8 +4,6 @@
 
 <div align="center">
 
-<h1 align="center">Kartografer</h1>
-
 A full-stack AI travel planner that turns a rough travel idea into a structured, editable trip workspace — with day-wise itineraries, budget estimation, AI-assisted planning, public sharing, and premium PDF export.
 
 <br/>
