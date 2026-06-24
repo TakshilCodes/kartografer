@@ -38,11 +38,7 @@ export default function ContainerScroll({
 
   const rotate = useTransform(scrollYProgress, [0, 1], [18, 0]);
   const scale = useTransform(scrollYProgress, [0, 1], scaleDimensions());
-
-  // Important fix:
-  // Before: [0, -100]
-  // That pushed the title under the fixed navbar.
-  const translate = useTransform(scrollYProgress, [0, 1], [10, -200]);
+  const translate = useTransform(scrollYProgress, [0, 1], [10, -130]);
 
   return (
     <section
