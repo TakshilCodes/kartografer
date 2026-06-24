@@ -26,7 +26,7 @@ function createPdfFilename(title: string) {
   return `${safeTitle || "trip"}-itinerary.pdf`;
 }
 
-function parseCookieHeader(cookieHeader: string) {
+function parseRequestCookies(cookieHeader: string, origin: string) {
   return cookieHeader
     .split(";")
     .map((part) => part.trim())
@@ -38,21 +38,51 @@ function parseCookieHeader(cookieHeader: string) {
 
       return {
         name: part.slice(0, separatorIndex),
-        value: part.slice(separatorIndex + 1),
-        domain: undefined,
-        path: "/",
+        value: decodeURIComponent(part.slice(separatorIndex + 1)),
+        url: origin,
       };
     })
     .filter(
-      (
-        cookie
-      ): cookie is {
-        name: string;
-        value: string;
-        domain: undefined;
-        path: string;
-      } => cookie !== null
+      (cookie): cookie is { name: string; value: string; url: string } =>
+        cookie !== null
     );
+}
+
+async function launchPdfBrowser() {
+  const puppeteer = await import("puppeteer-core");
+
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (isProduction) {
+    const chromium = (await import("@sparticuz/chromium")).default;
+
+    return puppeteer.launch({
+      args: [
+        ...chromium.args,
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
+      executablePath: await chromium.executablePath(),
+      headless: true,
+      defaultViewport: {
+        width: 1240,
+        height: 1754,
+      },
+    });
+  }
+
+  return puppeteer.launch({
+    executablePath:
+      process.env.LOCAL_CHROME_PATH ||
+      "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
+    headless: true,
+    defaultViewport: {
+      width: 1240,
+      height: 1754,
+    },
+  });
 }
 
 export async function GET(request: NextRequest, { params }: PdfRouteContext) {
@@ -76,31 +106,17 @@ export async function GET(request: NextRequest, { params }: PdfRouteContext) {
     null;
 
   try {
-    const puppeteer = await import("puppeteer-core");
-    const chromium = (await import("@sparticuz/chromium")).default;
 
-    browser = await puppeteer.launch({
-      args: [
-        ...chromium.args,
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-      ],
-      executablePath: await chromium.executablePath(),
-      headless: true,
-      defaultViewport: {
-        width: 1240,
-        height: 1754,
-      },
-    });
+    browser = await launchPdfBrowser();
 
     const page = await browser.newPage();
 
     const cookieHeader = request.headers.get("cookie");
 
     if (cookieHeader) {
-      await page.setCookie(...parseCookieHeader(cookieHeader));
+      await page.setCookie(
+        ...parseRequestCookies(cookieHeader, request.nextUrl.origin)
+      );
     }
 
     const exportUrl = new URL(
@@ -154,7 +170,5 @@ export async function GET(request: NextRequest, { params }: PdfRouteContext) {
       },
       { status: 500 }
     );
-  } finally {
-    await browser?.close();
   }
 }

@@ -44,7 +44,7 @@ Kartografer touches real-world engineering problems: multi-key AI failover, chun
 - **Public Explore** — Owners can publish trips to a browsable public library with cover images, tags, travel style, and budget style.
 - **Clone Itineraries** — Logged-in users can clone any public trip into their own workspace.
 - **Public Share Links** — Per-trip shareable read-only links via a random slug (not the trip ID).
-- **Premium PDF Export** — Owner-only A4 travel proposal PDF rendered via Playwright/Chromium from an HTML template. Owners can customize proposal contents before downloading — toggling cost breakdown, planned budget, traveler notes, and Kartografer branding on or off.
+- **Premium PDF Export** — Owner-only A4 travel proposal PDF rendered from an HTML template using a serverless Chromium browser.
 - **Cover Image Upload** — Cloudinary upload with a 16:9 in-browser cropper before publish.
 - **Authentication** — Email/password and Google OAuth with OTP flows for email change and password reset.
 - **Redis Rate Limiting** — Separate limits for AI generation, AI chat, and manual trip creation.
@@ -108,7 +108,7 @@ If a request hits a retryable error (429, 500, 502, 503, 504), the client rotate
 
 ---
 
-### PDF Export with Playwright
+### PDF Export with Serverless Chromium
 
 The PDF pipeline uses a two-stage approach:
 
@@ -116,8 +116,8 @@ The PDF pipeline uses a two-stage approach:
 Owner → /dashboard/trips/[tripId]/export (preview page, same HTML template)
 Owner → Download PDF button
 → API route checks auth + ownership
-→ Playwright opens export page with ?mode=pdf
-→ Chromium generates A4 PDF
+→ API route opens the export page with ?mode=pdf using a headless serverless Chromium browser
+→ Chromium generates the A4 PDF
 → File streamed to browser
 ```
 
@@ -197,7 +197,9 @@ Server actions always re-check ownership. Public routes never query unselected o
 - Redis (per-user rate limits for AI generation, AI chat, manual trip creation)
 
 ### PDF Generation
-- Playwright / Chromium
+- Puppeteer Core
+- @sparticuz/chromium
+- Serverless Chromium
 
 ---
 
@@ -237,7 +239,7 @@ Server actions always re-check ownership. Public routes never query unselected o
  
 **Problem:** Generating a PDF from a web app is notoriously inconsistent. CSS-to-PDF libraries strip layout, lose fonts, and produce ugly output. Browser print dialogs add headers/footers and vary across OS. On top of that, different owners want different things in their proposal — some want the cost breakdown visible, others want a clean itinerary-only document without pricing or branding.
  
-**Solution:** Playwright/Chromium renders the same HTML template that the export preview page uses. The API route launches Playwright headlessly, navigates to the export page with `?mode=pdf`, and captures it as an A4 PDF. The user sees exactly what they'll get in the preview before downloading.
+**Solution:** A headless serverless Chromium browser renders the same HTML template that the export preview page uses. The API route launches Playwright headlessly, navigates to the export page with `?mode=pdf`, and captures it as an A4 PDF. The user sees exactly what they'll get in the preview before downloading.
  
 For content control, owners configure their proposal via a settings panel before exporting — toggling four sections independently:
  
@@ -245,7 +247,7 @@ For content control, owners configure their proposal via a settings panel before
 - **Planned budget** — show or hide the budget entered at trip creation
 - **Traveler notes** — include or exclude trip-level and day-level special notes
 - **Kartografer branding** — show or hide the "generated with" footer
-These preferences are saved in `UserSettings` and read at render time by the export template. The same toggle state applies to both the preview page and the downloaded PDF — what the owner sees in the browser is exactly what Playwright captures.
+These preferences are saved in `UserSettings` and read at render time by the export template. The same toggle state applies to both the preview page and the downloaded PDF — what the owner sees in the browser is exactly what the PDF generator captures..
  
 **Result:** Pixel-accurate PDF output with owner-controlled content. The preview and download share one template. No separate design to maintain, and no one-size-fits-all proposal format.
  
