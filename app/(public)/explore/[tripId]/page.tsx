@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getServerSession } from "next-auth";
 
 import PublicTripDetail from "@/components/explore/PublicTripDetail";
+import JsonLd from "@/components/seo/JsonLd";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { absoluteUrl, siteConfig } from "@/lib/site";
@@ -205,6 +206,32 @@ export default async function ExploreTripDetailPage({ params }: ExploreTripDetai
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            {
+              "@type": "ListItem",
+              position: 1,
+              name: "Home",
+              item: absoluteUrl("/"),
+            },
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: "Explore",
+              item: absoluteUrl("/explore"),
+            },
+            {
+              "@type": "ListItem",
+              position: 3,
+              name: title,
+              item: absoluteUrl(`/explore/${trip.id}`),
+            },
+          ],
+        }}
+      />
       <PublicTripDetail trip={trip} isLoggedIn={Boolean(session?.user?.id)} />
     </>
   );

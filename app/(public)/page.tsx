@@ -4,6 +4,7 @@ import LandingPage from "@/components/landing/LandingPage";
 // import JsonLd from "@/components/seo/JsonLd";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import "@/components/landing/landing.css";
+import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
   title: "Kartografer - AI Travel Planner for Detailed Trip Itineraries",
@@ -31,6 +32,26 @@ export const metadata: Metadata = {
 export default function Home() {
   return (
     <>
+      <JsonLd
+        data={[
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: siteConfig.name,
+            url: absoluteUrl("/"),
+            description: siteConfig.description,
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            name: siteConfig.name,
+            applicationCategory: "TravelApplication",
+            operatingSystem: "Web",
+            url: absoluteUrl("/"),
+            description: siteConfig.description,
+          },
+        ]}
+      />
       <LandingPage />
     </>
   );
