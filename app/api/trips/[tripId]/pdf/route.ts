@@ -162,7 +162,6 @@ export async function GET(request: NextRequest, { params }: PdfRouteContext) {
       },
     });
   } catch (error) {
-    console.error("TRIP_PDF_GENERATION_ERROR", error);
 
     return NextResponse.json(
       {
