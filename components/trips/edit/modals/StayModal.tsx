@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 
 import CustomSelect from "@/components/shared/CustomSelect";
@@ -108,20 +108,37 @@ export default function StayModal({
   onClose,
   onSave,
 }: StayModalProps) {
-  const [form, setForm] = useState<StayFormValues>(getDefaultFormValues);
+  if (!isOpen) return null;
+
   const editingId = editingStay?.id ?? "new";
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setForm(
-      editingStay ? getFormValuesFromStay(editingStay) : getDefaultFormValues()
-    );
-  }, [isOpen, editingId]);
+  return (
+    <StayModalInner
+      key={editingId}
+      isPending={isPending}
+      error={error}
+      editingStay={editingStay}
+      selectedDayNumber={selectedDayNumber}
+      onClose={onClose}
+      onSave={onSave}
+    />
+  );
+}
+
+function StayModalInner({
+  isPending,
+  error,
+  editingStay,
+  selectedDayNumber,
+  onClose,
+  onSave,
+}: Omit<StayModalProps, "isOpen">) {
+  const [form, setForm] = useState<StayFormValues>(() =>
+    editingStay ? getFormValuesFromStay(editingStay) : getDefaultFormValues()
+  );
 
   const bestForLength = form.bestFor.length;
   const notesLength = form.notes.length;
-
-  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center">

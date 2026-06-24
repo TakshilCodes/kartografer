@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createPortal } from "react-dom";
+import NextImage from "next/image";
 import { Compass, Eye, Maximize2, X } from "lucide-react";
 
 type CoverImagePreviewProps = {
@@ -12,11 +13,6 @@ type CoverImagePreviewProps = {
 
 export default function CoverImagePreview({ imageUrl, title, destination }: CoverImagePreviewProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   if (!imageUrl) {
     return (
@@ -59,8 +55,8 @@ export default function CoverImagePreview({ imageUrl, title, destination }: Cove
         >
           <X className="h-5 w-5" />
         </button>
-        <div className="flex max-h-[88vh] max-w-[92vw] items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black shadow-2xl">
-          <img src={imageUrl} alt={`${title} cover`} className="max-h-[88vh] max-w-[92vw] object-contain" />
+        <div className="relative flex max-h-[88vh] max-w-[92vw] items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black shadow-2xl">
+          <NextImage src={imageUrl} alt={`${title} cover`} width={1600} height={900} className="max-h-[88vh] max-w-[92vw] h-auto w-auto object-contain" unoptimized />
         </div>
       </div>
     </div>
@@ -74,7 +70,7 @@ export default function CoverImagePreview({ imageUrl, title, destination }: Cove
         aria-label={`View cover image for ${title}`}
         className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-[28px] border border-border bg-card-secondary text-left shadow-sm outline-none transition hover:-translate-y-0.5 hover:shadow-xl focus:ring-4 focus:ring-ring/20"
       >
-        <img src={imageUrl} alt={`${title} cover`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        <NextImage src={imageUrl} alt={`${title} cover`} fill className="h-full w-full object-cover transition duration-500 group-hover:scale-105" unoptimized />
         <div className="absolute inset-0 bg-black/0 transition duration-300 group-hover:bg-black/35" />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-300 group-hover:opacity-100">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/90 px-4 py-2 text-xs font-black text-[#54371d] shadow-lg">
@@ -87,7 +83,7 @@ export default function CoverImagePreview({ imageUrl, title, destination }: Cove
         </span>
       </button>
 
-      {isMounted && lightbox ? createPortal(lightbox, document.body) : null}
+      {isOpen && typeof window !== "undefined" && lightbox ? createPortal(lightbox, document.body) : null}
     </>
   );
 }

@@ -14,7 +14,6 @@ import {
     Loader2,
     LockKeyhole,
     Mail,
-    ShieldCheck,
 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 

@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { CopyPlus } from "lucide-react";
 
-import { usePublicTripAsTemplateAction } from "@/actions/explore/use-template.action";
+import { publicTripAsTemplateAction } from "@/actions/explore/use-template.action";
 
 export default function UseItineraryButton({ publicTripId }: { publicTripId: string }) {
   const [isPending, startTransition] = useTransition();
@@ -13,7 +13,7 @@ export default function UseItineraryButton({ publicTripId }: { publicTripId: str
     setError("");
 
     startTransition(async () => {
-      const result = await usePublicTripAsTemplateAction({ publicTripId });
+      const result = await publicTripAsTemplateAction({ publicTripId });
 
       if (result && !result.ok) {
         setError(result.error);

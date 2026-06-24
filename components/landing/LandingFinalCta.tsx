@@ -2,34 +2,10 @@
 
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import ShinyText from "@/components/landing/ShinyText";
 import {
   ArrowRight,
   Compass,
-  FileText,
-  Map,
-  Sparkles,
-  WalletCards,
 } from "lucide-react";
-
-const ctaFeatures = [
-  {
-    icon: Sparkles,
-    label: "AI first draft",
-  },
-  {
-    icon: Map,
-    label: "Editable itinerary",
-  },
-  {
-    icon: WalletCards,
-    label: "Cost tracking",
-  },
-  {
-    icon: FileText,
-    label: "PDF export",
-  },
-];
 
 export default function LandingFinalCta() {
   const shouldReduceMotion = useReducedMotion();

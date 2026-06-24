@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 
 import CustomSelect from "@/components/shared/CustomSelect";
@@ -76,19 +76,36 @@ export default function MealModal({
   onClose,
   onSave,
 }: MealModalProps) {
-  const [form, setForm] = useState<MealFormValues>(getDefaultFormValues);
+  if (!isOpen) return null;
+
   const editingId = editingMeal?.id ?? "new";
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setForm(
-      editingMeal ? getFormValuesFromMeal(editingMeal) : getDefaultFormValues()
-    );
-  }, [isOpen, editingId]);
+  return (
+    <MealModalInner
+      key={editingId}
+      isPending={isPending}
+      error={error}
+      editingMeal={editingMeal}
+      selectedDayNumber={selectedDayNumber}
+      onClose={onClose}
+      onSave={onSave}
+    />
+  );
+}
+
+function MealModalInner({
+  isPending,
+  error,
+  editingMeal,
+  selectedDayNumber,
+  onClose,
+  onSave,
+}: Omit<MealModalProps, "isOpen">) {
+  const [form, setForm] = useState<MealFormValues>(() =>
+    editingMeal ? getFormValuesFromMeal(editingMeal) : getDefaultFormValues()
+  );
 
   const notesLength = form.notes.length;
-
-  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center">

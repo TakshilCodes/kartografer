@@ -12,7 +12,7 @@ const inputSchema = z.object({
   publicTripId: z.string().trim().min(1, "Trip id is required."),
 });
 
-export async function usePublicTripAsTemplateAction(input: {
+export async function publicTripAsTemplateAction(input: {
   publicTripId: string;
 }) {
   const parsed = inputSchema.safeParse(input);

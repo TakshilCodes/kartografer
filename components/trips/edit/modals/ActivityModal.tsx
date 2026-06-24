@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { X } from "lucide-react";
 
 import CustomSelect from "@/components/shared/CustomSelect";
@@ -103,22 +103,39 @@ export default function ActivityModal({
   onClose,
   onSave,
 }: ActivityModalProps) {
-  const [form, setForm] = useState<ActivityFormValues>(getDefaultFormValues);
+  if (!isOpen) return null;
+
   const editingId = editingActivity?.id ?? "new";
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setForm(
-      editingActivity
-        ? getFormValuesFromActivity(editingActivity)
-        : getDefaultFormValues()
-    );
-  }, [isOpen, editingId]);
+  return (
+    <ActivityModalInner
+      key={editingId}
+      isPending={isPending}
+      error={error}
+      editingActivity={editingActivity}
+      selectedDayNumber={selectedDayNumber}
+      onClose={onClose}
+      onSave={onSave}
+    />
+  );
+}
+
+function ActivityModalInner({
+  isPending,
+  error,
+  editingActivity,
+  selectedDayNumber,
+  onClose,
+  onSave,
+}: Omit<ActivityModalProps, "isOpen">) {
+  const [form, setForm] = useState<ActivityFormValues>(() =>
+    editingActivity
+      ? getFormValuesFromActivity(editingActivity)
+      : getDefaultFormValues()
+  );
 
   const descriptionLength = form.description.length;
   const notesLength = form.notes.length;
-
-  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/40 p-3 sm:items-center">

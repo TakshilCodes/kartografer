@@ -3,7 +3,6 @@ import {
   Bot,
   Check,
   IndianRupee,
-  Plus,
   Route,
   Sparkles,
 } from "lucide-react";

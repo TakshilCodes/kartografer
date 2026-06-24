@@ -71,9 +71,6 @@ export default function PlaceAutocomplete({
     const trimmedQuery = debouncedQuery.trim();
 
     if (trimmedQuery.length < 2) {
-      setPlaces([]);
-      setIsOpen(false);
-      setIsLoading(false);
       return;
     }
 

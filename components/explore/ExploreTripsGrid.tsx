@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import ExploreTripCard from "@/components/explore/ExploreTripCard";
 
@@ -59,6 +60,11 @@ export default function ExploreTripsGrid({
   hasFilters: boolean;
 }) {
   const [isLoading, setIsLoading] = useState(false);
+  const [prevTrips, setPrevTrips] = useState(trips);
+  if (trips !== prevTrips) {
+    setPrevTrips(trips);
+    setIsLoading(false);
+  }
 
   useEffect(() => {
     function handleExploreLoading() {
@@ -71,10 +77,6 @@ export default function ExploreTripsGrid({
       window.removeEventListener(EXPLORE_LOADING_EVENT, handleExploreLoading);
     };
   }, []);
-
-  useEffect(() => {
-    setIsLoading(false);
-  }, [trips]);
 
   if (isLoading) {
     return <ExploreTripsGridSkeleton />;
@@ -92,13 +94,13 @@ export default function ExploreTripsGrid({
             : "Published itineraries will appear here once users start sharing them."}
         </p>
         {hasFilters ? (
-          <a
+          <Link
             href="/explore"
             onClick={triggerExploreGridLoading}
             className="mt-5 inline-flex rounded-full bg-primary px-5 py-2.5 text-sm font-black text-primary-foreground transition hover:bg-primary-hover"
           >
             Clear filters
-          </a>
+          </Link>
         ) : null}
       </div>
     );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import NextImage from "next/image";
 import Cropper, { type Area, type Point } from "react-easy-crop";
 import { ImagePlus, Loader2, RotateCcw, Trash2, UploadCloud, X } from "lucide-react";
 
@@ -135,7 +136,7 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
 
       {value ? (
         <div className="group relative aspect-video overflow-hidden rounded-[26px] border border-border bg-card-secondary shadow-sm">
-          <img src={value} alt="Trip cover preview" className="h-full w-full object-cover" />
+          <NextImage src={value} alt="Trip cover preview" fill className="h-full w-full object-cover" unoptimized />
           <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/10 to-transparent opacity-80 transition group-hover:opacity-100" />
           <div className="absolute bottom-3 right-3 flex flex-wrap justify-end gap-2">
             <button

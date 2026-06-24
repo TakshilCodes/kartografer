@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useReducedMotion } from "framer-motion";
-import ShinyText from "@/components/landing/ShinyText";
 import {
     ArrowRight,
     BedDouble,
@@ -87,10 +86,12 @@ export default function LandingExportPdf() {
 
     useEffect(() => {
         if (shouldReduceMotion) {
-            setHasStarted(true);
-            setActiveOption(exportOptions.length);
-            setButtonState("ready");
-            return;
+            const timer = setTimeout(() => {
+                setHasStarted(true);
+                setActiveOption(exportOptions.length);
+                setButtonState("ready");
+            }, 0);
+            return () => clearTimeout(timer);
         }
 
         const section = sectionRef.current;
@@ -116,9 +117,6 @@ export default function LandingExportPdf() {
 
     useEffect(() => {
         if (!hasStarted || shouldReduceMotion) return;
-
-        setActiveOption(0);
-        setButtonState("preparing");
 
         const timeouts: number[] = [];
 
@@ -147,10 +145,13 @@ export default function LandingExportPdf() {
             window.setTimeout(
                 () => {
                     setHasStarted(false);
+                    setActiveOption(0);
+                    setButtonState("preparing");
 
-                    window.setTimeout(() => {
+                    const innerTimer = window.setTimeout(() => {
                         setHasStarted(true);
                     }, 300);
+                    timeouts.push(innerTimer);
                 },
                 900 + exportOptions.length * 850 + 6200,
             ),

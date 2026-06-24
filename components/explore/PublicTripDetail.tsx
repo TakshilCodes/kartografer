@@ -12,7 +12,6 @@ import {
   Route,
   Sparkles,
   Tag,
-  Users,
 } from "lucide-react";
 
 import CoverImagePreview from "@/components/explore/CoverImagePreview";
