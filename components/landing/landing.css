@@ -5,435 +5,292 @@
   background-size: 28px 28px;
 }
 
-.landing-table-scene {
-  animation: landingTableFloat 7s ease-in-out infinite;
-}
-
-.landing-route-shadow,
-.landing-route-line {
-  stroke-linecap: round;
-  stroke-width: 4;
-  fill: none;
-}
-
-.landing-route-shadow {
-  stroke: rgba(91, 53, 26, 0.16);
-  stroke-width: 8;
-}
-
-.landing-route-line {
-  stroke: #7b5130;
-  stroke-dasharray: 12 12;
-  animation: landingRouteMove 9s linear infinite;
-}
-
-.landing-pin-pulse {
-  position: relative;
-}
-
-.landing-pin-pulse::after {
-  content: "";
-  position: absolute;
-  inset: -7px;
-  border-radius: 999px;
-  border: 1px solid currentColor;
-  opacity: 0.25;
-  animation: landingPinPulse 2.4s ease-out infinite;
-}
-
-.landing-delay::after {
-  animation-delay: 0.8s;
-}
-
-.landing-float-card {
-  animation: landingCardFloat 5.5s ease-in-out infinite;
-}
-
-.landing-float-delay {
-  animation-delay: 1.2s;
-}
-
-.landing-day-row {
-  animation: landingRowIn 0.7s ease both;
-}
-
-.landing-day-row:nth-child(2) {
-  animation-delay: 0.12s;
-}
-
-.landing-day-row:nth-child(3) {
-  animation-delay: 0.24s;
-}
-
-@keyframes landingTableFloat {
-  0%,
-  100% {
-    transform: translateY(0) rotateX(0deg);
-  }
-  50% {
-    transform: translateY(-10px) rotateX(1deg);
-  }
-}
-
-@keyframes landingCardFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-9px);
-  }
-}
-
-@keyframes landingRouteMove {
-  from {
-    stroke-dashoffset: 0;
-  }
-  to {
-    stroke-dashoffset: -96;
-  }
-}
-
-@keyframes landingPinPulse {
-  0% {
-    transform: scale(0.85);
-    opacity: 0.35;
-  }
-  100% {
-    transform: scale(1.55);
-    opacity: 0;
-  }
-}
-
-@keyframes landingRowIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-
-/* Product story simulation */
-.landing-story-progress {
-  width: 0;
-  animation-name: storyStepProgress;
-  animation-timing-function: linear;
-  animation-fill-mode: forwards;
-}
-
-.landing-step-marker {
-  animation: landingStepMarkerFloat 2.4s ease-in-out infinite;
-}
-
-.landing-step-marker::after {
-  content: "";
-  position: absolute;
-  inset: -5px;
-  border: 1px solid rgba(169, 117, 56, 0.3);
-  border-radius: 999px;
-  animation: landingStepMarkerRing 2.4s ease-out infinite;
-}
-
-.landing-story-progress-route {
-  box-shadow: 0 0 10px rgba(112, 69, 34, 0.28);
-}
-
-.landing-story-progress-head {
-  animation: landingProgressHeadPulse 1.6s ease-in-out infinite;
-}
-.landing-story-indicator {
-  animation: landingStoryIndicatorGlow 2.2s ease-in-out infinite;
-}
-
-.landing-story-stage,
-.landing-story-panel {
-  animation: landingStoryPanelIn 520ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
-}
-
-.landing-autofill-field {
-  opacity: 0;
-  transform: translateY(8px);
-  animation: landingAutofillFieldIn 360ms ease forwards;
-}
-
-.landing-autofill-value {
-  display: inline-block;
-  opacity: 0;
-  transform: translateX(-5px);
-  animation: landingAutofillValueIn 320ms ease forwards;
-}
-
-.landing-typing-caret {
-  width: 1px;
-  height: 16px;
-  background: #704522;
-  opacity: 0;
-  animation: landingCaretWindow 720ms steps(1, end) forwards;
-}
-
-.landing-generate-button {
-  animation: landingGeneratePress 620ms ease 4.05s both;
-}
-
-.landing-generation-overlay {
-  opacity: 0;
-  visibility: hidden;
-  animation: landingGenerationReveal 560ms ease 4.62s forwards;
-}
-
-.landing-generation-route {
-  animation: storyRouteMove 2.2s linear infinite;
-}
-
-.landing-build-status {
-  opacity: 0;
-  transform: translateY(7px);
-  animation: landingBuildStatusIn 300ms ease forwards;
-}
-
-.landing-preview-day {
-  animation: landingPreviewDayIn 480ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
-}
-
-.landing-preview-item {
-  opacity: 0;
-  animation: storyItemIn 420ms ease forwards;
-}
-
-.landing-action-menu {
-  transform-origin: top right;
-  animation: landingMenuOpen 620ms cubic-bezier(0.2, 0.8, 0.2, 1) 1050ms both;
-}
-
-.landing-thinking-bubble span {
-  display: inline-block;
-  animation: landingThinkingDot 1.2s ease-in-out infinite;
-}
-
-.landing-thinking-bubble span:nth-child(2) {
-  animation-delay: 140ms;
-}
-
-.landing-thinking-bubble span:nth-child(3) {
-  animation-delay: 280ms;
-}
-
-@keyframes landingStepMarkerFloat {
-  0%, 100% { transform: translateY(-50%) translateX(0); }
-  50% { transform: translateY(calc(-50% - 3px)) translateX(2px); }
-}
-
-@keyframes landingStepMarkerRing {
-  0% { transform: scale(0.82); opacity: 0; }
-  35% { opacity: 0.75; }
-  100% { transform: scale(1.3); opacity: 0; }
-}
-
-@keyframes landingProgressHeadPulse {
-  0%, 100% { transform: scale(0.9); }
-  50% { transform: scale(1.2); }
-}
-@keyframes landingStoryIndicatorGlow {
-  0%, 100% { box-shadow: 0 0 10px rgba(180, 119, 55, 0.34); }
-  50% { box-shadow: 0 0 22px rgba(111, 141, 101, 0.5); }
-}
-
-@keyframes landingStoryPanelIn {
-  from { opacity: 0; transform: translateY(12px) scale(0.992); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes landingAutofillFieldIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes landingAutofillValueIn {
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes landingCaretWindow {
-  0%, 20%, 45%, 70% { opacity: 1; }
-  10%, 32%, 58%, 82%, 100% { opacity: 0; }
-}
-
-@keyframes landingGeneratePress {
-  0%, 100% { transform: scale(1); }
-  45% { transform: scale(0.975); background: #704522; }
-}
-
-@keyframes landingGenerationReveal {
-  from { opacity: 0; visibility: visible; transform: scale(1.015); }
-  to { opacity: 1; visibility: visible; transform: scale(1); }
-}
-
-@keyframes landingBuildStatusIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes landingPreviewDayIn {
-  from { opacity: 0; transform: translateX(16px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes landingMenuOpen {
-  from { opacity: 0; transform: translateY(-6px) scale(0.92); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes landingThinkingDot {
-  0%, 60%, 100% { transform: translateY(0); opacity: 0.38; }
-  30% { transform: translateY(-3px); opacity: 1; }
-}
-
-@media (max-width: 767px) {
-  .landing-edit-workspace {
-    overflow: hidden;
-  }
-
-  .landing-edit-grid {
-    min-width: 0;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .landing-options-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  .landing-options-grid > * + * {
-    margin-top: 0;
-  }
-
-  .landing-chat-panel {
-    min-height: 245px;
-  }
-}
-@media (max-width: 767px) {
-  .landing-product-story-demo .border-glow-inner {
-    overflow: visible;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-story-progress {
-    width: 100%;
-    animation: none !important;
-  }
-
-  .landing-step-marker,
-  .landing-story-progress-head,
-  .landing-story-indicator,
-  .landing-story-stage,
-  .landing-story-panel,
-  .landing-autofill-field,
-  .landing-autofill-value,
-  .landing-typing-caret,
-  .landing-generate-button,
-  .landing-generation-route,
-  .landing-build-status,
-  .landing-preview-day,
-  .landing-preview-item,
-  .landing-action-menu,
-  .landing-thinking-bubble span {
-    animation: none !important;
-    opacity: 1;
-    transform: none;
-  }
-
-  .landing-generation-overlay {
-    display: none;
-  }
-}
-/* Compact hero product loop */
-.landing-hero-route {
-  animation: landingHeroRouteTravel 4.8s linear infinite;
-}
-
 .landing-hero-phase {
-  animation: landingHeroPhaseIn 360ms cubic-bezier(0.2, 0.75, 0.2, 1) both;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  animation: landingHeroPhaseReveal 1150ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: center;
+  will-change: opacity, transform, filter;
+}
+
+.landing-hero-phase-0 {
+  --phase-start-x: -10px;
+  --phase-start-y: 18px;
+  --phase-rotate: -0.45deg;
+}
+
+.landing-hero-phase-1 {
+  --phase-start-x: 0px;
+  --phase-start-y: 22px;
+  --phase-rotate: 0deg;
+}
+
+.landing-hero-phase-2 {
+  --phase-start-x: 10px;
+  --phase-start-y: 18px;
+  --phase-rotate: 0.45deg;
+}
+
+.landing-hero-phase-sheen {
+  pointer-events: none;
+  position: absolute;
+  inset: -35%;
+  z-index: 50;
+  background: linear-gradient(
+    115deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.36) 48%,
+    rgba(255, 255, 255, 0.18) 52%,
+    transparent 60%
+  );
+  transform: translateX(-75%) rotate(8deg);
+  animation: landingHeroSheen 1200ms ease both;
 }
 
 .landing-hero-idea {
-  animation: landingHeroIdeaLift 520ms ease both;
+  animation: landingHeroCardPop 1050ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.landing-hero-typed-text {
-  display: inline;
-  clip-path: inset(0 100% 0 0);
-  animation: landingHeroTypeReveal 980ms steps(14, end) 140ms forwards;
+.landing-hero-route {
+  animation:
+    landingHeroRouteMove 14s linear infinite,
+    landingHeroRouteGlow 4.5s ease-in-out infinite;
 }
 
 .landing-hero-caret {
   display: inline-block;
-  width: 1px;
-  height: 15px;
   margin-left: 2px;
-  vertical-align: -2px;
-  background: #704522;
-  animation: landingHeroCaret 520ms steps(1, end) infinite;
+  height: 1em;
+  width: 2px;
+  transform: translateY(2px);
+  background: #5b351a;
+  animation: landingHeroCaret 0.9s steps(1) infinite;
 }
 
-.landing-hero-status,
+.landing-hero-status {
+  opacity: 0;
+  animation: landingHeroItemRise 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 .landing-hero-day {
   opacity: 0;
-  transform: translateY(8px);
-  animation: landingHeroItemIn 340ms ease forwards;
+  animation: landingHeroDayFlip 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  transform-origin: bottom center;
 }
 
 .landing-hero-edit-chip {
-  opacity: 0;
-  transform: translateX(8px);
-  animation: landingHeroEditProof 460ms ease 720ms forwards;
+  animation:
+    landingHeroChipIn 950ms cubic-bezier(0.16, 1, 0.3, 1) 520ms both,
+    landingHeroChipPulse 2.6s ease-in-out 1.5s infinite;
 }
 
-@keyframes landingHeroRouteTravel {
-  to { stroke-dashoffset: -176; }
+.landing-hero-status-label {
+  display: inline-block;
+  animation: landingHeroLabelSwap 620ms ease both;
 }
 
-@keyframes landingHeroPhaseIn {
-  from { opacity: 0; transform: translateY(10px) scale(0.99); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
+.landing-hero-loading-bar {
+  width: 100%;
+  transform-origin: left;
+  animation: landingHeroLoadingBar 3.6s ease-in-out infinite;
 }
 
-@keyframes landingHeroIdeaLift {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes landingHeroPhaseReveal {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate3d(var(--phase-start-x), var(--phase-start-y), 0)
+      scale(0.975)
+      rotate(var(--phase-rotate));
+  }
+
+  58% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, -2px, 0) scale(1.006) rotate(0deg);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1) rotate(0deg);
+  }
 }
 
-@keyframes landingHeroTypeReveal {
-  to { clip-path: inset(0 0 0 0); }
+@keyframes landingHeroSheen {
+  0% {
+    opacity: 0;
+    transform: translateX(-80%) rotate(8deg);
+  }
+
+  22% {
+    opacity: 0.8;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(80%) rotate(8deg);
+  }
+}
+
+@keyframes landingHeroCardPop {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.955);
+    filter: blur(7px);
+  }
+
+  72% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.01);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes landingHeroItemRise {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.965);
+    filter: blur(5px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes landingHeroDayFlip {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) rotateX(12deg) scale(0.97);
+    filter: blur(5px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes landingHeroChipIn {
+  0% {
+    opacity: 0;
+    transform: translateX(10px) scale(0.94);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes landingHeroChipPulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(91, 53, 26, 0.22);
+  }
+
+  50% {
+    box-shadow: 0 0 0 7px rgba(91, 53, 26, 0);
+  }
+}
+
+@keyframes landingHeroRouteMove {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -88;
+  }
+}
+
+@keyframes landingHeroRouteGlow {
+  0%,
+  100% {
+    opacity: 0.52;
+    filter: drop-shadow(0 0 0 rgba(112, 69, 34, 0));
+  }
+
+  50% {
+    opacity: 1;
+    filter: drop-shadow(0 0 6px rgba(112, 69, 34, 0.26));
+  }
 }
 
 @keyframes landingHeroCaret {
-  0%, 48% { opacity: 1; }
-  49%, 100% { opacity: 0; }
-}
-
-@keyframes landingHeroItemIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes landingHeroEditProof {
-  to { opacity: 1; transform: translateX(0); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .landing-hero-route,
-  .landing-hero-phase,
-  .landing-hero-idea,
-  .landing-hero-typed-text,
-  .landing-hero-caret,
-  .landing-hero-status,
-  .landing-hero-day,
-  .landing-hero-edit-chip {
-    animation: none !important;
+  0%,
+  45% {
     opacity: 1;
-    transform: none;
-    clip-path: none;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes landingHeroLabelSwap {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes landingHeroLoadingBar {
+  0% {
+    transform: scaleX(0);
+    opacity: 0.72;
+  }
+
+  72% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scaleX(1);
+    opacity: 0.66;
+  }
+}
+
+@media (max-width: 640px) {
+  .landing-map-grid {
+    background-size: 22px 22px;
+  }
+}
+
+.landing-chat-dots {
+  display: inline-block;
+  width: 18px;
+  overflow: hidden;
+  vertical-align: bottom;
+  animation: landingChatDots 1.2s steps(4) infinite;
+}
+
+@keyframes landingChatDots {
+  from {
+    width: 0;
+  }
+
+  to {
+    width: 18px;
   }
 }

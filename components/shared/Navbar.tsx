@@ -16,14 +16,6 @@ export default async function Navbar() {
     <header className="fixed left-0 top-5 z-50 w-full px-4">
       <div className="mx-auto w-full max-w-7xl">
         <nav className="relative flex h-18 items-center justify-between rounded-4xl border border-[#ddc9ad]/90 bg-white/78 px-3 text-[#2d1e11] shadow-[0_18px_55px_rgba(81,49,23,0.13)] backdrop-blur-2xl sm:px-4">
-          {/* Glass layers */}
-          <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 bg-linear-to-b from-white/45 via-white/20 to-white/10" />
-            <div className="absolute inset-0 bg-white/15" />
-            <div className="absolute left-0 top-0 h-full w-1/3 bg-linear-to-r from-card-secondary/40 to-transparent" />
-            <div className="absolute right-0 top-0 h-full w-1/3 bg-linear-to-l from-card-secondary/30 to-transparent" />
-            <div className="absolute inset-x-6 top-0 h-px bg-white/70" />
-          </div>
 
           {/* Left: Brand */}
           <Link

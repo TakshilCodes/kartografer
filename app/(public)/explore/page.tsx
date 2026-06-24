@@ -1,3 +1,4 @@
+﻿import type { Metadata } from "next";
 import ExploreFilters from "@/components/explore/ExploreFilters";
 import ExplorePagination from "@/components/explore/ExplorePagination";
 import ExploreTripsGrid from "@/components/explore/ExploreTripsGrid";
@@ -8,6 +9,27 @@ import {
   PAGE_SIZE,
 } from "@/lib/explore/explore-query";
 
+
+export const metadata: Metadata = {
+  title: "Explore Public Trip Itineraries",
+  description:
+    "Discover public travel itineraries created with Kartografer and use them as inspiration for your next trip.",
+  alternates: {
+    canonical: "/explore",
+  },
+  openGraph: {
+    title: "Explore Public Trip Itineraries - Kartografer",
+    description:
+      "Discover public travel itineraries created with Kartografer and use them as inspiration for your next trip.",
+    url: "/explore",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Explore Public Trip Itineraries - Kartografer",
+    description:
+      "Discover public travel itineraries created with Kartografer and use them as inspiration for your next trip.",
+  },
+};
 type ExplorePageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
 };

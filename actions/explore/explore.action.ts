@@ -7,33 +7,31 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
+const tagSchema = z
+  .string()
+  .trim()
+  .min(1, "Tag cannot be empty.")
+  .max(34, "Each tag must be less than 35 characters.")
+  .regex(/^\S+$/, "Tags cannot contain spaces. Use hyphens instead.")
+  .transform((tag) => tag.toLowerCase());
+
 const publishSchema = z.object({
   tripId: z.string().trim().min(1, "Trip id is required."),
   publicTitle: z.string().trim().min(2, "Public title is required.").max(120),
   publicDescription: z.string().trim().max(500).optional(),
-  destination: z.string().trim().max(80).optional(),
-  coverImageUrl: z.string().trim().url().optional().or(z.literal("")),
+  destination: z.string().trim().min(2, "Destination is required.").max(80),
+  coverImageUrl: z.string().trim().url().nullable().optional().or(z.literal("")),
   budgetStyle: z.enum(["budget", "mid-range", "luxury", ""]).default(""),
   travelStyle: z
     .enum(["solo", "couple", "family", "friends", "adventure", "relaxing", ""])
     .default(""),
-  tags: z.string().trim().max(180).optional(),
+  tags: z.array(tagSchema).max(15, "You can add up to 15 tags.").default([]),
 });
 
 const tripIdSchema = z.string().trim().min(1, "Trip id is required.");
 
-function normalizeTags(value?: string) {
-  if (!value) return [];
-
-  return Array.from(
-    new Set(
-      value
-        .split(",")
-        .map((tag) => tag.trim().toLowerCase())
-        .filter(Boolean)
-        .slice(0, 8)
-    )
-  );
+function normalizeTags(tags: string[]) {
+  return Array.from(new Set(tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean))).slice(0, 15);
 }
 
 function revalidateTripExplorePaths(tripId: string) {
@@ -87,7 +85,7 @@ export async function publishTripToExploreAction(input: z.input<typeof publishSc
         isPublic: true,
         publicTitle: parsed.data.publicTitle,
         publicDescription: parsed.data.publicDescription || null,
-        destination: parsed.data.destination || trip.toPlace?.name || null,
+        destination: parsed.data.destination,
         coverImageUrl: parsed.data.coverImageUrl || null,
         durationDays: trip.daysCount,
         budgetStyle: parsed.data.budgetStyle || null,

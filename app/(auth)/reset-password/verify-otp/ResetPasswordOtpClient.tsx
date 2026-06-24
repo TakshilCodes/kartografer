@@ -151,10 +151,10 @@ export default function ResetPasswordOtpClient({
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-1/2 top-[-280px] h-[560px] w-[920px] -translate-x-1/2 rounded-full bg-card-secondary/50 blur-3xl" />
-        <div className="absolute right-[-220px] top-24 h-[440px] w-[440px] rounded-full bg-accent/10 blur-3xl" />
-        <div className="absolute bottom-[-260px] left-[-180px] h-[480px] w-[480px] rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-[size:44px_44px] opacity-30" />
+        <div className="absolute left-1/2 -top-70 h-140 w-230 -translate-x-1/2 rounded-full bg-card-secondary/50 blur-3xl" />
+        <div className="absolute -right-55 top-24 h-110 w-110 rounded-full bg-accent/10 blur-3xl" />
+        <div className="absolute -bottom-65 -left-45 h-120 w-120 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,var(--border)_1px,transparent_1px),linear-gradient(to_bottom,var(--border)_1px,transparent_1px)] bg-size-[44px_44px] opacity-30" />
         <div className="absolute inset-0 bg-linear-to-b from-background/10 via-background/80 to-background" />
       </div>
 
@@ -167,7 +167,7 @@ export default function ResetPasswordOtpClient({
       </Link>
 
       <section className="relative z-10 flex min-h-screen items-center justify-center px-4 py-24">
-        <div className="w-full max-w-[460px]">
+        <div className="w-full max-w-115">
           <div className="mb-6 text-center">
                         <BrandLogo
                             className="mb-4 w-full justify-center"
@@ -180,7 +180,7 @@ export default function ResetPasswordOtpClient({
               Password reset
             </div>
 
-            <h1 className="text-3xl font-black tracking-[-0.05em] text-foreground sm:text-4xl">
+            <h1 className="text-3xl font-black tracking-tighter text-foreground sm:text-4xl">
               Check your inbox
             </h1>
 
@@ -190,7 +190,7 @@ export default function ResetPasswordOtpClient({
             </p>
           </div>
 
-          <div className="relative overflow-hidden rounded-[2rem] border border-white/60 bg-white/35 p-2 shadow-[0_30px_100px_rgba(93,62,29,0.18)] backdrop-blur-2xl">
+          <div className="relative overflow-hidden rounded-4xl border border-white/60 bg-white/35 p-2 shadow-[0_30px_100px_rgba(93,62,29,0.18)] backdrop-blur-2xl">
             <div className="absolute inset-0 bg-linear-to-b from-white/60 via-white/30 to-white/10" />
 
             <div className="relative rounded-[1.55rem] border border-white/55 bg-card/90 p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] sm:p-7">
