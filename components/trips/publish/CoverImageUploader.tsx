@@ -20,12 +20,14 @@ type CoverImageUploaderProps = {
 
 export default function CoverImageUploader({ value, onChange }: CoverImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const dragCounter = useRef(0);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
   const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; file: File } | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
 
   function openFilePicker() {
     setError("");
@@ -44,11 +46,11 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
     setIsUploading(false);
   }
 
-  function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-
-    if (!file) return;
+  function handleSelectedFile(file: File) {
+    if (!file.type.startsWith("image/") && !ACCEPTED_TYPES.has(file.type)) {
+      setError("Please select a valid image file.");
+      return;
+    }
 
     if (!ACCEPTED_TYPES.has(file.type)) {
       setError("Only JPG, PNG, and WEBP images are supported.");
@@ -68,6 +70,56 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setSelectedPhoto({ url: URL.createObjectURL(file), file });
+  }
+
+  function handleFileInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+
+    if (!file) return;
+    handleSelectedFile(file);
+  }
+
+  function handleDragEnter(event: React.DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragCounter.current++;
+    if (event.dataTransfer.items && event.dataTransfer.items.length > 0) {
+      setIsDragging(true);
+    }
+  }
+
+  // Prevent browser default drop behaviors and set standard copy drop effect
+  function handleDragOver(event: React.DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.dataTransfer.dropEffect = "copy";
+  }
+
+  function handleDragLeave(event: React.DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    dragCounter.current--;
+    if (dragCounter.current === 0) {
+      setIsDragging(false);
+    }
+  }
+
+  function handleDrop(event: React.DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDragging(false);
+    dragCounter.current = 0;
+
+    const files = event.dataTransfer.files;
+    if (!files || files.length === 0) return;
+
+    if (files.length > 1) {
+      setError("Only one image is allowed.");
+      return;
+    }
+
+    handleSelectedFile(files[0]);
   }
 
   async function handleUploadCroppedImage() {
@@ -131,17 +183,36 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
         type="file"
         accept="image/jpeg,image/jpg,image/png,image/webp"
         className="sr-only"
-        onChange={handleFileChange}
+        onChange={handleFileInputChange}
       />
 
       {value ? (
-        <div className="group relative aspect-video overflow-hidden rounded-[26px] border border-border bg-card-secondary shadow-sm">
+        <div
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className="group relative aspect-video overflow-hidden rounded-[26px] border border-border bg-card-secondary shadow-sm"
+        >
           <NextImage src={value} alt="Trip cover preview" fill className="h-full w-full object-cover" unoptimized />
           <div className="absolute inset-0 bg-linear-to-t from-black/55 via-black/10 to-transparent opacity-80 transition group-hover:opacity-100" />
+          
+          {isDragging && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-primary/20 backdrop-blur-xs border-2 border-dashed border-primary">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full border border-primary bg-card text-primary shadow-lg animate-bounce">
+                <UploadCloud className="h-5 w-5" />
+              </span>
+              <span className="mt-3 text-sm font-black text-white drop-shadow-md">
+                Drop to replace cover
+              </span>
+            </div>
+          )}
+
           <div className="absolute bottom-3 right-3 flex flex-wrap justify-end gap-2">
             <button
               type="button"
               onClick={openFilePicker}
+              aria-label="Change cover image"
               className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/35 bg-white/90 px-3 py-2 text-xs font-black text-[#54371d] shadow-sm transition hover:bg-white"
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -150,6 +221,7 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
             <button
               type="button"
               onClick={() => onChange(null)}
+              aria-label="Remove cover image"
               className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-white/25 bg-[#5b261c]/90 px-3 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#4b1e16]"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -158,20 +230,53 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
           </div>
         </div>
       ) : (
-        <button
-          type="button"
+        <div
+          role="button"
+          tabIndex={0}
           onClick={openFilePicker}
-          className="group flex aspect-video w-full cursor-pointer flex-col items-center justify-center rounded-[26px] border border-dashed border-border bg-card-secondary/60 px-4 text-center transition hover:border-primary/60 hover:bg-card-secondary focus:outline-none focus:ring-4 focus:ring-ring/20"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              openFilePicker();
+            }
+          }}
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          aria-label="Choose cover image"
+          className={`group flex aspect-video w-full cursor-pointer flex-col items-center justify-center rounded-[26px] border-2 border-dashed px-4 text-center transition focus:outline-none focus:ring-4 focus:ring-ring/20 ${
+            isDragging
+              ? "border-primary bg-primary/5"
+              : "border-border/80 bg-card-secondary/60 hover:border-primary/60 hover:bg-card-secondary"
+          }`}
         >
-          <span className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition group-hover:scale-105">
-            <ImagePlus className="h-5 w-5" />
-          </span>
-          <span className="mt-4 text-sm font-black text-foreground">Upload cover image</span>
-          <span className="mt-1 text-xs font-semibold text-secondary-foreground">PNG, JPG or WEBP up to 10MB</span>
-          <span className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-4 text-xs font-black text-primary-foreground shadow-sm transition group-hover:bg-primary-hover">
-            Choose image
-          </span>
-        </button>
+          {isDragging ? (
+            <>
+              <span className="flex h-12 w-12 items-center justify-center rounded-full border border-primary bg-primary/10 text-primary shadow-sm transition animate-bounce">
+                <ImagePlus className="h-5 w-5 text-primary" />
+              </span>
+              <span className="mt-4 text-sm font-black text-primary">Drop image to upload</span>
+              <span className="mt-1 text-xs font-semibold text-secondary-foreground">Release to open crop window</span>
+            </>
+          ) : (
+            <>
+              <span className="flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition group-hover:scale-105">
+                <ImagePlus className="h-5 w-5" />
+              </span>
+              <span className="mt-4 text-sm font-black text-foreground">Upload cover image</span>
+              <span className="mt-1 text-xs font-semibold text-secondary-foreground leading-relaxed">
+                Drag and drop an image here, or click to browse
+              </span>
+              <span className="mt-4 inline-flex min-h-10 items-center justify-center rounded-full bg-primary px-4 text-xs font-black text-primary-foreground shadow-sm transition group-hover:bg-primary-hover">
+                Choose cover image
+              </span>
+              <span className="mt-3 text-[10px] font-semibold text-secondary-foreground">
+                PNG, JPG or WEBP up to 10MB
+              </span>
+            </>
+          )}
+        </div>
       )}
 
       {error ? (

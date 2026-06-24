@@ -1,79 +1,210 @@
-# Kartografer
+<p align="center">
+  <img src="./public/ledgerOS.png" alt="LedgerOS Logo" width="250" />
+</p>
 
-**Kartografer** is an AI-powered travel planning web app that helps users generate, manage, edit, and explore personalized trip itineraries.
+<div align="center">
 
-The goal of Kartografer is to make travel planning faster, smarter, and more flexible by combining AI-generated itineraries with an editable trip workspace.
+<h1 align="center">LedgerOS</h1>
 
-> This project is currently in active development.
+A modern full-stack expense, subscription, budget, and recurring payment tracker built with a clean dashboard experience.
 
----
+<br/>
 
-## 🚧 Project Status
+![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 
-Kartografer is currently in the **development stage**.
-
-Current focus:
-
-- Authentication system
-- Email OTP verification
-- User dashboard
-- Trip generation flow
-- Trip history
-- Editable itinerary workspace
-- Clean and scalable project architecture
+</div>
 
 ---
 
-## ✨ Planned Features
+## 🚀 About
 
-- AI-generated travel itineraries
-- User authentication
-- Email OTP verification
-- Dashboard with sidebar navigation
-- Create new trip flow
-- Loading screen while generating trips
-- Trip history / saved trips
-- Full trip preview page
-- Editable itinerary workspace
-- Shareable trip plans
-- Public itinerary exploration
-- Use public itineraries as templates
-- Hotel and cost input system
-- Total trip cost calculation
-- Responsive UI for desktop and mobile
+**LedgerOS** is a production-style personal finance dashboard built to help users understand and manage their money in one place.
+
+Users can track daily expenses, monitor subscriptions, manage recurring expenses, set budgets, view insights, and export their financial data.
+
+This project was built as a full-stack portfolio project with authentication, database-backed features, analytics, caching, cron automation, responsive UI, and clean app architecture.
+
+---
+
+## ✨ Core Features
+
+- Authentication with email/password and Google
+- Financial dashboard with real analytics
+- Expense tracking with filters, search, and sorting
+- Subscription tracking with renewal management
+- Recurring expense tracking
+- Monthly, category, and daily limit budgets
+- Insights page with spending analytics
+- Chart.js visualizations
+- CSV data export
+- Account settings and profile management
+- Redis caching for dashboard and insights
+- Protected cron job for subscription renewal updates
+- Responsive GitHub-inspired dark UI
+- Skeleton loading states and smooth UX
+
+---
+
+## 📸 Screenshots
+
+### Dashboard
+
+![Dashboard](./public/screenshots/dashboard.png)
+
+---
+
+### Subscriptions
+
+![Subscriptions](./public/screenshots/subscriptions.png)
+
+---
+
+### Expenses
+
+![Expenses](./public/screenshots/expenses.png)
+
+---
+
+### Budgets
+
+![Budgets](./public/screenshots/budgets.png)
+
+---
+
+### Insights
+
+![Insights](./public/screenshots/insights.png)
 
 ---
 
 ## 🛠️ Tech Stack
 
-This project is being built with:
+### Frontend
 
-- **Next.js**
-- **TypeScript**
-- **Tailwind CSS**
-- **Prisma**
-- **PostgreSQL**
-- **Redis**
-- **Resend**
-- **AI API integration**
+- Next.js App Router
+- TypeScript
+- Tailwind CSS
+- Chart.js
 
-More tools and services may be added as the project grows.
+### Backend
+
+- Next.js Server Actions
+- Next.js API Routes
+- Auth.js / NextAuth
+
+### Database
+
+- PostgreSQL
+- Prisma ORM
+
+### State Management
+
+- Zustand
+
+### Caching
+
+- Redis
 
 ---
 
-## 🧪 Development
+## ⏰ Subscription Renewal Automation
 
-To run the project locally:
+LedgerOS includes a protected cron route that automatically updates overdue active subscription renewal dates.
+
+It checks active subscriptions where:
+
+```txt
+isActive = true
+nextRenewalDate < today
+```
+
+Then it moves the renewal date forward based on the billing cycle.
+
+Example:
+
+```txt
+Monthly: 22 May 2026 → 22 June 2026
+Yearly: 20 May 2026 → 20 May 2027
+```
+
+The cron route is protected using:
+
+```env
+CRON_SECRET=""
+```
+
+This is a V1 implementation. At larger scale, this can be moved to a queue or worker system with retries, batching, and monitoring.
+
+---
+
+## ⚙️ Local Setup
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/ledgeros.git
+cd ledgeros
+```
+
+---
+
+### 2. Install dependencies
 
 ```bash
 npm install
 ```
 
+---
+
+### 3. Setup environment variables
+
+Create a `.env` file in the root directory:
+
+```env
+DATABASE_URL=""
+
+AUTH_SECRET=""
+NEXTAUTH_SECRET=""
+NEXTAUTH_URL="http://localhost:3000"
+
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+
+REDIS_URL=""
+
+CRON_SECRET=""
+```
+
+---
+
+### 4. Run Prisma migration
+
+```bash
+npx prisma migrate dev
+```
+
+---
+
+### 5. Generate Prisma client
+
+```bash
+npx prisma generate
+```
+
+---
+
+### 6. Start development server
+
 ```bash
 npm run dev
 ```
 
-The app will run at:
+Open:
 
 ```txt
 http://localhost:3000
@@ -81,27 +212,16 @@ http://localhost:3000
 
 ---
 
-## 📌 Current Development Notes
+## 📌 Project Status
 
-- Logo is not finalized yet.
-- Domain is registered: `kartografer.com`
-- UI design is still being improved.
-- Authentication flow is being built first.
-- AI trip generation will be added after the core user flow is stable.
-- The project is being developed step by step with a production-quality mindset.
+> ✅ V1 Completed
+
+LedgerOS V1 is complete with authentication, dashboard analytics, expenses, subscriptions, recurring expenses, budgets, insights, settings, CSV export, Redis caching, and subscription renewal automation.
 
 ---
 
-## 🎯 Vision
+<div align="center">
 
-Kartografer aims to become a smart AI travel planner where users can generate complete travel plans, customize them easily, estimate costs, save trips, and reuse public itineraries.
+### Built with ❤️ using Next.js, Prisma, PostgreSQL, and Redis
 
-The long-term goal is to build a useful, scalable, and professional travel planning platform.
-
----
-
-## 📄 License
-
-This project is currently in progress.
-
-License details will be added later.
+</div>
