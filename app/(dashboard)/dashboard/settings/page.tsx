@@ -46,7 +46,7 @@ export default async function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-dashboard px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto w-full max-w-[1180px]">
         <header className="mb-6 border-b border-border pb-5">
           <p className="text-xs font-black uppercase text-muted-foreground">Workspace controls</p>
           <h1 className="mt-1 text-3xl font-black text-foreground">Settings</h1>

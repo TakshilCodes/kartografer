@@ -85,7 +85,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-dashboard px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto w-full max-w-[1240px] space-y-6">
         <header className="border-b border-border pb-5">
           <p className="text-xs font-black uppercase text-muted-foreground">
             Your account

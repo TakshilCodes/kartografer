@@ -59,7 +59,7 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
   return (
     <>
       <div className="border-b border-border bg-card px-4 py-3 sm:px-5 lg:px-6">
-        <div className="mx-auto flex max-w-400 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex w-full min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <Link
               href={`/dashboard/trips/${trip.id}`}

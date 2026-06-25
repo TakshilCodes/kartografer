@@ -503,6 +503,7 @@ td {
   opacity: 0.16;
   transition: opacity 0.75s ease-in-out;
 }
+
 .border-glow-card:hover {
   border-color: rgb(190 139 72 / 72%);
   box-shadow:
@@ -620,4 +621,3 @@ td {
   overflow: hidden;
   border-radius: inherit;
 }
-

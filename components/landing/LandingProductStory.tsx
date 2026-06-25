@@ -145,6 +145,11 @@ export default function LandingProductStory() {
                           animate={{ scaleX: 1 }}
                           transition={{ duration: prefersReducedMotion ? 0 : STEP_DURATION / 1000, ease: "linear" }}
                         >
+                          <motion.span
+                            className="absolute -right-1 -top-0.75 h-2 w-2 rounded-full bg-[#a97538] shadow-[0_0_0_4px_rgba(169,117,56,0.14)]"
+                            animate={prefersReducedMotion ? { scale: 1, opacity: 1 } : { scale: [1, 1.35, 1], opacity: [1, 0.75, 1] }}
+                            transition={prefersReducedMotion ? {} : { duration: 1.2, repeat: Infinity, ease: "easeInOut" }}
+                          />
                         </motion.span>
                       </span>
                     ) : null}

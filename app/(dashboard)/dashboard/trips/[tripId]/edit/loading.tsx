@@ -92,7 +92,7 @@ export default function EditTripLoading() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-dashboard pb-20 xl:pb-0">
       <div className="border-b border-border bg-card px-4 py-3 sm:px-5 lg:px-6">
-        <div className="mx-auto flex max-w-400 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+        <div className="flex w-full min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-dashboard text-secondary-foreground">
               <ArrowLeft className="h-4 w-4" />
@@ -117,7 +117,7 @@ export default function EditTripLoading() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-400 gap-4 p-4 sm:p-5 lg:p-6 xl:h-[calc(100vh-92px)] xl:grid-cols-[300px_minmax(0,1fr)_330px] xl:overflow-hidden">
+      <div className="grid w-full max-w-[1380px] gap-4 p-4 sm:p-5 lg:p-6 xl:h-[calc(100vh-92px)] xl:grid-cols-[280px_minmax(0,1.55fr)_300px] xl:overflow-hidden xl:gap-5">
         <aside className="hidden min-h-0 min-w-0 xl:block xl:h-full xl:overflow-hidden">
           <PanelShell className="flex h-full min-h-0 flex-col overflow-hidden">
             <div className="shrink-0 border-b border-border bg-card-secondary/50 px-4 py-4">

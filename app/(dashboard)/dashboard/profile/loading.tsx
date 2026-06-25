@@ -15,7 +15,7 @@ export default function ProfileLoading() {
     >
       <span className="sr-only">Loading your profile...</span>
 
-      <div className="mx-auto max-w-6xl space-y-6">
+      <div className="mx-auto w-full max-w-[1240px] space-y-6">
         <header className="space-y-3 border-b border-border pb-5">
           <SkeletonBlock className="h-3 w-24" />
           <SkeletonBlock className="h-9 w-36" />

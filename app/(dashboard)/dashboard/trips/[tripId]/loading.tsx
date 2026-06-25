@@ -9,7 +9,7 @@ function SkeletonBox({ className = "" }: { className?: string }) {
 export default function TripPreviewLoading() {
   return (
     <div className="min-h-screen overflow-x-hidden bg-background px-3 py-4 sm:px-5 lg:px-6">
-      <div className="mx-auto w-full max-w-330 space-y-5">
+      <div className="mx-auto w-full max-w-[1380px] space-y-5">
         <header className="flex flex-col gap-3 rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-3">
             <SkeletonBox className="h-10 w-10 rounded-full" />

@@ -39,7 +39,7 @@ export default async function DashboardLayout({
       </div>
 
       <main
-        className="min-w-0 flex-1 pt-16 lg:ml-72 lg:pt-0"
+        className="min-h-screen w-full min-w-0 flex-1 transition-[padding-left] duration-300 lg:pl-(--dashboard-sidebar-width,18rem)"
         data-dashboard-main
       >
         {children}

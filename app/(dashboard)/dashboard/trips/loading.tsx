@@ -71,7 +71,7 @@ export default function MyTripsLoading() {
     >
       <span className="sr-only">Loading your trips...</span>
 
-      <div className="mx-auto max-w-7xl">
+      <div className="mx-auto w-full max-w-7xl">
         <header className="mb-7 flex flex-col gap-4 border-b border-border pb-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="space-y-3">
             <SkeletonBlock className="h-3 w-24" />

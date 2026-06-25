@@ -83,7 +83,7 @@ function AiDraftRecoveryScreen({
 }) {
     return (
         <section className="min-h-screen bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
-            <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-3xl items-center">
+            <div className="flex min-h-[calc(100vh-2.5rem)] w-full items-center">
                 <div className="w-full rounded-[28px] border border-border bg-card p-5 shadow-sm sm:p-6">
                     <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
                         <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-warning/10 text-warning">
@@ -346,8 +346,8 @@ export default function NewTripClient() {
         }
     }
     return (
-        <section className="min-h-screen bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
-            <div className="mx-auto max-w-5xl">
+        <section className="min-h-screen w-full bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[980px] xl:max-w-[1040px]">
                 <div className="mb-8 rounded-4xl border border-border bg-card p-5 shadow-sm sm:p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div>

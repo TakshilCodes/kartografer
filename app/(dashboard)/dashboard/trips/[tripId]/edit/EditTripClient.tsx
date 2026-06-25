@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import EditTripHeader from "@/components/trips/edit/EditTripHeader";
 import OptionsPanel, {
@@ -128,8 +128,41 @@ type EditTripClientProps = {
 export default function EditTripClient({ trip }: EditTripClientProps) {
   const [selectedDayId, setSelectedDayId] = useState(trip.days[0]?.id ?? "");
   const [mobilePanel, setMobilePanel] = useState<"options" | "ai" | null>(
-    null
+    null,
   );
+  const [isOptionsCollapsed, setIsOptionsCollapsed] = useState(false);
+  const [isAiAssistantCollapsed, setIsAiAssistantCollapsed] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1536px)");
+
+    function syncOptionsPanel() {
+      setIsOptionsCollapsed(mediaQuery.matches);
+    }
+
+    syncOptionsPanel();
+    mediaQuery.addEventListener("change", syncOptionsPanel);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncOptionsPanel);
+    };
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 1536px)");
+
+    function syncAiAssistantPanel() {
+      setIsAiAssistantCollapsed(mediaQuery.matches);
+    }
+
+    syncAiAssistantPanel();
+
+    mediaQuery.addEventListener("change", syncAiAssistantPanel);
+
+    return () => {
+      mediaQuery.removeEventListener("change", syncAiAssistantPanel);
+    };
+  }, []);
 
   const selectedDay = useMemo(() => {
     return trip.days.find((day) => day.id === selectedDayId) ?? trip.days[0];
@@ -139,7 +172,15 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
     <div className="min-h-screen overflow-x-hidden bg-dashboard pb-24 xl:pb-0">
       <EditTripHeader trip={trip} />
 
-      <div className="mx-auto grid max-w-400 gap-4 p-4 sm:p-5 lg:p-6 xl:h-[calc(100vh-92px)] xl:grid-cols-[300px_minmax(0,1fr)_330px] xl:overflow-hidden">
+      <div
+        className={`grid w-full max-w-none gap-4 p-4 transition-[grid-template-columns] duration-300 sm:p-5 lg:p-6 xl:h-[calc(100vh-92px)] xl:overflow-hidden ${isOptionsCollapsed && isAiAssistantCollapsed
+          ? "xl:grid-cols-[52px_minmax(0,1fr)_52px]"
+          : isOptionsCollapsed
+            ? "xl:grid-cols-[52px_minmax(0,1fr)_330px]"
+            : isAiAssistantCollapsed
+              ? "xl:grid-cols-[300px_minmax(0,1fr)_52px]"
+              : "xl:grid-cols-[300px_minmax(0,1fr)_330px]"}`}
+      >
         <aside className="hidden min-h-0 min-w-0 xl:block xl:h-full xl:overflow-hidden">
           <OptionsPanel
             tripId={trip.id}
@@ -148,10 +189,14 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
             stayOptions={trip.stayOptions}
             mealSuggestions={trip.mealSuggestions}
             activities={trip.activities}
+            isCollapsed={isOptionsCollapsed}
+            onToggleCollapsed={() =>
+              setIsOptionsCollapsed((value) => !value)
+            }
           />
         </aside>
 
-        <main className="min-h-0 min-w-0 space-y-4 xl:h-full xl:overflow-y-auto xl:pr-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
+        <main className="min-h-0 min-w-0 space-y-4 scrollbar-none xl:h-full xl:overflow-y-auto xl:pr-1 [&::-webkit-scrollbar]:hidden">
           <CostEstimator
             costBreakdown={trip.costBreakdown}
             userBudget={trip.budgetAmount}
@@ -176,6 +221,10 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
           <AiAssistantPanel
             tripId={trip.id}
             initialMessages={trip.chatMessages}
+            isCollapsed={isAiAssistantCollapsed}
+            onToggleCollapsed={() =>
+              setIsAiAssistantCollapsed((currentValue) => !currentValue)
+            }
           />
         </aside>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormEvent, ReactNode } from "react";
+import type { CSSProperties, FormEvent, ReactNode } from "react";
 import { useEffect, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -31,6 +31,11 @@ type RecentTrip = {
 type SidebarClientProps = {
   recentTrips: RecentTrip[];
 };
+
+const MIN_SIDEBAR_WIDTH = 220;
+const MAX_SIDEBAR_WIDTH = 360;
+const DEFAULT_SIDEBAR_WIDTH = 288;
+const SIDEBAR_WIDTH_STORAGE_KEY = "kartografer-sidebar-width";
 
 function isActive(pathname: string, href: string) {
   if (href === "/dashboard/new") {
@@ -66,16 +71,71 @@ function SidebarLink({ href, icon, label, onClick }: SidebarLinkProps) {
   );
 }
 
+function clampSidebarWidth(width: number) {
+  return Math.min(MAX_SIDEBAR_WIDTH, Math.max(MIN_SIDEBAR_WIDTH, width));
+}
+
 export default function SidebarClient({ recentTrips }: SidebarClientProps) {
   const pathname = usePathname();
   const router = useRouter();
   const confirm = useConfirmStore((state) => state.confirm);
+
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [renamingTrip, setRenamingTrip] = useState<RecentTrip | null>(null);
   const [renameTitle, setRenameTitle] = useState("");
   const [renameError, setRenameError] = useState("");
   const [actionError, setActionError] = useState("");
   const [isPending, startTransition] = useTransition();
+
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+
+  useEffect(() => {
+    const savedWidth = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+
+    if (!savedWidth) return;
+
+    const parsedWidth = Number(savedWidth);
+
+    if (Number.isNaN(parsedWidth)) return;
+
+    setSidebarWidth(clampSidebarWidth(parsedWidth));
+  }, []);
+
+  useEffect(() => {
+    if (!isResizingSidebar) return;
+
+    function handleMouseMove(event: MouseEvent) {
+      setSidebarWidth(clampSidebarWidth(event.clientX));
+    }
+
+    function handleMouseUp() {
+      setIsResizingSidebar(false);
+    }
+
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizingSidebar]);
+
+  useEffect(() => {
+    if (isResizingSidebar) return;
+
+    window.localStorage.setItem(
+      SIDEBAR_WIDTH_STORAGE_KEY,
+      String(sidebarWidth),
+    );
+  }, [isResizingSidebar, sidebarWidth]);
 
   useEffect(() => {
     if (!actionError) return;
@@ -90,6 +150,17 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
   function closeMobileSidebar() {
     setIsMobileSidebarOpen(false);
   }
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--dashboard-sidebar-width",
+      `${sidebarWidth}px`,
+    );
+
+    return () => {
+      document.documentElement.style.removeProperty("--dashboard-sidebar-width");
+    };
+  }, [sidebarWidth]);
 
   function openRenameModal(trip: RecentTrip) {
     setActionError("");
@@ -171,9 +242,17 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
   return (
     <>
       <header className="fixed left-0 top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-dashboard/95 px-4 backdrop-blur lg:hidden">
-
-        <Link href="/dashboard/new" onClick={closeMobileSidebar} aria-label="Kartografer home">
-          <BrandLogo themeAware priority compactClassName="h-9 w-9" wordmarkClassName="h-8 w-auto" />
+        <Link
+          href="/dashboard/new"
+          onClick={closeMobileSidebar}
+          aria-label="Kartografer home"
+        >
+          <BrandLogo
+            themeAware
+            priority
+            compactClassName="h-9 w-9"
+            wordmarkClassName="h-8 w-auto"
+          />
         </Link>
 
         <button
@@ -186,144 +265,192 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
         </button>
       </header>
 
-      {isMobileSidebarOpen && (
+      {isMobileSidebarOpen ? (
         <button
           type="button"
           aria-label="Close sidebar overlay"
           onClick={closeMobileSidebar}
           className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm lg:hidden"
         />
-      )}
+      ) : null}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-screen w-72 shrink-0 flex-col border-r border-border bg-dashboard p-4 transition-transform duration-300 lg:z-40 lg:translate-x-0 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        style={
+          {
+            "--sidebar-width": `${sidebarWidth}px`,
+          } as CSSProperties
+        }
+        className={`fixed left-0 top-0 z-50 flex h-dvh min-h-0 w-72 shrink-0 flex-col overflow-hidden border-r border-border bg-dashboard transition-transform duration-300 lg:z-40 lg:w-(--sidebar-width) lg:translate-x-0 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
-        <div className="mb-6 flex items-center justify-between">
-          <Link href="/dashboard/new" onClick={closeMobileSidebar} aria-label="Kartografer home">
-          <BrandLogo themeAware priority compactClassName="h-10 w-10" wordmarkClassName="h-auto w-44" />
-        </Link>
+        {/* Top/logo area */}
+        <div className="shrink-0 px-4 pt-4">
+          <div className="mb-5 flex items-center justify-between">
+            <Link
+              href="/dashboard/new"
+              onClick={closeMobileSidebar}
+              aria-label="Kartografer home"
+            >
+              <BrandLogo
+                themeAware
+                priority
+                compactClassName="h-10 w-10"
+                wordmarkClassName="h-auto w-44 max-w-full"
+              />
+            </Link>
 
-          <button
-            type="button"
-            onClick={closeMobileSidebar}
-            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-2xl bg-secondary text-secondary-foreground transition hover:bg-secondary-hover lg:hidden"
-            aria-label="Close sidebar"
-          >
-            <X className="h-4 w-4" />
-          </button>
+            <button
+              type="button"
+              onClick={closeMobileSidebar}
+              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-2xl bg-secondary text-secondary-foreground transition hover:bg-secondary-hover lg:hidden"
+              aria-label="Close sidebar"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <nav className="space-y-2">
+            <SidebarLink
+              href="/dashboard/new"
+              icon={<Plus className="h-4 w-4" />}
+              label="New Trip"
+              onClick={closeMobileSidebar}
+            />
+
+            <SidebarLink
+              href="/explore"
+              icon={<Compass className="h-4 w-4" />}
+              label="Explore"
+              onClick={closeMobileSidebar}
+            />
+          </nav>
         </div>
 
-        <nav className="space-y-2">
-          <SidebarLink
-            href="/dashboard/new"
-            icon={<Plus className="h-4 w-4" />}
-            label="New Trip"
-            onClick={closeMobileSidebar}
-          />
-
-          <SidebarLink
-            href="/explore"
-            icon={<Compass className="h-4 w-4" />}
-            label="Explore"
-            onClick={closeMobileSidebar}
-          />
-        </nav>
-
-        <div className="mt-7 min-h-0 flex-1">
-          <div className="mb-3 flex items-center justify-between px-2">
+        {/* Recent trips area - only this scrolls */}
+        <div className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden px-4">
+          <div className="mb-3 flex shrink-0 items-center justify-between px-2">
             <p className="text-xs font-black uppercase tracking-[0.16em] text-muted-foreground">
               Recent Trips
             </p>
           </div>
 
-          <div className="space-y-1.5">
-            {actionError ? (
-              <div className="rounded-2xl border border-danger/20 bg-danger/10 px-3 py-2 text-xs font-bold text-danger">
-                {actionError}
-              </div>
-            ) : null}
+          {actionError ? (
+            <div className="mb-2 shrink-0 rounded-2xl border border-danger/20 bg-danger/10 px-3 py-2 text-xs font-bold text-danger">
+              {actionError}
+            </div>
+          ) : null}
 
-            {recentTrips.length > 0 ? (
-              recentTrips.map((trip) => {
-                const href = `/dashboard/trips/${trip.id}`;
-                const active =
-                  pathname === href || pathname.startsWith(`${href}/`);
+          <div className="min-h-0 flex-1 overflow-y-auto pr-1 scrollbar-none [&::-webkit-scrollbar]:hidden">
+            <div className="space-y-1.5 pb-3">
+              {recentTrips.length > 0 ? (
+                recentTrips.map((trip) => {
+                  const href = `/dashboard/trips/${trip.id}`;
+                  const active =
+                    pathname === href || pathname.startsWith(`${href}/`);
 
-                return (
-                  <div
-                    key={trip.id}
-                    className={`flex items-center gap-2 rounded-2xl py-1.5 pl-3 pr-1.5 text-sm font-bold transition ${active
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
-                      }`}
-                  >
-                    <Link
-                      href={href}
-                      onClick={closeMobileSidebar}
-                      className="flex min-w-0 flex-1 items-center gap-3 py-1"
+                  return (
+                    <div
+                      key={trip.id}
+                      className={`flex items-center gap-2 rounded-2xl py-1.5 pl-3 pr-1.5 text-sm font-bold transition ${active
+                        ? "bg-primary text-primary-foreground shadow-sm"
+                        : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
+                        }`}
                     >
-                      <FolderOpen className="h-4 w-4 shrink-0" />
-                      <span className="truncate">{trip.title}</span>
-                    </Link>
+                      <Link
+                        href={href}
+                        onClick={closeMobileSidebar}
+                        className="flex min-w-0 flex-1 items-center gap-3 py-1"
+                      >
+                        <FolderOpen className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{trip.title}</span>
+                      </Link>
 
-                    <ItemActionsMenu
-                      label={`Open actions for ${trip.title}`}
-                      actions={[
-                        {
-                          label: "Edit",
-                          icon: <Edit3 className="h-3.5 w-3.5" />,
-                          onClick: () => handleEditTrip(trip),
-                        },
-                        {
-                          label: "Rename",
-                          icon: <Type className="h-3.5 w-3.5" />,
-                          onClick: () => openRenameModal(trip),
-                        },
-                        {
-                          label: "Delete",
-                          icon: <Trash2 className="h-3.5 w-3.5" />,
-                          variant: "danger",
-                          onClick: () => handleDeleteTrip(trip),
-                        },
-                      ]}
-                    />
-                  </div>
-                );
-              })
-            ) : (
-              <div className="rounded-2xl bg-card-secondary px-3 py-3 text-xs font-bold text-muted-foreground">
-                No trips created yet.
-              </div>
-            )}
+                      <ItemActionsMenu
+                        label={`Open actions for ${trip.title}`}
+                        actions={[
+                          {
+                            label: "Edit",
+                            icon: <Edit3 className="h-3.5 w-3.5" />,
+                            onClick: () => handleEditTrip(trip),
+                          },
+                          {
+                            label: "Rename",
+                            icon: <Type className="h-3.5 w-3.5" />,
+                            onClick: () => openRenameModal(trip),
+                          },
+                          {
+                            label: "Delete",
+                            icon: <Trash2 className="h-3.5 w-3.5" />,
+                            variant: "danger",
+                            onClick: () => handleDeleteTrip(trip),
+                          },
+                        ]}
+                      />
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="rounded-2xl bg-card-secondary px-3 py-3 text-xs font-bold text-muted-foreground">
+                  No trips created yet.
+                </div>
+              )}
+            </div>
           </div>
 
           <Link
             href="/dashboard/trips"
             onClick={closeMobileSidebar}
-            className="mt-3 flex items-center justify-center rounded-2xl bg-secondary px-3 py-2.5 text-sm font-black text-secondary-foreground transition hover:bg-secondary-hover"
+            className="my-2 flex shrink-0 items-center justify-center rounded-2xl bg-secondary px-3 py-2.5 text-sm font-black text-secondary-foreground transition hover:bg-secondary-hover"
           >
             View All Trips
           </Link>
         </div>
 
-        <div className="mt-auto space-y-2 border-t border-border pt-4">
-          <SidebarLink
-            href="/dashboard/settings"
-            icon={<Settings className="h-4 w-4" />}
-            label="Settings"
-            onClick={closeMobileSidebar}
-          />
+        {/* Bottom actions - always fixed at bottom */}
+        <div className="shrink-0 border-t border-border bg-dashboard px-4 pb-4 pt-3">
+          <div className="space-y-1.5">
+            <SidebarLink
+              href="/dashboard/settings"
+              icon={<Settings className="h-4 w-4" />}
+              label="Settings"
+              onClick={closeMobileSidebar}
+            />
 
-          <SidebarLink
-            href="/dashboard/profile"
-            icon={<User className="h-4 w-4" />}
-            label="Profile"
-            onClick={closeMobileSidebar}
-          />
+            <SidebarLink
+              href="/dashboard/profile"
+              icon={<User className="h-4 w-4" />}
+              label="Profile"
+              onClick={closeMobileSidebar}
+            />
 
-          <LogoutButton className="w-full" />
+            <div className="pt-1">
+              <LogoutButton className="w-full" />
+            </div>
+          </div>
         </div>
+
+        <button
+          type="button"
+          aria-label="Resize sidebar"
+          title="Drag to resize sidebar"
+          onMouseDown={(event) => {
+            event.preventDefault();
+            setIsResizingSidebar(true);
+          }}
+          className={`group absolute right-0 top-0 hidden h-full w-3 translate-x-1/2 cursor-col-resize lg:block ${isResizingSidebar ? "bg-primary/5" : "bg-transparent"
+            }`}
+        >
+          <span
+            className={`absolute left-1/2 top-1/2 h-20 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-200 ${isResizingSidebar
+                ? "h-28 w-1.5 bg-primary shadow-[0_0_0_6px_rgba(91,53,26,0.12)]"
+                : "bg-border opacity-45 group-hover:h-28 group-hover:w-1.5 group-hover:bg-primary group-hover:opacity-100 group-hover:shadow-[0_0_0_6px_rgba(91,53,26,0.08)]"
+              }`}
+          />
+
+          <span className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-y-1/2 translate-x-3 rounded-full border border-border bg-card px-2 py-1 text-[10px] font-black text-secondary-foreground shadow-lg group-hover:block">
+            Drag
+          </span>
+        </button>
       </aside>
 
       {renamingTrip ? (
@@ -386,7 +513,7 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
               <button
                 type="button"
                 onClick={closeRenameModal}
-                className="rounded-full cursor-pointer border border-border bg-card px-5 py-2.5 text-sm font-black text-foreground transition hover:bg-card-secondary"
+                className="cursor-pointer rounded-full border border-border bg-card px-5 py-2.5 text-sm font-black text-foreground transition hover:bg-card-secondary"
               >
                 Cancel
               </button>

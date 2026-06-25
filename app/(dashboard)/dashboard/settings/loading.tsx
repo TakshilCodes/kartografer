@@ -56,7 +56,7 @@ export default function SettingsLoading() {
     >
       <span className="sr-only">Loading your settings...</span>
 
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto w-full max-w-[1180px]">
         <header className="mb-6 space-y-3 border-b border-border pb-5">
           <SkeletonBlock className="h-3 w-32" />
           <SkeletonBlock className="h-9 w-40" />

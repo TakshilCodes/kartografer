@@ -7,10 +7,12 @@ import {
   Compass,
   Edit3,
   FileDown,
+  Globe2,
   IndianRupee,
   Map,
   MapPin,
   Navigation,
+  Share2,
 } from "lucide-react";
 
 import EmptyTripRecovery from "@/components/trips/preview/EmptyTripRecovery";
@@ -20,6 +22,7 @@ import TripExplorePublishDialog from "@/components/explore/TripExplorePublishDia
 import { getPublicTripShareUrl } from "@/lib/app-url";
 import { buildPreviewDayPanels } from "@/lib/trips/build-preview-day-panels";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
+import TripPreviewActionsMenu from "@/components/trips/preview/TripPreviewActionsMenu"
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
@@ -320,7 +323,7 @@ export default async function TripPreviewPage({
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-background px-3 py-4 sm:px-5 lg:px-6">
-      <div className="mx-auto w-full max-w-330 space-y-5">
+      <div className="mx-auto w-full max-w-345 space-y-5">
         <header className="flex flex-col gap-3 rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-5 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex min-w-0 items-center gap-3">
             <Link
@@ -347,15 +350,7 @@ export default async function TripPreviewPage({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2">
-            <Link
-              href={`/dashboard/trips/${trip.id}/export`}
-              className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-2 text-sm font-black text-foreground transition hover:bg-card-secondary"
-            >
-              <FileDown className="h-4 w-4" />
-              Export PDF
-            </Link>
-
+          <div className="flex flex-wrap items-center gap-2">
             <TripShareDialog
               tripId={trip.id}
               tripTitle={trip.title}
@@ -366,20 +361,68 @@ export default async function TripPreviewPage({
                   : null
               }
               initialSharedAt={trip.publicSharedAt?.toISOString() ?? null}
+              trigger={
+                <button
+                  type="button"
+                  aria-label="Share trip"
+                  className="inline-flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground shadow-sm transition hover:border-primary/30 hover:bg-card-secondary focus:outline-none focus:ring-4 focus:ring-ring/20"
+                >
+                  <Share2 className="h-4 w-4" />
+                </button>
+              }
             />
 
-            <TripExplorePublishDialog
-              tripId={trip.id}
-              tripTitle={trip.title}
-              initialIsPublic={trip.isPublic}
-              initialPublicTitle={trip.publicTitle}
-              initialPublicDescription={trip.publicDescription}
-              initialDestination={trip.destination ?? trip.toPlace?.name ?? null}
-              initialCoverImageUrl={trip.coverImageUrl}
-              initialBudgetStyle={trip.budgetStyle}
-              initialTravelStyle={trip.travelStyle}
-              initialTags={trip.tags}
-            />
+            <TripPreviewActionsMenu>
+              <Link
+                href={`/dashboard/trips/${trip.id}/export`}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-black text-foreground transition hover:bg-card-secondary"
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card-secondary text-primary">
+                  <FileDown className="h-4 w-4" />
+                </span>
+
+                <span className="min-w-0">
+                  <span className="block">Export PDF</span>
+                  <span className="block text-xs font-semibold text-secondary-foreground">
+                    Download this itinerary
+                  </span>
+                </span>
+              </Link>
+
+              <TripExplorePublishDialog
+                tripId={trip.id}
+                tripTitle={trip.title}
+                initialIsPublic={trip.isPublic}
+                initialPublicTitle={trip.publicTitle}
+                initialPublicDescription={trip.publicDescription}
+                initialDestination={trip.destination ?? trip.toPlace?.name ?? null}
+                initialCoverImageUrl={trip.coverImageUrl}
+                initialBudgetStyle={trip.budgetStyle}
+                initialTravelStyle={trip.travelStyle}
+                initialTags={trip.tags}
+                trigger={
+                  <button
+                    type="button"
+                    className="flex w-full cursor-pointer items-center gap-3 rounded-2xl px-3 py-2.5 text-left text-sm font-black text-foreground transition hover:bg-card-secondary"
+                  >
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card-secondary text-primary">
+                      <Globe2 className="h-4 w-4" />
+                    </span>
+
+                    <span className="min-w-0">
+                      <span className="block">
+                        {trip.isPublic ? "Manage public trip" : "Publish to Explore"}
+                      </span>
+                      <span className="block text-xs font-semibold text-secondary-foreground">
+                        {trip.isPublic
+                          ? "Update public listing"
+                          : "Share as public template"}
+                      </span>
+                    </span>
+                  </button>
+                }
+              />
+            </TripPreviewActionsMenu>
 
             <Link
               href={`/dashboard/trips/${trip.id}/edit`}
@@ -527,98 +570,98 @@ export default async function TripPreviewPage({
             dayPanels={dayPanels}
             initialDayNumber={selectedDayFromUrl}
             costSidebar={
-            <Surface className="overflow-hidden">
-              <div className="border-b border-border bg-card-secondary/50 px-4 py-3">
-                <div className="flex items-center gap-2">
-                  <IndianRupee className="h-4 w-4 text-primary" />
+              <Surface className="overflow-hidden">
+                <div className="border-b border-border bg-card-secondary/50 px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <IndianRupee className="h-4 w-4 text-primary" />
 
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-sm font-black text-foreground">
-                      Trip basket
-                    </h2>
+                    <div className="min-w-0 flex-1">
+                      <h2 className="text-sm font-black text-foreground">
+                        Trip basket
+                      </h2>
 
-                    <p className="text-xs font-semibold text-secondary-foreground">
-                      Checkout-style estimate
+                      <p className="text-xs font-semibold text-secondary-foreground">
+                        Checkout-style estimate
+                      </p>
+                    </div>
+
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[11px] font-black ${getBudgetStatusClass(
+                        budgetStatus
+                      )}`}
+                    >
+                      {getBudgetStatusLabel(budgetStatus)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <div className="space-y-3">
+                    <CostRow label="Stay" value={formatCurrency(stayEstimate)} />
+
+                    <CostRow
+                      label="Transport"
+                      value={formatCurrency(transportEstimate)}
+                    />
+
+                    <CostRow
+                      label="Food"
+                      value={formatCurrency(foodEstimate)}
+                    />
+
+                    <CostRow
+                      label="Activities"
+                      value={formatCurrency(activityEstimate)}
+                    />
+
+                    {miscEstimate > 0 ? (
+                      <CostRow label="Misc" value={formatCurrency(miscEstimate)} />
+                    ) : null}
+                  </div>
+
+                  <div className="my-4 border-t border-dashed border-border" />
+
+                  <CostRow
+                    label="Budget"
+                    value={
+                      budgetAmount > 0 ? formatCurrency(budgetAmount) : "Not set"
+                    }
+                  />
+
+                  <div className="mt-4 flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-black text-foreground">
+                        Estimated total
+                      </p>
+
+                      <p className="mt-0.5 text-xs font-semibold text-secondary-foreground">
+                        For {trip.peopleCount}{" "}
+                        {trip.peopleCount === 1 ? "person" : "people"} ·{" "}
+                        {trip.daysCount} {trip.daysCount === 1 ? "day" : "days"}
+                      </p>
+                    </div>
+
+                    <p className="text-lg font-black text-primary">
+                      {formatCurrency(estimatedTotal)}
                     </p>
                   </div>
 
-                  <span
-                    className={`rounded-full px-2.5 py-1 text-[11px] font-black ${getBudgetStatusClass(
-                      budgetStatus
-                    )}`}
-                  >
-                    {getBudgetStatusLabel(budgetStatus)}
-                  </span>
-                </div>
-              </div>
-
-              <div className="p-4">
-                <div className="space-y-3">
-                  <CostRow label="Stay" value={formatCurrency(stayEstimate)} />
-
-                  <CostRow
-                    label="Transport"
-                    value={formatCurrency(transportEstimate)}
-                  />
-
-                  <CostRow
-                    label="Food"
-                    value={formatCurrency(foodEstimate)}
-                  />
-
-                  <CostRow
-                    label="Activities"
-                    value={formatCurrency(activityEstimate)}
-                  />
-
-                  {miscEstimate > 0 ? (
-                    <CostRow label="Misc" value={formatCurrency(miscEstimate)} />
+                  {budgetAmount > 0 ? (
+                    <p className="mt-2 text-right text-xs font-bold text-secondary-foreground">
+                      {remainingAmount >= 0
+                        ? `${formatCurrency(remainingAmount)} remaining`
+                        : `${formatCurrency(Math.abs(remainingAmount))} over budget`}
+                    </p>
                   ) : null}
+
+                  <Link
+                    href={`/dashboard/trips/${trip.id}/edit`}
+                    className="mt-4 inline-flex w-full cursor-pointer items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground transition hover:bg-primary-hover"
+                  >
+                    Edit trip cost
+                  </Link>
                 </div>
-
-                <div className="my-4 border-t border-dashed border-border" />
-
-                <CostRow
-                  label="Budget"
-                  value={
-                    budgetAmount > 0 ? formatCurrency(budgetAmount) : "Not set"
-                  }
-                />
-
-                <div className="mt-4 flex items-start justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-black text-foreground">
-                      Estimated total
-                    </p>
-
-                    <p className="mt-0.5 text-xs font-semibold text-secondary-foreground">
-                      For {trip.peopleCount}{" "}
-                      {trip.peopleCount === 1 ? "person" : "people"} ·{" "}
-                      {trip.daysCount} {trip.daysCount === 1 ? "day" : "days"}
-                    </p>
-                  </div>
-
-                  <p className="text-lg font-black text-primary">
-                    {formatCurrency(estimatedTotal)}
-                  </p>
-                </div>
-
-                {budgetAmount > 0 ? (
-                  <p className="mt-2 text-right text-xs font-bold text-secondary-foreground">
-                    {remainingAmount >= 0
-                      ? `${formatCurrency(remainingAmount)} remaining`
-                      : `${formatCurrency(Math.abs(remainingAmount))} over budget`}
-                  </p>
-                ) : null}
-
-                <Link
-                  href={`/dashboard/trips/${trip.id}/edit`}
-                  className="mt-4 inline-flex w-full cursor-pointer items-center justify-center rounded-2xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground transition hover:bg-primary-hover"
-                >
-                  Edit trip cost
-                </Link>
-              </div>
-            </Surface>
+              </Surface>
             }
           />
         ) : (

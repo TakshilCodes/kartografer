@@ -1,6 +1,16 @@
 "use client";
 
-import { FormEvent, useState, useTransition } from "react";
+import {
+  cloneElement,
+  isValidElement,
+  useEffect,
+  useState,
+  useTransition,
+  type MouseEvent as ReactMouseEvent,
+  type ReactElement,
+  type ReactNode,
+  FormEvent,
+} from "react";
 import { useRouter } from "next/navigation";
 import { Globe2, X } from "lucide-react";
 
@@ -15,7 +25,13 @@ import TagInput from "@/components/trips/publish/TagInput";
 type BudgetStyleValue = "" | "budget" | "mid-range" | "luxury";
 type TravelStyleValue = "" | "solo" | "couple" | "family" | "friends" | "adventure" | "relaxing";
 
-export type TripExplorePublishDialogProps = {
+type TriggerElementProps = {
+  onClick?: (event: ReactMouseEvent<HTMLElement>) => void;
+  "aria-label"?: string;
+  title?: string;
+};
+
+type TripExplorePublishDialogProps = {
   tripId: string;
   tripTitle: string;
   initialIsPublic: boolean;
@@ -26,6 +42,7 @@ export type TripExplorePublishDialogProps = {
   initialBudgetStyle: string | null;
   initialTravelStyle: string | null;
   initialTags: string[];
+  trigger?: ReactNode;
 };
 
 export default function TripExplorePublishDialog({
@@ -39,6 +56,7 @@ export default function TripExplorePublishDialog({
   initialBudgetStyle,
   initialTravelStyle,
   initialTags,
+  trigger,
 }: TripExplorePublishDialogProps) {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -99,16 +117,72 @@ export default function TripExplorePublishDialog({
     });
   }
 
-  return (
-    <>
+  function openDialog() {
+    setIsOpen(true);
+  }
+
+  function renderTrigger() {
+    if (trigger && isValidElement(trigger)) {
+      const triggerElement = trigger as ReactElement<TriggerElementProps>;
+      const originalOnClick = triggerElement.props.onClick;
+
+      return cloneElement(triggerElement, {
+        onClick: (event: ReactMouseEvent<HTMLElement>) => {
+          originalOnClick?.(event);
+
+          if (event.defaultPrevented) return;
+
+          openDialog();
+        },
+        "aria-label":
+          triggerElement.props["aria-label"] ??
+          (isPublic ? "Manage public trip" : "Publish trip to Explore"),
+        title:
+          triggerElement.props.title ??
+          (isPublic ? "Manage public trip" : "Publish to Explore"),
+      });
+    }
+
+    if (trigger) {
+      return (
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={openDialog}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              openDialog();
+            }
+          }}
+          className="inline-flex w-full"
+        >
+          {trigger}
+        </span>
+      );
+    }
+
+    return (
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={openDialog}
         className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-2 text-sm font-black text-foreground transition hover:bg-card-secondary"
       >
-        <Globe2 className="h-4 w-4" />
-        {isPublic ? "Published" : "Publish"}
+        {isPublic ? "Manage public trip" : "Publish to Explore"}
       </button>
+    );
+  }
+
+  return (
+    <>
+        {renderTrigger()}
+
+        {isOpen ? (
+          <div>
+          </div>
+        ) : null}
+      </>
+      );
 
       {isOpen ? (
         <div
@@ -203,8 +277,6 @@ export default function TripExplorePublishDialog({
           </div>
         </div>
       ) : null}
-    </>
-  );
 }
 
 function Field({
