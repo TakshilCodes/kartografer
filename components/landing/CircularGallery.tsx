@@ -461,14 +461,39 @@ class Media {
         this.plane.program.uniforms.uViewportSizes.value = [this.viewport.width, this.viewport.height];
       }
     }
+    const isMobile = this.screen.width < 640;
+    const isTablet = this.screen.width >= 640 && this.screen.width < 1024;
+
+    const cardWidthPx = isMobile ? 280 : isTablet ? 360 : 700;
+    const cardHeightPx = isMobile ? 360 : isTablet ? 460 : 900;
+
     this.scale = this.screen.height / 1500;
-    this.plane.scale.y = (this.viewport.height * (900 * this.scale)) / this.screen.height;
-    this.plane.scale.x = (this.viewport.width * (700 * this.scale)) / this.screen.width;
-    this.plane.program.uniforms.uPlaneSizes.value = [this.plane.scale.x, this.plane.scale.y];
-    this.padding = 2;
+
+    this.plane.scale.y =
+      (this.viewport.height * (cardHeightPx * this.scale)) / this.screen.height;
+
+    this.plane.scale.x =
+      (this.viewport.width * (cardWidthPx * this.scale)) / this.screen.width;
+
+    this.plane.program.uniforms.uPlaneSizes.value = [
+      this.plane.scale.x,
+      this.plane.scale.y,
+    ];
+
+    this.padding = isMobile ? 0.75 : isTablet ? 1.2 : 2;
     this.width = this.plane.scale.x + this.padding;
     this.widthTotal = this.width * this.length;
     this.x = this.width * this.index;
+
+    if (this.title?.mesh) {
+      const titleHeight = this.plane.scale.y * (isMobile ? 0.09 : 0.15);
+      const currentAspect = this.title.mesh.scale.x / this.title.mesh.scale.y;
+
+      this.title.mesh.scale.y = titleHeight;
+      this.title.mesh.scale.x = titleHeight * currentAspect;
+      this.title.mesh.position.y =
+        -this.plane.scale.y * 0.5 - titleHeight * 0.5 - (isMobile ? 0.025 : 0.05);
+    }
   }
 }
 
@@ -806,12 +831,16 @@ export default function CircularGallery({
     let isMounted = true;
     resolveFont(font, fontUrl).then(resolvedFont => {
       if (!isMounted || !containerRef.current) return;
+      const isMobile = window.innerWidth < 640;
+      const responsiveFont =
+        font === DEFAULT_FONT && isMobile ? "bold 18px Figtree" : resolvedFont;
+
       app = new App(containerRef.current, {
         items,
-        bend,
+        bend: isMobile ? Math.min(bend, 1.2) : bend,
         textColor,
         borderRadius,
-        font: resolvedFont,
+        font: responsiveFont,
         scrollSpeed,
         scrollEase
       });

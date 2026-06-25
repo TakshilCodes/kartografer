@@ -41,18 +41,18 @@ export default function LandingFinalCta() {
 
           <motion.div
             aria-hidden="true"
-            initial={shouldReduceMotion ? false : { pathLength: 0 }}
-            whileInView={shouldReduceMotion ? undefined : { pathLength: 1 }}
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
+            whileInView={shouldReduceMotion ? undefined : { opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 1.8, delay: 0.25, ease: "easeInOut" }}
-            className="pointer-events-none absolute inset-x-0 top-24 hidden justify-center lg:flex"
+            transition={{ duration: 0.8, delay: 0.15 }}
+            className="pointer-events-none absolute inset-x-0 top-22 flex justify-center sm:top-24 lg:top-24"
           >
             <svg
               width="560"
               height="160"
               viewBox="0 0 560 160"
               fill="none"
-              className="text-[#c9964c]"
+              className="w-90 text-[#c9964c]/45 sm:w-115 lg:w-140 lg:text-[#c9964c]"
             >
               <motion.path
                 d="M35 118 C 120 28, 210 138, 294 68 S 445 42, 525 104"

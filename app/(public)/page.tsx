@@ -3,7 +3,6 @@
 import LandingPage from "@/components/landing/LandingPage";
 // import JsonLd from "@/components/seo/JsonLd";
 import { absoluteUrl, siteConfig } from "@/lib/site";
-import "@/components/landing/landing.css";
 import JsonLd from "@/components/seo/JsonLd";
 
 export const metadata: Metadata = {
