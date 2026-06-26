@@ -87,20 +87,26 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
   const [actionError, setActionError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
-  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+  const [sidebarWidth, setSidebarWidth] = useState(() => {
+    if (typeof window === "undefined") {
+      return DEFAULT_SIDEBAR_WIDTH;
+    }
 
-  useEffect(() => {
     const savedWidth = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
 
-    if (!savedWidth) return;
+    if (!savedWidth) {
+      return DEFAULT_SIDEBAR_WIDTH;
+    }
 
     const parsedWidth = Number(savedWidth);
 
-    if (Number.isNaN(parsedWidth)) return;
+    if (Number.isNaN(parsedWidth)) {
+      return DEFAULT_SIDEBAR_WIDTH;
+    }
 
-    setSidebarWidth(clampSidebarWidth(parsedWidth));
-  }, []);
+    return clampSidebarWidth(parsedWidth);
+  });
+  const [isResizingSidebar, setIsResizingSidebar] = useState(false);
 
   useEffect(() => {
     if (!isResizingSidebar) return;

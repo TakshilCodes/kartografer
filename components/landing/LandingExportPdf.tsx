@@ -83,18 +83,17 @@ export default function LandingExportPdf() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const shouldReduceMotion = useReducedMotion();
 
-  const [hasEntered, setHasEntered] = useState(false);
-  const [activeOption, setActiveOption] = useState(0);
+  const [hasEntered, setHasEntered] = useState(shouldReduceMotion);
+  const [activeOption, setActiveOption] = useState(
+    shouldReduceMotion ? exportOptions.length : 0,
+  );
   const [buttonState, setButtonState] = useState<"preparing" | "ready">(
-    "preparing",
+    shouldReduceMotion ? "ready" : "preparing",
   );
   const [cycleKey, setCycleKey] = useState(0);
 
   useEffect(() => {
     if (shouldReduceMotion) {
-      setHasEntered(true);
-      setActiveOption(exportOptions.length);
-      setButtonState("ready");
       return;
     }
 

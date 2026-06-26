@@ -161,8 +161,7 @@ export async function GET(request: NextRequest, { params }: PdfRouteContext) {
         "Cache-Control": "private, no-store",
       },
     });
-  } catch (error) {
-
+  } catch {
     return NextResponse.json(
       {
         error: "Kartografer could not generate this PDF. Please try again.",

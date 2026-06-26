@@ -347,7 +347,7 @@ export default function NewTripClient() {
     }
     return (
         <section className="min-h-screen w-full bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
-            <div className="mx-auto w-full max-w-[980px] xl:max-w-[1040px]">
+            <div className="mx-auto w-full max-w-245 xl:max-w-260">
                 <div className="mb-8 rounded-4xl border border-border bg-card p-5 shadow-sm sm:p-6">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                         <div>

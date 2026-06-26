@@ -247,7 +247,7 @@ For content control, owners configure their proposal via a settings panel before
 - **Planned budget** — show or hide the budget entered at trip creation
 - **Traveler notes** — include or exclude trip-level and day-level special notes
 - **Kartografer branding** — show or hide the "generated with" footer
-These preferences are saved in `UserSettings` and read at render time by the export template. The same toggle state applies to both the preview page and the downloaded PDF — what the owner sees in the browser is exactly what the PDF generator captures..
+These preferences are saved in `UserSettings` and read at render time by the export template. The same toggle state applies to both the preview page and the downloaded PDF — what the owner sees in the browser is exactly what the PDF generator captures.
  
 **Result:** Pixel-accurate PDF output with owner-controlled content. The preview and download share one template. No separate design to maintain, and no one-size-fits-all proposal format.
  

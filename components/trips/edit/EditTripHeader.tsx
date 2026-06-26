@@ -114,7 +114,7 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
       {isEditing ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-foreground/30 p-3 backdrop-blur-sm sm:items-center">
           <div className="w-full max-w-lg rounded-[28px] border border-border bg-card shadow-2xl">
-            <div className="flex items-center justify-between gap-3 border-b border-border bg-card-secondary/50 px-5 py-4">
+            <div className="flex items-center justify-between rounded-t-[28px] gap-3 border-b border-border bg-card-secondary/50 px-5 py-4">
               <div>
                 <h2 className="text-base font-black text-foreground">
                   Edit trip info
@@ -154,7 +154,7 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
                   value={summary}
                   onChange={(event) => setSummary(event.target.value)}
                   rows={4}
-                  className="w-full resize-none rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold leading-6 text-foreground outline-none transition focus:border-ring"
+                  className="w-full resize-none scrollbar-hide rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold leading-6 text-foreground outline-none transition focus:border-ring"
                   placeholder="Short overview of this trip..."
                 />
                 <p className="mt-1 text-xs font-semibold text-secondary-foreground">

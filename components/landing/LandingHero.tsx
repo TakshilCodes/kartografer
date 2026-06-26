@@ -7,14 +7,12 @@ import {
   ArrowRight,
   BedDouble,
   Briefcase,
-  BusFront,
   CalendarDays,
   Check,
   Hotel,
   IndianRupee,
   LoaderCircle,
   MapPin,
-  PencilLine,
   Route,
   Sparkles,
   Utensils,
@@ -27,27 +25,6 @@ const phases = [
   { label: "Idea", duration: 3400 },
   { label: "Mapping", duration: 2000 },
   { label: "Itinerary", duration: 3600 },
-];
-
-const heroDays = [
-  {
-    day: "Day 1",
-    title: "Arrive in Srinagar",
-    icon: BusFront,
-    tone: "bg-[#e2eee3] text-[#426948]",
-  },
-  {
-    day: "Day 2",
-    title: "Gulmarg highlands",
-    icon: MapPin,
-    tone: "bg-[#f2e0db] text-[#994232]",
-  },
-  {
-    day: "Day 3",
-    title: "Pahalgam valley",
-    icon: BedDouble,
-    tone: "bg-[#e0eaec] text-[#456b76]",
-  },
 ];
 
 const trustChips = ["Editable days", "Realistic costs", "Template ready"];

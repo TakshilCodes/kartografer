@@ -345,233 +345,240 @@ export default function TripShareDialog({
     )}&body=${encodeURIComponent(body)}`;
   }
 
+  const portalTarget =
+    typeof document !== "undefined"
+      ? document.querySelector<HTMLElement>("[data-dashboard-shell]") ??
+      document.body
+      : null;
+
   return (
     <>
       {renderTrigger()}
 
-      {isOpen && typeof document !== "undefined"
+      {isOpen && portalTarget
         ? createPortal(
-            <div
-              className="fixed inset-0 z-9999 flex items-end justify-center bg-foreground/30 p-3 backdrop-blur-sm sm:items-center"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="trip-share-dialog-title"
-            >
-              <button
-                type="button"
-                onClick={() => !isPending && setIsOpen(false)}
-                className="absolute inset-0 cursor-default"
-                aria-label="Close public sharing dialog"
-              />
+          <div
+            className="fixed inset-0 z-9999 flex items-end justify-center p-3 backdrop-blur-sm sm:items-center"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="trip-share-dialog-title"
+          >
+            <button
+              type="button"
+              onClick={() => !isPending && setIsOpen(false)}
+              className="absolute inset-0 cursor-default"
+              aria-label="Close public sharing dialog"
+            />
 
-              <div className="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-xl flex-col overflow-hidden rounded-[28px] border border-border bg-card shadow-2xl">
-                <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border bg-card-secondary/50 px-5 py-4">
-                  <div className="flex min-w-0 gap-3">
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                      <Link2 className="h-5 w-5" />
-                    </span>
+            <div className="relative flex max-h-[calc(100vh-1.5rem)] w-full max-w-xl flex-col overflow-hidden rounded-[28px] border border-border bg-card shadow-2xl">
+              <div className="flex shrink-0 items-start justify-between gap-4 border-b border-border bg-card-secondary/50 px-5 py-4">
+                <div className="flex min-w-0 gap-3">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Link2 className="h-5 w-5" />
+                  </span>
 
-                    <div className="min-w-0">
-                      <h2
-                        id="trip-share-dialog-title"
-                        className="text-base font-black text-foreground"
-                      >
-                        Public sharing
-                      </h2>
+                  <div className="min-w-0">
+                    <h2
+                      id="trip-share-dialog-title"
+                      className="text-base font-black text-foreground"
+                    >
+                      Public sharing
+                    </h2>
 
-                      <p className="mt-1 text-sm leading-6 text-secondary-foreground">
-                        Create a read-only public link for this trip.
-                      </p>
-                    </div>
+                    <p className="mt-1 text-sm leading-6 text-secondary-foreground">
+                      Create a read-only public link for this trip.
+                    </p>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsOpen(false)}
-                    disabled={isPending}
-                    className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:bg-card-secondary disabled:cursor-not-allowed disabled:opacity-60"
-                    aria-label="Close public sharing dialog"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
                 </div>
 
-                <div className="custom-scrollbar min-h-0 overflow-y-auto p-5">
-                  {isEnabled && publicUrl ? (
-                    <div className="space-y-5">
-                      <div>
-                        <label
-                          htmlFor="public-trip-url"
-                          className="mb-2 block text-sm font-black text-foreground"
-                        >
-                          Public link
-                        </label>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  disabled={isPending}
+                  className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:bg-card-secondary disabled:cursor-not-allowed disabled:opacity-60"
+                  aria-label="Close public sharing dialog"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
 
-                        <input
-                          id="public-trip-url"
-                          value={publicUrl}
-                          readOnly
-                          onFocus={(event) => event.currentTarget.select()}
-                          className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm text-foreground outline-none focus:border-ring focus:ring-4 focus:ring-ring/20"
-                        />
+              <div className="custom-scrollbar min-h-0 overflow-y-auto p-5">
+                {isEnabled && publicUrl ? (
+                  <div className="space-y-5">
+                    <div>
+                      <label
+                        htmlFor="public-trip-url"
+                        className="mb-2 block text-sm font-black text-foreground"
+                      >
+                        Public link
+                      </label>
 
-                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs leading-5 text-secondary-foreground">
-                          <p>Anyone with this link can view, but cannot edit.</p>
+                      <input
+                        id="public-trip-url"
+                        value={publicUrl}
+                        readOnly
+                        onFocus={(event) => event.currentTarget.select()}
+                        className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm text-foreground outline-none focus:border-ring focus:ring-4 focus:ring-ring/20"
+                      />
 
-                          {sharedAt ? (
-                            <p className="shrink-0 text-muted-foreground">
-                              Enabled{" "}
-                              {new Date(sharedAt).toLocaleDateString("en-IN")}
-                            </p>
-                          ) : null}
-                        </div>
+                      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs leading-5 text-secondary-foreground">
+                        <p>Anyone with this link can view, but cannot edit.</p>
+
+                        {sharedAt ? (
+                          <p className="shrink-0 text-muted-foreground">
+                            Enabled{" "}
+                            {new Date(sharedAt).toLocaleDateString("en-IN")}
+                          </p>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="mb-3">
+                        <h3 className="text-sm font-black text-foreground">
+                          Share this trip
+                        </h3>
+
+                        <p className="mt-0.5 text-xs text-secondary-foreground">
+                          Choose where you want to send the public itinerary.
+                        </p>
                       </div>
 
-                      <div>
-                        <div className="mb-3">
-                          <h3 className="text-sm font-black text-foreground">
-                            Share this trip
-                          </h3>
+                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                        <ShareOption
+                          label="Copy link"
+                          onClick={() => copyPublicLink()}
+                          icon={
+                            <Copy className="h-6 w-6" strokeWidth={1.8} />
+                          }
+                        />
 
-                          <p className="mt-0.5 text-xs text-secondary-foreground">
-                            Choose where you want to send the public itinerary.
+                        <ShareOption
+                          label="Native share"
+                          onClick={handleNativeShare}
+                          icon={
+                            <Share2 className="h-6 w-6" strokeWidth={1.8} />
+                          }
+                        />
+
+                        <ShareOption
+                          label="WhatsApp"
+                          onClick={handleWhatsAppShare}
+                          icon={
+                            <Image
+                              src="/social-logos/whatsapp.svg"
+                              alt=""
+                              width={25}
+                              height={25}
+                            />
+                          }
+                        />
+
+                        <ShareOption
+                          label="X / Twitter"
+                          onClick={handleXShare}
+                          icon={
+                            <Image
+                              src="/social-logos/x.svg"
+                              alt=""
+                              width={23}
+                              height={23}
+                              className="brightness-0 dark:invert"
+                            />
+                          }
+                        />
+
+                        <ShareOption
+                          label="Telegram"
+                          onClick={handleTelegramShare}
+                          icon={
+                            <Image
+                              src="/social-logos/telegram.svg"
+                              alt=""
+                              width={25}
+                              height={25}
+                            />
+                          }
+                        />
+
+                        <ShareOption
+                          label="Email"
+                          onClick={handleEmailShare}
+                          icon={
+                            <Mail className="h-6 w-6" strokeWidth={1.8} />
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border pt-4">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                          <p className="text-sm font-black text-foreground">
+                            Turn off public access
+                          </p>
+
+                          <p className="mt-0.5 text-xs leading-5 text-secondary-foreground">
+                            The saved URL will stop working until you enable
+                            it again.
                           </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-                          <ShareOption
-                            label="Copy link"
-                            onClick={() => copyPublicLink()}
-                            icon={
-                              <Copy className="h-6 w-6" strokeWidth={1.8} />
-                            }
-                          />
-
-                          <ShareOption
-                            label="Native share"
-                            onClick={handleNativeShare}
-                            icon={
-                              <Share2 className="h-6 w-6" strokeWidth={1.8} />
-                            }
-                          />
-
-                          <ShareOption
-                            label="WhatsApp"
-                            onClick={handleWhatsAppShare}
-                            icon={
-                              <Image
-                                src="/social-logos/whatsapp.svg"
-                                alt=""
-                                width={25}
-                                height={25}
-                              />
-                            }
-                          />
-
-                          <ShareOption
-                            label="X / Twitter"
-                            onClick={handleXShare}
-                            icon={
-                              <Image
-                                src="/social-logos/x.svg"
-                                alt=""
-                                width={23}
-                                height={23}
-                              />
-                            }
-                          />
-
-                          <ShareOption
-                            label="Telegram"
-                            onClick={handleTelegramShare}
-                            icon={
-                              <Image
-                                src="/social-logos/telegram.svg"
-                                alt=""
-                                width={25}
-                                height={25}
-                              />
-                            }
-                          />
-
-                          <ShareOption
-                            label="Email"
-                            onClick={handleEmailShare}
-                            icon={
-                              <Mail className="h-6 w-6" strokeWidth={1.8} />
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="border-t border-border pt-4">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <p className="text-sm font-black text-foreground">
-                              Turn off public access
-                            </p>
-
-                            <p className="mt-0.5 text-xs leading-5 text-secondary-foreground">
-                              The saved URL will stop working until you enable
-                              it again.
-                            </p>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={handleDisableSharing}
-                            disabled={isPending}
-                            className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-danger/30 bg-card px-4 py-2.5 text-sm font-black text-danger transition hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            <Unlink className="h-4 w-4" />
-                            {isPending ? "Disabling..." : "Disable link"}
-                          </button>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={handleDisableSharing}
+                          disabled={isPending}
+                          className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full border border-danger/30 bg-card px-4 py-2.5 text-sm font-black text-danger transition hover:bg-danger/10 disabled:cursor-not-allowed disabled:opacity-60"
+                        >
+                          <Unlink className="h-4 w-4" />
+                          {isPending ? "Disabling..." : "Disable link"}
+                        </button>
                       </div>
                     </div>
-                  ) : (
-                    <div>
-                      <div className="rounded-2xl border border-border bg-card-secondary/40 p-4">
-                        <p className="text-sm font-black text-foreground">
-                          Share the final itinerary safely
-                        </p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="rounded-2xl border border-border bg-card-secondary/40 p-4">
+                      <p className="text-sm font-black text-foreground">
+                        Share the final itinerary safely
+                      </p>
 
-                        <p className="mt-1 text-sm leading-6 text-secondary-foreground">
-                          Only selected transport, stays, meals, activities,
-                          hidden spots, and the trip cost summary will be
-                          visible.
-                        </p>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={handleEnableSharing}
-                        disabled={isPending}
-                        className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        <Share2 className="h-4 w-4" />
-                        {isPending ? "Enabling..." : "Enable public link"}
-                      </button>
+                      <p className="mt-1 text-sm leading-6 text-secondary-foreground">
+                        Only selected transport, stays, meals, activities,
+                        hidden spots, and the trip cost summary will be
+                        visible.
+                      </p>
                     </div>
-                  )}
 
-                  {message ? (
-                    <div className="mt-4 flex items-center gap-2 rounded-2xl border border-success/25 bg-success/10 px-4 py-3 text-sm font-bold text-success">
-                      <Check className="h-4 w-4 shrink-0" />
-                      {message}
-                    </div>
-                  ) : null}
+                    <button
+                      type="button"
+                      onClick={handleEnableSharing}
+                      disabled={isPending}
+                      className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      {isPending ? "Enabling..." : "Enable public link"}
+                    </button>
+                  </div>
+                )}
 
-                  {error ? (
-                    <div className="mt-4 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm font-bold text-danger">
-                      {error}
-                    </div>
-                  ) : null}
-                </div>
+                {message ? (
+                  <div className="mt-4 flex items-center gap-2 rounded-2xl border border-success/25 bg-success/10 px-4 py-3 text-sm font-bold text-success">
+                    <Check className="h-4 w-4 shrink-0" />
+                    {message}
+                  </div>
+                ) : null}
+
+                {error ? (
+                  <div className="mt-4 rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm font-bold text-danger">
+                    {error}
+                  </div>
+                ) : null}
               </div>
-            </div>,
-            document.body,
-          )
+            </div>
+          </div>,
+          portalTarget,
+        )
         : null}
     </>
   );

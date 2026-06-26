@@ -1,5 +1,4 @@
-"use client";
-
+ "use client"
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Compass, Eye, Maximize2, X } from "lucide-react";

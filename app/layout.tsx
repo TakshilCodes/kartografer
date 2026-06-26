@@ -1,9 +1,22 @@
 ﻿import type { Metadata } from "next";
+import { Fraunces, Inter } from "next/font/google";
 
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -64,7 +77,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="h-full antialiased"
+      className={`${inter.variable} ${fraunces.variable} h-full antialiased`}
       data-scroll-behavior="smooth"
       suppressHydrationWarning
     >

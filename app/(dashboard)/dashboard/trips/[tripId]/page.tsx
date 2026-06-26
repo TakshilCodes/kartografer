@@ -413,6 +413,7 @@ export default async function TripPreviewPage({
                       <span className="block">
                         {trip.isPublic ? "Manage public trip" : "Publish to Explore"}
                       </span>
+
                       <span className="block text-xs font-semibold text-secondary-foreground">
                         {trip.isPublic
                           ? "Update public listing"

@@ -422,10 +422,10 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
               <Image
                 src={kartograferWordmark}
                 alt="Kartografer"
-                className="h-auto w-[170px] object-contain"
+                className="h-auto w-42.5 object-contain"
                 priority
               />
-              <p className="max-w-[170px] border-l border-[#d7c5ab] pl-4 text-[8px] font-bold uppercase leading-4 text-[#80684e]">
+              <p className="max-w-42.5 border-l border-[#d7c5ab] pl-4 text-[8px] font-bold uppercase leading-4 text-[#80684e]">
                 Thoughtful journeys, clearly planned
               </p>
             </div>

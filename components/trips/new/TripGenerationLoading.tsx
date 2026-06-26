@@ -140,10 +140,7 @@ export default function TripGenerationLoading({
 
                 <div className="mt-6">
                     <BrandLogo themeAware className="mb-4 justify-center" compactClassName="h-11 w-11" wordmarkClassName="h-auto w-48" />
-                    <p className="text-xs font-black uppercase tracking-[0.28em] text-secondary-foreground">
-                        Kartografer AI
-                    </p>
-
+                    
                     <h1 className="mt-3 text-2xl font-black text-foreground sm:text-4xl">
                         {currentStage.title}
                     </h1>

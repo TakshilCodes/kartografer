@@ -144,9 +144,9 @@
 }
 
 @theme inline {
-  --font-sans: "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: "Segoe UI Variable Display", "Segoe UI", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: var(--font-sans);
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: var(--font-inter), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --color-background: var(--background);
   --color-dashboard: var(--dashboard);
@@ -226,16 +226,16 @@ h6 {
 
 h1,
 h2 {
-  font-weight: 900;
-  line-height: 1.12;
+  font-weight: 800;
+  line-height: 1.08;
 }
 
 h3,
 h4,
 h5,
 h6 {
-  font-weight: 800;
-  line-height: 1.2;
+  font-weight: 750;
+  line-height: 1.18;
 }
 
 .font-extrabold,

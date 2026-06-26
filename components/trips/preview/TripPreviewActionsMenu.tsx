@@ -55,17 +55,22 @@ export default function TripPreviewActionsMenu({
         )}
       </button>
 
-      {isOpen ? (
-        <div className="absolute right-0 top-12 z-50 w-64 overflow-hidden rounded-[22px] border border-border bg-card p-2 shadow-2xl shadow-foreground/10">
-          <div className="border-b border-border px-3 py-2">
-            <p className="text-xs font-black uppercase tracking-[0.16em] text-secondary-foreground">
-              Trip actions
-            </p>
-          </div>
-
-          <div className="mt-2 space-y-1">{children}</div>
+      <div
+        className={`absolute right-0 top-12 z-50 w-64 rounded-[22px] border border-border bg-card p-2 shadow-2xl shadow-foreground/10 transition duration-150 ${
+          isOpen
+            ? "pointer-events-auto translate-y-0 scale-100 opacity-100"
+            : "pointer-events-none -translate-y-1 scale-95 opacity-0"
+        }`}
+        aria-hidden={!isOpen}
+      >
+        <div className="border-b border-border px-3 py-2">
+          <p className="text-xs font-black uppercase tracking-[0.16em] text-secondary-foreground">
+            Trip actions
+          </p>
         </div>
-      ) : null}
+
+        <div className="mt-2 space-y-1">{children}</div>
+      </div>
     </div>
   );
 }

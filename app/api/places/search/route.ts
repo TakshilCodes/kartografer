@@ -40,6 +40,59 @@ const MIN_SEARCH_LENGTH = 3;
 const MIN_DB_RESULTS = 5;
 const MAX_RESULTS = 10;
 
+const INDIAN_STATES_AND_UTS: PlaceResult[] = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+].map((stateName) => ({
+  provider: PlaceProvider.GEOAPIFY,
+  providerPlaceId: `india-state-${stateName
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}`,
+  name: stateName,
+  formattedName: `${stateName}, India`,
+  city: stateName,
+  state: stateName,
+  country: "India",
+  countryCode: "IN",
+  lat: null,
+  lng: null,
+}));
+
 const ALLOWED_RESULT_TYPES = new Set([
   "city",
   "state",
@@ -49,6 +102,7 @@ const ALLOWED_RESULT_TYPES = new Set([
   "village",
   "town",
   "locality",
+  "administrative",
 ]);
 
 function normalizePlaceKey(value: string | null | undefined) {
@@ -59,6 +113,24 @@ function normalizePlaceKey(value: string | null | undefined) {
       .replace(/\s+/g, " ")
       .replace(/&/g, "and") ?? ""
   );
+}
+
+function searchIndianStatesFromLocalList(query: string): PlaceResult[] {
+  const normalizedQuery = normalizePlaceKey(query);
+
+  if (!normalizedQuery) return [];
+
+  return INDIAN_STATES_AND_UTS.filter((place) => {
+    const name = normalizePlaceKey(place.name);
+    const formattedName = normalizePlaceKey(place.formattedName);
+    const state = normalizePlaceKey(place.state);
+
+    return (
+      name.includes(normalizedQuery) ||
+      formattedName.includes(normalizedQuery) ||
+      state.includes(normalizedQuery)
+    );
+  });
 }
 
 function getPlaceKey(
@@ -164,8 +236,8 @@ function mapGeoapifyFeature(feature: GeoapifyFeature): PlaceResult | null {
     props.town ??
     props.village ??
     props.suburb ??
-    props.county ??
     props.district ??
+    props.county ??
     props.state ??
     formattedName;
 
@@ -182,7 +254,11 @@ function mapGeoapifyFeature(feature: GeoapifyFeature): PlaceResult | null {
       props.result_type === "town" ||
       props.result_type === "village" ||
       props.result_type === "locality" ||
-      props.result_type === "suburb"
+      props.result_type === "suburb" ||
+      props.result_type === "state" ||
+      props.result_type === "county" ||
+      props.result_type === "district" ||
+      props.result_type === "administrative"
       ? name
       : null);
 
@@ -334,9 +410,12 @@ export async function GET(req: Request) {
 
     const normalizedQuery = query.toLowerCase();
 
-    const dbPlaces = removeDuplicatePlaces(
-      await searchPlacesFromDb(normalizedQuery)
-    );
+    const localStatePlaces = searchIndianStatesFromLocalList(query);
+
+    const dbPlaces = removeDuplicatePlaces([
+      ...localStatePlaces,
+      ...(await searchPlacesFromDb(normalizedQuery)),
+    ]);
 
     if (dbPlaces.length >= MIN_DB_RESULTS) {
       return NextResponse.json({
@@ -347,7 +426,7 @@ export async function GET(req: Request) {
 
     const autocompleteFeatures = await fetchGeoapifyPlaces({
       endpoint: "autocomplete",
-      text: normalizedQuery,
+      text: query,
       apiKey,
     });
 
@@ -362,7 +441,7 @@ export async function GET(req: Request) {
     if (mergedPlaces.length < MIN_DB_RESULTS) {
       const searchFeatures = await fetchGeoapifyPlaces({
         endpoint: "search",
-        text: `${normalizedQuery} India`,
+        text: `${query} India`,
         apiKey,
       });
 

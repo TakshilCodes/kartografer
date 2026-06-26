@@ -40,9 +40,9 @@ export default async function TripExportPage({
 
   return (
     <div
-      className={`trip-export-page min-h-screen bg-[#e9e3da] ${
-        isPdfMode ? "trip-export-pdf-mode bg-white" : ""
-      }`}
+      data-dashboard-fullscreen
+      className={`fixed inset-0 z-100 overflow-y-auto trip-export-page min-h-screen bg-[#e9e3da] ${isPdfMode ? "trip-export-pdf-mode bg-white" : ""
+        }`}
     >
       {!isPdfMode ? <TripExportActions tripId={trip.id} /> : null}
 

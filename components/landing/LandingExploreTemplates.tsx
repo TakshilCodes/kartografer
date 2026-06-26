@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import CircularGallery from "@/components/landing/CircularGallery";
 
@@ -112,18 +112,6 @@ function MobileTripGallery({ items }: { items: GalleryItem[] }) {
     ...createRenderBatch(items, 1),
     ...createRenderBatch(items, 2),
   ]);
-
-  useEffect(() => {
-    batchRef.current = 3;
-    pendingScrollAdjustmentRef.current = null;
-    isRecyclingRef.current = false;
-
-    setVisibleItems([
-      ...createRenderBatch(items, 0),
-      ...createRenderBatch(items, 1),
-      ...createRenderBatch(items, 2),
-    ]);
-  }, [items]);
 
   useLayoutEffect(() => {
     const container = scrollRef.current;

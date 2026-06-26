@@ -226,44 +226,44 @@ function SectionTitle({
 }
 
 function EmptySectionState({
-  icon,
-  title,
-  description,
-  actionLabel,
-  onAction,
+    icon,
+    title,
+    description,
+    actionLabel,
+    onAction,
 }: {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  actionLabel?: string;
-  onAction?: () => void;
+    icon: ReactNode;
+    title: string;
+    description: string;
+    actionLabel?: string;
+    onAction?: () => void;
 }) {
-  return (
-    <div className="rounded-2xl border border-dashed border-border bg-card-secondary/35 p-4">
-      <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-primary">
-          {icon}
-        </div>
+    return (
+        <div className="rounded-2xl border border-dashed border-border bg-card-secondary/35 p-4">
+            <div className="flex items-start gap-3">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-primary">
+                    {icon}
+                </div>
 
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-black text-foreground">{title}</p>
-          <p className="mt-1 text-xs leading-5 text-secondary-foreground">
-            {description}
-          </p>
+                <div className="min-w-0 flex-1">
+                    <p className="text-sm font-black text-foreground">{title}</p>
+                    <p className="mt-1 text-xs leading-5 text-secondary-foreground">
+                        {description}
+                    </p>
 
-          {actionLabel && onAction ? (
-            <button
-              type="button"
-              onClick={onAction}
-              className="mt-3 inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-3 py-1.5 text-xs font-black text-primary-foreground transition hover:bg-primary-hover"
-            >
-              {actionLabel}
-            </button>
-          ) : null}
+                    {actionLabel && onAction ? (
+                        <button
+                            type="button"
+                            onClick={onAction}
+                            className="mt-3 inline-flex cursor-pointer items-center justify-center rounded-full bg-primary px-3 py-1.5 text-xs font-black text-primary-foreground transition hover:bg-primary-hover"
+                        >
+                            {actionLabel}
+                        </button>
+                    ) : null}
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  );
+    );
 }
 
 export default function ItineraryEditor({
@@ -957,10 +957,10 @@ export default function ItineraryEditor({
                                             }`}
                                     >
                                         {isActive ? (
-                                          <>
-                                            <span className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-primary/70" />
-                                            <span className="absolute inset-x-4 bottom-0 h-0.5 rounded-full bg-primary/35" />
-                                          </>
+                                            <>
+                                                <span className="absolute inset-x-4 top-0 h-0.5 rounded-full bg-primary/70" />
+                                                <span className="absolute inset-x-4 bottom-0 h-0.5 rounded-full bg-primary/35" />
+                                            </>
                                         ) : null}
 
                                         <p className="text-sm font-black">
@@ -1001,10 +1001,10 @@ export default function ItineraryEditor({
                 ) : null}
             </Surface>
 
-            <Surface className="overflow-hidden shadow-md ring-1 ring-border/20">
-                <div className="itinerary-panel-header-container border-b border-border bg-card-secondary/50 px-4 py-4 sm:px-5">
-                    <div className="itinerary-panel-header-content">
-                        <div className="itinerary-panel-heading">
+            <Surface className="overflow-visible shadow-md ring-1 ring-border/20">
+                <div className="border-b border-border bg-card-secondary/50 px-4 py-4 sm:px-5">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
                             <p className="text-xs font-black uppercase tracking-[0.14em] text-secondary-foreground">
                                 Final Itinerary Panel
                             </p>
@@ -1014,24 +1014,28 @@ export default function ItineraryEditor({
                                     Day {selectedDay?.dayNumber ?? 1} of {days.length}
                                 </p>
 
-                                <h2 className="itinerary-panel-title break-words font-black leading-[1.05] tracking-[-0.04em] text-foreground">
+                                <h2 className="wrap-break-word text-xl font-black leading-tight tracking-tight text-foreground sm:text-2xl">
                                     {displayDayTitle || "Plan this day"}
                                 </h2>
                             </div>
                         </div>
 
-                        <div className="itinerary-panel-actions">
+                        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
                             <button
                                 type="button"
-                                className="itinerary-panel-action-button min-w-[9.5rem]"
+                                onClick={openEditDayModal}
+                                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-xs font-black text-foreground shadow-sm transition hover:border-primary/30 hover:bg-card-hover focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/20"
                             >
-                                Edit day info
+                                <Edit3 className="h-3.5 w-3.5" />
+                                Edit day
                             </button>
 
                             <button
                                 type="button"
-                                className="itinerary-panel-action-button min-w-[9.5rem]"
+                                onClick={handleDeleteDay}
+                                className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-danger/30 bg-card px-4 py-2 text-xs font-black text-danger shadow-sm transition hover:bg-danger/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-danger/20"
                             >
+                                <Trash2 className="h-3.5 w-3.5" />
                                 Delete day
                             </button>
                         </div>
@@ -1060,7 +1064,7 @@ export default function ItineraryEditor({
                                 selectedDayTransports.map((transport) => (
                                     <div
                                         key={transport.id}
-                                        className="rounded-2xl border border-border/70 bg-card-secondary/35 p-3 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset]"
+                                        className="relative overflow-visible rounded-2xl border border-border/70 bg-card-secondary/35 p-3 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset]"
                                     >
                                         <div className="flex min-w-0 items-start gap-3">
                                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-primary">
@@ -1106,27 +1110,29 @@ export default function ItineraryEditor({
                                                 </div>
                                             </div>
 
-                                            <ItemActionsMenu
-                                                actions={[
-                                                    {
-                                                        label: "Edit",
-                                                        icon: <Edit3 className="h-3.5 w-3.5" />,
-                                                        onClick: () => openEditTransportModal(transport),
-                                                    },
-                                                    {
-                                                        label: "Move to options",
-                                                        icon: <Archive className="h-3.5 w-3.5" />,
-                                                        onClick: () =>
-                                                            handleMoveTransportToOptions(transport),
-                                                    },
-                                                    {
-                                                        label: "Delete",
-                                                        icon: <Trash2 className="h-3.5 w-3.5" />,
-                                                        variant: "danger",
-                                                        onClick: () => handleDeleteTransport(transport),
-                                                    },
-                                                ]}
-                                            />
+                                            <div className="relative z-20 shrink-0">
+                                                <ItemActionsMenu
+                                                    actions={[
+                                                        {
+                                                            label: "Edit",
+                                                            icon: <Edit3 className="h-3.5 w-3.5" />,
+                                                            onClick: () => openEditTransportModal(transport),
+                                                        },
+                                                        {
+                                                            label: "Move to options",
+                                                            icon: <Archive className="h-3.5 w-3.5" />,
+                                                            onClick: () =>
+                                                                handleMoveTransportToOptions(transport),
+                                                        },
+                                                        {
+                                                            label: "Delete",
+                                                            icon: <Trash2 className="h-3.5 w-3.5" />,
+                                                            variant: "danger",
+                                                            onClick: () => handleDeleteTransport(transport),
+                                                        },
+                                                    ]}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 ))
@@ -1163,7 +1169,7 @@ export default function ItineraryEditor({
                                 selectedDayStays.map((stay) => (
                                     <div
                                         key={stay.id}
-                                        className="rounded-2xl border border-border/70 bg-card-secondary/35 p-3 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset]"
+                                        className="relative overflow-visible rounded-2xl border border-border/70 bg-card-secondary/35 p-3 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset]"
                                     >
                                         <div className="flex min-w-0 items-start gap-3">
                                             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-card text-primary">
@@ -1207,26 +1213,28 @@ export default function ItineraryEditor({
                                                 </div>
                                             </div>
 
-                                            <ItemActionsMenu
-                                                actions={[
-                                                    {
-                                                        label: "Edit",
-                                                        icon: <Edit3 className="h-3.5 w-3.5" />,
-                                                        onClick: () => openEditStayModal(stay),
-                                                    },
-                                                    {
-                                                        label: "Move to options",
-                                                        icon: <Archive className="h-3.5 w-3.5" />,
-                                                        onClick: () => handleMoveStayToOptions(stay),
-                                                    },
-                                                    {
-                                                        label: "Delete",
-                                                        icon: <Trash2 className="h-3.5 w-3.5" />,
-                                                        variant: "danger",
-                                                        onClick: () => handleDeleteStay(stay),
-                                                    },
-                                                ]}
-                                            />
+                                            <div className="relative z-20 shrink-0">
+                                                <ItemActionsMenu
+                                                    actions={[
+                                                        {
+                                                            label: "Edit",
+                                                            icon: <Edit3 className="h-3.5 w-3.5" />,
+                                                            onClick: () => openEditStayModal(stay),
+                                                        },
+                                                        {
+                                                            label: "Move to options",
+                                                            icon: <Archive className="h-3.5 w-3.5" />,
+                                                            onClick: () => handleMoveStayToOptions(stay),
+                                                        },
+                                                        {
+                                                            label: "Delete",
+                                                            icon: <Trash2 className="h-3.5 w-3.5" />,
+                                                            variant: "danger",
+                                                            onClick: () => handleDeleteStay(stay),
+                                                        },
+                                                    ]}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 ))
@@ -1263,7 +1271,7 @@ export default function ItineraryEditor({
                                 selectedDayMeals.map((meal) => (
                                     <div
                                         key={meal.id}
-                                        className="rounded-2xl border border-border/70 bg-card-secondary/35 px-3 py-3 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset]"
+                                        className="relative overflow-visible rounded-2xl border border-border/70 bg-card-secondary/35 p-3 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset]"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="min-w-0 flex-1">
@@ -1296,26 +1304,28 @@ export default function ItineraryEditor({
                                                 ) : null}
                                             </div>
 
-                                            <ItemActionsMenu
-                                                actions={[
-                                                    {
-                                                        label: "Edit",
-                                                        icon: <Edit3 className="h-3.5 w-3.5" />,
-                                                        onClick: () => openEditMealModal(meal),
-                                                    },
-                                                    {
-                                                        label: "Move to options",
-                                                        icon: <Archive className="h-3.5 w-3.5" />,
-                                                        onClick: () => handleMoveMealToOptions(meal),
-                                                    },
-                                                    {
-                                                        label: "Delete",
-                                                        icon: <Trash2 className="h-3.5 w-3.5" />,
-                                                        variant: "danger",
-                                                        onClick: () => handleDeleteMeal(meal),
-                                                    },
-                                                ]}
-                                            />
+                                            <div className="relative z-20 shrink-0">
+                                                <ItemActionsMenu
+                                                    actions={[
+                                                        {
+                                                            label: "Edit",
+                                                            icon: <Edit3 className="h-3.5 w-3.5" />,
+                                                            onClick: () => openEditMealModal(meal),
+                                                        },
+                                                        {
+                                                            label: "Move to options",
+                                                            icon: <Archive className="h-3.5 w-3.5" />,
+                                                            onClick: () => handleMoveMealToOptions(meal),
+                                                        },
+                                                        {
+                                                            label: "Delete",
+                                                            icon: <Trash2 className="h-3.5 w-3.5" />,
+                                                            variant: "danger",
+                                                            onClick: () => handleDeleteMeal(meal),
+                                                        },
+                                                    ]}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 ))
@@ -1352,7 +1362,7 @@ export default function ItineraryEditor({
                                 selectedDayActivities.map((activity) => (
                                     <div
                                         key={activity.id}
-                                        className="rounded-2xl border border-border/70 bg-card-secondary/35 px-3 py-3 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset]"
+                                        className="relative overflow-visible rounded-2xl border border-border/70 bg-card-secondary/35 p-3 shadow-[0_1px_0_rgba(255,255,255,0.35)_inset]"
                                     >
                                         <div className="flex items-start justify-between gap-3">
                                             <div className="flex min-w-0 flex-1 gap-3">
@@ -1409,27 +1419,29 @@ export default function ItineraryEditor({
                                                 </div>
                                             </div>
 
-                                            <ItemActionsMenu
-                                                actions={[
-                                                    {
-                                                        label: "Edit",
-                                                        icon: <Edit3 className="h-3.5 w-3.5" />,
-                                                        onClick: () => openEditActivityModal(activity),
-                                                    },
-                                                    {
-                                                        label: "Move to options",
-                                                        icon: <Archive className="h-3.5 w-3.5" />,
-                                                        onClick: () =>
-                                                            handleMoveActivityToOptions(activity),
-                                                    },
-                                                    {
-                                                        label: "Delete",
-                                                        icon: <Trash2 className="h-3.5 w-3.5" />,
-                                                        variant: "danger",
-                                                        onClick: () => handleDeleteActivity(activity),
-                                                    },
-                                                ]}
-                                            />
+                                            <div className="relative z-20 shrink-0">
+                                                <ItemActionsMenu
+                                                    actions={[
+                                                        {
+                                                            label: "Edit",
+                                                            icon: <Edit3 className="h-3.5 w-3.5" />,
+                                                            onClick: () => openEditActivityModal(activity),
+                                                        },
+                                                        {
+                                                            label: "Move to options",
+                                                            icon: <Archive className="h-3.5 w-3.5" />,
+                                                            onClick: () =>
+                                                                handleMoveActivityToOptions(activity),
+                                                        },
+                                                        {
+                                                            label: "Delete",
+                                                            icon: <Trash2 className="h-3.5 w-3.5" />,
+                                                            variant: "danger",
+                                                            onClick: () => handleDeleteActivity(activity),
+                                                        },
+                                                    ]}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 ))

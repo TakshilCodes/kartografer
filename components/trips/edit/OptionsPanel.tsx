@@ -3,9 +3,11 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Edit3,
   Hotel,
+  Loader2,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -94,6 +96,14 @@ type OptionsSummary = {
   total: number;
 };
 
+type OptionPendingAction = "move" | "delete";
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 function formatMoney(value: string | null) {
   const amount = Number(value);
 
@@ -130,10 +140,14 @@ function getOptionsSummary({
   mealSuggestions,
   activities,
 }: OptionsSummaryInput): OptionsSummary {
-  const transports = transportOptions.filter((option) => !option.isSelected).length;
+  const transports = transportOptions.filter(
+    (option) => !option.isSelected,
+  ).length;
   const stays = stayOptions.filter((option) => !option.isSelected).length;
   const meals = mealSuggestions.filter((meal) => !meal.isSelected).length;
-  const activitiesCount = activities.filter((activity) => !activity.isSelected).length;
+  const activitiesCount = activities.filter(
+    (activity) => !activity.isSelected,
+  ).length;
 
   return {
     transports,
@@ -165,6 +179,7 @@ function GroupHeader({
     <div className="mb-2 flex items-center justify-between gap-2">
       <div className="flex min-w-0 items-center gap-2">
         {icon}
+
         <h3 className="truncate text-xs font-black uppercase tracking-[0.16em] text-secondary-foreground">
           {title}
         </h3>
@@ -179,36 +194,112 @@ function GroupHeader({
 
 function AddToPlanButton({
   label,
+  isPending,
   onClick,
 }: {
   label: string;
-  onClick: () => Promise<boolean>;
+  isPending: boolean;
+  onClick: () => void;
 }) {
-  const [isAdding, setIsAdding] = useState(false);
-
-  async function handleClick() {
-    if (isAdding) return;
-
-    setIsAdding(true);
-
-    try {
-      await onClick();
-    } finally {
-      setIsAdding(false);
-    }
-  }
-
   return (
     <button
       type="button"
       aria-label={label}
       title={label}
-      disabled={isAdding}
-      onClick={handleClick}
-      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+      disabled={isPending}
+      onClick={onClick}
+      className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
     >
-      <Plus className="h-4 w-4" />
+      {isPending ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <Plus className="h-4 w-4" />
+      )}
     </button>
+  );
+}
+
+function OptionCard({
+  title,
+  subtitle,
+  price,
+  isPending,
+  pendingAction,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  price: string;
+  isPending: boolean;
+  pendingAction?: OptionPendingAction;
+  children: ReactNode;
+}) {
+  return (
+    <div className="relative overflow-visible rounded-2xl border border-border/70 bg-card-secondary/35 p-2.5 transition hover:bg-card">
+      <div
+        className={`flex items-start justify-between gap-3 transition ${isPending ? "scale-[0.985] opacity-45 blur-[1px]" : ""
+          }`}
+      >
+        <div className="min-w-0">
+          <p className="wrap-break-word text-[13px] font-black text-foreground">
+            {title}
+          </p>
+
+          <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold text-secondary-foreground">
+            {subtitle}
+          </p>
+
+          <p className="mt-2 text-[11px] font-black text-primary">{price}</p>
+        </div>
+
+        <div className="flex shrink-0 items-center gap-1.5">{children}</div>
+      </div>
+
+      {isPending ? (
+        <div className="absolute inset-0 flex items-center justify-center rounded-2xl bg-card/80 backdrop-blur-sm">
+          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card-secondary px-3 py-1.5 text-[11px] font-black text-foreground shadow-sm">
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
+            {pendingAction === "delete" ? "Deleting option..." : "Moving..."}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function AnimatedOptionWrapper({
+  id,
+  pendingAction,
+  children,
+}: {
+  id: string;
+  pendingAction?: OptionPendingAction;
+  children: ReactNode;
+}) {
+  return (
+    <motion.div
+      layout
+      key={id}
+      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{
+        opacity: 0,
+        x: pendingAction === "delete" ? -28 : 28,
+        scale: 0.96,
+        filter: "blur(2px)",
+      }}
+      transition={{
+        duration: 0.22,
+        ease: "easeOut",
+        layout: {
+          duration: 0.22,
+          ease: "easeOut",
+        },
+      }}
+      className="overflow-visible"
+    >
+      {children}
+    </motion.div>
   );
 }
 
@@ -223,12 +314,6 @@ function OptionsPanelContent({
   const router = useRouter();
   const confirm = useConfirmStore((state) => state.confirm);
   const [isPending, startTransition] = useTransition();
-  const summary = getOptionsSummary({
-    transportOptions,
-    stayOptions,
-    mealSuggestions,
-    activities,
-  });
 
   const [message, setMessage] = useState("");
   const [transportModalError, setTransportModalError] = useState("");
@@ -244,29 +329,125 @@ function OptionsPanelContent({
   const [editingActivity, setEditingActivity] =
     useState<SelectableTripActivity | null>(null);
 
+  const [hiddenOptionIds, setHiddenOptionIds] = useState<Set<string>>(
+    () => new Set(),
+  );
+  const [pendingOptionActions, setPendingOptionActions] = useState<
+    Record<string, OptionPendingAction>
+  >({});
+
   useEffect(() => {
     if (!message) return;
 
-    const clearTimer = setTimeout(() => {
+    const clearTimer = window.setTimeout(() => {
       setMessage("");
     }, 5000);
 
-    return () => clearTimeout(clearTimer);
+    return () => window.clearTimeout(clearTimer);
   }, [message]);
 
+  const visibleOptionIds = new Set([
+    ...transportOptions
+      .filter((option) => !option.isSelected)
+      .map((option) => option.id),
+    ...stayOptions
+      .filter((option) => !option.isSelected)
+      .map((option) => option.id),
+    ...mealSuggestions
+      .filter((meal) => !meal.isSelected)
+      .map((meal) => meal.id),
+    ...activities
+      .filter((activity) => !activity.isSelected)
+      .map((activity) => activity.id),
+  ]);
+
+  const visibleHiddenOptionIds = new Set(
+    [...hiddenOptionIds].filter((id) => !visibleOptionIds.has(id)),
+  );
+
+  function isOptionHidden(id: string) {
+    return visibleHiddenOptionIds.has(id);
+  }
+
+  function getPendingAction(id: string) {
+    return pendingOptionActions[id];
+  }
+
+  function setPendingAction(id: string, action: OptionPendingAction) {
+    setPendingOptionActions((currentActions) => ({
+      ...currentActions,
+      [id]: action,
+    }));
+  }
+
+  function clearPendingAction(id: string) {
+    setPendingOptionActions((currentActions) => {
+      const nextActions = { ...currentActions };
+      delete nextActions[id];
+      return nextActions;
+    });
+  }
+
+  async function runAnimatedOptionAction({
+    id,
+    actionType,
+    action,
+  }: {
+    id: string;
+    actionType: OptionPendingAction;
+    action: () => Promise<boolean>;
+  }) {
+    if (pendingOptionActions[id]) return;
+
+    setPendingAction(id, actionType);
+
+    const success = await action();
+
+    if (!success) {
+      clearPendingAction(id);
+      return;
+    }
+
+    setHiddenOptionIds((currentIds) => {
+      const nextIds = new Set(currentIds);
+      nextIds.add(id);
+      return nextIds;
+    });
+
+    await wait(230);
+
+    router.refresh();
+    clearPendingAction(id);
+  }
+
   const unselectedTransports = transportOptions.filter(
-    (option) => !option.isSelected,
+    (option) => !option.isSelected && !isOptionHidden(option.id),
   );
-  const unselectedStays = stayOptions.filter((option) => !option.isSelected);
-  const unselectedMeals = mealSuggestions.filter((meal) => !meal.isSelected);
+  const unselectedStays = stayOptions.filter(
+    (option) => !option.isSelected && !isOptionHidden(option.id),
+  );
+  const unselectedMeals = mealSuggestions.filter(
+    (meal) => !meal.isSelected && !isOptionHidden(meal.id),
+  );
   const unselectedActivities = activities.filter(
-    (activity) => !activity.isSelected,
+    (activity) => !activity.isSelected && !isOptionHidden(activity.id),
   );
 
-  const hasOptions =
-    summary.total > 0;
+  const summary = {
+    transports: unselectedTransports.length,
+    stays: unselectedStays.length,
+    meals: unselectedMeals.length,
+    activities: unselectedActivities.length,
+    total:
+      unselectedTransports.length +
+      unselectedStays.length +
+      unselectedMeals.length +
+      unselectedActivities.length,
+  };
 
-  async function handleSelectTransport(option: TransportOption) {
+  const hasOptions = summary.total > 0;
+
+  async function selectTransport(option: TransportOption) {
     const tripDayId = option.tripDayId ?? getFirstDayId(days);
 
     if (!tripDayId) {
@@ -284,14 +465,57 @@ function OptionsPanelContent({
 
     setMessage(result.message);
 
-    if (result.success) {
-      router.refresh();
+    return result.success;
+  }
+
+  async function selectStay(option: StayOption) {
+    const tripDayId = option.tripDayId ?? getFirstDayId(days);
+
+    if (!tripDayId) {
+      setMessage("Add a day before moving this stay into the plan.");
+      return false;
     }
+
+    setMessage("");
+
+    const result = await selectStayOptionAction({
+      tripId,
+      stayOptionId: option.id,
+      tripDayId,
+    });
+
+    setMessage(result.message);
 
     return result.success;
   }
 
-  async function handleDeleteTransport(option: TransportOption) {
+  async function selectMeal(meal: SelectableMealSuggestion) {
+    setMessage("");
+
+    const result = await selectMealSuggestionAction({
+      tripId,
+      mealSuggestionId: meal.id,
+    });
+
+    setMessage(result.message);
+
+    return result.success;
+  }
+
+  async function selectActivity(activity: SelectableTripActivity) {
+    setMessage("");
+
+    const result = await selectTripActivityAction({
+      tripId,
+      activityId: activity.id,
+    });
+
+    setMessage(result.message);
+
+    return result.success;
+  }
+
+  async function deleteTransport(option: TransportOption) {
     const confirmed = await confirm({
       title: "Delete transport option?",
       description:
@@ -312,39 +536,10 @@ function OptionsPanelContent({
 
     setMessage(result.message);
 
-    if (result.success) {
-      router.refresh();
-    }
-
     return result.success;
   }
 
-  async function handleSelectStay(option: StayOption) {
-    const tripDayId = option.tripDayId ?? getFirstDayId(days);
-
-    if (!tripDayId) {
-      setMessage("Add a day before moving this stay into the plan.");
-      return false;
-    }
-
-    setMessage("");
-
-    const result = await selectStayOptionAction({
-      tripId,
-      stayOptionId: option.id,
-      tripDayId,
-    });
-
-    setMessage(result.message);
-
-    if (result.success) {
-      router.refresh();
-    }
-
-    return result.success;
-  }
-
-  async function handleDeleteStay(option: StayOption) {
+  async function deleteStay(option: StayOption) {
     const confirmed = await confirm({
       title: "Delete stay option?",
       description:
@@ -365,35 +560,13 @@ function OptionsPanelContent({
 
     setMessage(result.message);
 
-    if (result.success) {
-      router.refresh();
-    }
-
     return result.success;
   }
 
-  async function handleSelectMeal(meal: SelectableMealSuggestion) {
-    setMessage("");
-
-    const result = await selectMealSuggestionAction({
-      tripId,
-      mealSuggestionId: meal.id,
-    });
-
-    setMessage(result.message);
-
-    if (result.success) {
-      router.refresh();
-    }
-
-    return result.success;
-  }
-
-  async function handleDeleteMeal(meal: SelectableMealSuggestion) {
+  async function deleteMeal(meal: SelectableMealSuggestion) {
     const confirmed = await confirm({
       title: "Delete meal option?",
-      description:
-        "This meal option will be permanently removed from the trip.",
+      description: "This meal option will be permanently removed from the trip.",
       confirmText: "Delete meal",
       cancelText: "Keep option",
       variant: "danger",
@@ -410,35 +583,13 @@ function OptionsPanelContent({
 
     setMessage(result.message);
 
-    if (result.success) {
-      router.refresh();
-    }
-
     return result.success;
   }
 
-  async function handleSelectActivity(activity: SelectableTripActivity) {
-    setMessage("");
-
-    const result = await selectTripActivityAction({
-      tripId,
-      activityId: activity.id,
-    });
-
-    setMessage(result.message);
-
-    if (result.success) {
-      router.refresh();
-    }
-
-    return result.success;
-  }
-
-  async function handleDeleteActivity(activity: SelectableTripActivity) {
+  async function deleteActivity(activity: SelectableTripActivity) {
     const confirmed = await confirm({
       title: "Delete activity option?",
-      description:
-        "This activity option will be permanently removed from the trip.",
+      description: "This activity option will be permanently removed from the trip.",
       confirmText: "Delete activity",
       cancelText: "Keep option",
       variant: "danger",
@@ -454,10 +605,6 @@ function OptionsPanelContent({
     });
 
     setMessage(result.message);
-
-    if (result.success) {
-      router.refresh();
-    }
 
     return result.success;
   }
@@ -644,23 +791,6 @@ function OptionsPanelContent({
           </div>
         ) : null}
 
-        <div className="rounded-2xl border border-border bg-card-secondary/40 px-3 py-3">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-xs font-black uppercase tracking-[0.16em] text-secondary-foreground">
-                Saved options
-              </p>
-              <p className="mt-1 text-xs font-semibold text-secondary-foreground">
-                Waiting outside the final plan
-              </p>
-            </div>
-
-            <span className="shrink-0 rounded-full bg-card px-3 py-1.5 text-xs font-black text-foreground">
-              {summary.total} saved
-            </span>
-          </div>
-        </div>
-
         {!hasOptions ? <EmptyState /> : null}
 
         {unselectedTransports.length > 0 ? (
@@ -672,53 +802,69 @@ function OptionsPanelContent({
             />
 
             <div className="space-y-2">
-              {unselectedTransports.map((option) => (
-                <div
-                  key={option.id}
-                  className="rounded-2xl border border-border/70 bg-card-secondary/35 p-2.5 transition hover:bg-card"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="wrap-break-word text-[13px] font-black text-foreground">
-                        {option.title}
-                      </p>
-                      <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold text-secondary-foreground">
-                        {option.mode.replace("_", " ")} -{" "}
-                        {getDayLabel(days, option.tripDayId)}
-                      </p>
-                      <p className="mt-2 text-[11px] font-black text-primary">
-                        {formatMoney(option.totalCost ?? option.pricePerPerson)}
-                      </p>
-                    </div>
+              <AnimatePresence initial={false} mode="popLayout">
+                {unselectedTransports.map((option) => {
+                  const pendingAction = getPendingAction(option.id);
+                  const isCardPending = Boolean(pendingAction);
 
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <AddToPlanButton
-                        label="Add transport to plan"
-                        onClick={() => handleSelectTransport(option)}
-                      />
+                  return (
+                    <AnimatedOptionWrapper
+                      key={option.id}
+                      id={option.id}
+                      pendingAction={pendingAction}
+                    >
+                      <OptionCard
+                        title={option.title}
+                        subtitle={`${option.mode.replace("_", " ")} - ${getDayLabel(
+                          days,
+                          option.tripDayId,
+                        )}`}
+                        price={formatMoney(
+                          option.totalCost ?? option.pricePerPerson,
+                        )}
+                        isPending={isCardPending}
+                        pendingAction={pendingAction}
+                      >
+                        <AddToPlanButton
+                          label="Add transport to plan"
+                          isPending={pendingAction === "move"}
+                          onClick={() =>
+                            runAnimatedOptionAction({
+                              id: option.id,
+                              actionType: "move",
+                              action: () => selectTransport(option),
+                            })
+                          }
+                        />
 
-                      <ItemActionsMenu
-                        actions={[
-                          {
-                            label: "Edit",
-                            icon: <Edit3 className="h-3.5 w-3.5" />,
-                            onClick: () => {
-                              setTransportModalError("");
-                              setEditingTransport(option);
+                        <ItemActionsMenu
+                          actions={[
+                            {
+                              label: "Edit",
+                              icon: <Edit3 className="h-3.5 w-3.5" />,
+                              onClick: () => {
+                                setTransportModalError("");
+                                setEditingTransport(option);
+                              },
                             },
-                          },
-                          {
-                            label: "Delete",
-                            icon: <Trash2 className="h-3.5 w-3.5" />,
-                            variant: "danger",
-                            onClick: () => handleDeleteTransport(option),
-                          },
-                        ]}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                            {
+                              label: "Delete",
+                              icon: <Trash2 className="h-3.5 w-3.5" />,
+                              variant: "danger",
+                              onClick: () =>
+                                runAnimatedOptionAction({
+                                  id: option.id,
+                                  actionType: "delete",
+                                  action: () => deleteTransport(option),
+                                }),
+                            },
+                          ]}
+                        />
+                      </OptionCard>
+                    </AnimatedOptionWrapper>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           </div>
         ) : null}
@@ -732,53 +878,67 @@ function OptionsPanelContent({
             />
 
             <div className="space-y-2">
-              {unselectedStays.map((option) => (
-                <div
-                  key={option.id}
-                  className="rounded-2xl border border-border/70 bg-card-secondary/35 p-2.5 transition hover:bg-card"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="wrap-break-word text-[13px] font-black text-foreground">
-                        {option.name}
-                      </p>
-                      <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold text-secondary-foreground">
-                        {option.stayType.replace("_", " ")} -{" "}
-                        {option.city ?? getDayLabel(days, option.tripDayId)}
-                      </p>
-                      <p className="mt-2 text-[11px] font-black text-primary">
-                        {formatMoney(option.totalCost ?? option.pricePerNight)}
-                      </p>
-                    </div>
+              <AnimatePresence initial={false} mode="popLayout">
+                {unselectedStays.map((option) => {
+                  const pendingAction = getPendingAction(option.id);
+                  const isCardPending = Boolean(pendingAction);
 
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <AddToPlanButton
-                        label="Add stay to plan"
-                        onClick={() => handleSelectStay(option)}
-                      />
+                  return (
+                    <AnimatedOptionWrapper
+                      key={option.id}
+                      id={option.id}
+                      pendingAction={pendingAction}
+                    >
+                      <OptionCard
+                        title={option.name}
+                        subtitle={`${option.stayType.replace("_", " ")} - ${option.city ?? getDayLabel(days, option.tripDayId)
+                          }`}
+                        price={formatMoney(
+                          option.totalCost ?? option.pricePerNight,
+                        )}
+                        isPending={isCardPending}
+                        pendingAction={pendingAction}
+                      >
+                        <AddToPlanButton
+                          label="Add stay to plan"
+                          isPending={pendingAction === "move"}
+                          onClick={() =>
+                            runAnimatedOptionAction({
+                              id: option.id,
+                              actionType: "move",
+                              action: () => selectStay(option),
+                            })
+                          }
+                        />
 
-                      <ItemActionsMenu
-                        actions={[
-                          {
-                            label: "Edit",
-                            icon: <Edit3 className="h-3.5 w-3.5" />,
-                            onClick: () => {
-                              setStayModalError("");
-                              setEditingStay(option);
+                        <ItemActionsMenu
+                          actions={[
+                            {
+                              label: "Edit",
+                              icon: <Edit3 className="h-3.5 w-3.5" />,
+                              onClick: () => {
+                                setStayModalError("");
+                                setEditingStay(option);
+                              },
                             },
-                          },
-                          {
-                            label: "Delete",
-                            icon: <Trash2 className="h-3.5 w-3.5" />,
-                            variant: "danger",
-                            onClick: () => handleDeleteStay(option),
-                          },
-                        ]}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                            {
+                              label: "Delete",
+                              icon: <Trash2 className="h-3.5 w-3.5" />,
+                              variant: "danger",
+                              onClick: () =>
+                                runAnimatedOptionAction({
+                                  id: option.id,
+                                  actionType: "delete",
+                                  action: () => deleteStay(option),
+                                }),
+                            },
+                          ]}
+                        />
+                      </OptionCard>
+                    </AnimatedOptionWrapper>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           </div>
         ) : null}
@@ -792,53 +952,66 @@ function OptionsPanelContent({
             />
 
             <div className="space-y-2">
-              {unselectedMeals.map((meal) => (
-                <div
-                  key={meal.id}
-                  className="rounded-2xl border border-border/70 bg-card-secondary/35 p-2.5 transition hover:bg-card"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="wrap-break-word text-[13px] font-black text-foreground">
-                        {meal.title}
-                      </p>
-                      <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold text-secondary-foreground">
-                        {meal.mealType.replace("_", " ")} -{" "}
-                        {meal.locationName ?? getDayLabel(days, meal.tripDayId)}
-                      </p>
-                      <p className="mt-2 text-[11px] font-black text-primary">
-                        {formatMoney(meal.estimatedCost)}
-                      </p>
-                    </div>
+              <AnimatePresence initial={false} mode="popLayout">
+                {unselectedMeals.map((meal) => {
+                  const pendingAction = getPendingAction(meal.id);
+                  const isCardPending = Boolean(pendingAction);
 
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <AddToPlanButton
-                        label="Add meal to plan"
-                        onClick={() => handleSelectMeal(meal)}
-                      />
+                  return (
+                    <AnimatedOptionWrapper
+                      key={meal.id}
+                      id={meal.id}
+                      pendingAction={pendingAction}
+                    >
+                      <OptionCard
+                        title={meal.title}
+                        subtitle={`${meal.mealType.replace("_", " ")} - ${meal.locationName ??
+                          getDayLabel(days, meal.tripDayId)
+                          }`}
+                        price={formatMoney(meal.estimatedCost)}
+                        isPending={isCardPending}
+                        pendingAction={pendingAction}
+                      >
+                        <AddToPlanButton
+                          label="Add meal to plan"
+                          isPending={pendingAction === "move"}
+                          onClick={() =>
+                            runAnimatedOptionAction({
+                              id: meal.id,
+                              actionType: "move",
+                              action: () => selectMeal(meal),
+                            })
+                          }
+                        />
 
-                      <ItemActionsMenu
-                        actions={[
-                          {
-                            label: "Edit",
-                            icon: <Edit3 className="h-3.5 w-3.5" />,
-                            onClick: () => {
-                              setMealModalError("");
-                              setEditingMeal(meal);
+                        <ItemActionsMenu
+                          actions={[
+                            {
+                              label: "Edit",
+                              icon: <Edit3 className="h-3.5 w-3.5" />,
+                              onClick: () => {
+                                setMealModalError("");
+                                setEditingMeal(meal);
+                              },
                             },
-                          },
-                          {
-                            label: "Delete",
-                            icon: <Trash2 className="h-3.5 w-3.5" />,
-                            variant: "danger",
-                            onClick: () => handleDeleteMeal(meal),
-                          },
-                        ]}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                            {
+                              label: "Delete",
+                              icon: <Trash2 className="h-3.5 w-3.5" />,
+                              variant: "danger",
+                              onClick: () =>
+                                runAnimatedOptionAction({
+                                  id: meal.id,
+                                  actionType: "delete",
+                                  action: () => deleteMeal(meal),
+                                }),
+                            },
+                          ]}
+                        />
+                      </OptionCard>
+                    </AnimatedOptionWrapper>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           </div>
         ) : null}
@@ -852,54 +1025,66 @@ function OptionsPanelContent({
             />
 
             <div className="space-y-2">
-              {unselectedActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="rounded-2xl border border-border/70 bg-card-secondary/35 p-2.5 transition hover:bg-card"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="wrap-break-word text-[13px] font-black text-foreground">
-                        {activity.title}
-                      </p>
-                      <p className="mt-0.5 line-clamp-1 text-[11px] font-semibold text-secondary-foreground">
-                        {activity.category.replace("_", " ")} -{" "}
-                        {activity.locationName ??
-                          getDayLabel(days, activity.tripDayId)}
-                      </p>
-                      <p className="mt-2 text-[11px] font-black text-primary">
-                        {formatMoney(activity.estimatedCost)}
-                      </p>
-                    </div>
+              <AnimatePresence initial={false} mode="popLayout">
+                {unselectedActivities.map((activity) => {
+                  const pendingAction = getPendingAction(activity.id);
+                  const isCardPending = Boolean(pendingAction);
 
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      <AddToPlanButton
-                        label="Add activity to plan"
-                        onClick={() => handleSelectActivity(activity)}
-                      />
+                  return (
+                    <AnimatedOptionWrapper
+                      key={activity.id}
+                      id={activity.id}
+                      pendingAction={pendingAction}
+                    >
+                      <OptionCard
+                        title={activity.title}
+                        subtitle={`${activity.category.replace("_", " ")} - ${activity.locationName ??
+                          getDayLabel(days, activity.tripDayId)
+                          }`}
+                        price={formatMoney(activity.estimatedCost)}
+                        isPending={isCardPending}
+                        pendingAction={pendingAction}
+                      >
+                        <AddToPlanButton
+                          label="Add activity to plan"
+                          isPending={pendingAction === "move"}
+                          onClick={() =>
+                            runAnimatedOptionAction({
+                              id: activity.id,
+                              actionType: "move",
+                              action: () => selectActivity(activity),
+                            })
+                          }
+                        />
 
-                      <ItemActionsMenu
-                        actions={[
-                          {
-                            label: "Edit",
-                            icon: <Edit3 className="h-3.5 w-3.5" />,
-                            onClick: () => {
-                              setActivityModalError("");
-                              setEditingActivity(activity);
+                        <ItemActionsMenu
+                          actions={[
+                            {
+                              label: "Edit",
+                              icon: <Edit3 className="h-3.5 w-3.5" />,
+                              onClick: () => {
+                                setActivityModalError("");
+                                setEditingActivity(activity);
+                              },
                             },
-                          },
-                          {
-                            label: "Delete",
-                            icon: <Trash2 className="h-3.5 w-3.5" />,
-                            variant: "danger",
-                            onClick: () => handleDeleteActivity(activity),
-                          },
-                        ]}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
+                            {
+                              label: "Delete",
+                              icon: <Trash2 className="h-3.5 w-3.5" />,
+                              variant: "danger",
+                              onClick: () =>
+                                runAnimatedOptionAction({
+                                  id: activity.id,
+                                  actionType: "delete",
+                                  action: () => deleteActivity(activity),
+                                }),
+                            },
+                          ]}
+                        />
+                      </OptionCard>
+                    </AnimatedOptionWrapper>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           </div>
         ) : null}
@@ -1007,6 +1192,7 @@ export default function OptionsPanel({
 
           <div className="flex items-center justify-center gap-1.5 [writing-mode:vertical-rl]">
             <Sparkles className="h-3.5 w-3.5 rotate-180 text-primary transition group-hover:text-primary-hover" />
+
             <span className="text-[10px] font-black uppercase tracking-[0.16em] text-primary">
               Options
             </span>
@@ -1026,10 +1212,12 @@ export default function OptionsPanel({
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2">
             <Sparkles className="h-4 w-4 shrink-0 text-primary" />
+
             <div className="min-w-0">
               <h2 className="text-sm font-black text-foreground">
                 Options Panel
               </h2>
+
               <p className="text-xs font-semibold leading-4 text-secondary-foreground">
                 Saved suggestions waiting outside the final plan
               </p>
