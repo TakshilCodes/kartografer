@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
@@ -583,6 +584,9 @@ export async function sendTripChatMessageAction(
         status: true,
       },
     });
+
+    revalidatePath("/dashboard/profile");
+    revalidatePath("/dashboard/settings");
 
     return {
       ok: true,

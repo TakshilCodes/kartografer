@@ -59,8 +59,8 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
   return (
     <>
       <div className="border-b border-border bg-card px-4 py-3 sm:px-5 lg:px-6">
-        <div className="flex w-full min-w-0 flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className="flex w-full min-w-0 flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
             <Link
               href={`/dashboard/trips/${trip.id}`}
               className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-dashboard text-secondary-foreground transition hover:bg-card-secondary"
@@ -76,7 +76,7 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
-                className="group flex max-w-full items-center cursor-pointer gap-2 text-left"
+                className="group flex max-w-full cursor-pointer items-start gap-2 text-left"
               >
                 <h1 className="truncate text-xl font-black text-foreground sm:text-2xl">
                   {trip.title}
@@ -86,7 +86,7 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             <span className="rounded-full bg-card-secondary px-3 py-1.5 text-xs font-black text-secondary-foreground">
               {trip.daysCount} days
             </span>

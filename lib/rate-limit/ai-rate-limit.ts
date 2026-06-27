@@ -34,6 +34,33 @@ type LimitDefinition = {
   reason: AiRateLimitReason;
 };
 
+export type AiChatLimitUsageSnapshot = {
+  userDailyUsed: number;
+  userDailyLimit: number;
+  burstUsed: number;
+  burstLimit: number;
+  tripDailyLimit: number;
+  tripDailyUsedByTripId: Record<string, number>;
+};
+
+function aiChatUserDailyKey(userId: string) {
+  return "rate-limit:ai:chat:user:" + userId + ":daily";
+}
+
+function aiChatTripDailyKey(tripId: string) {
+  return "rate-limit:ai:chat:trip:" + tripId + ":daily";
+}
+
+function aiChatUserBurstKey(userId: string) {
+  return "rate-limit:ai:chat:user:" + userId + ":burst";
+}
+
+function toUsageCount(value: unknown) {
+  const count = Number(value ?? 0);
+
+  return Number.isFinite(count) && count > 0 ? count : 0;
+}
+
 // The script checks every counter first. It increments all counters only when
 // every limit allows the action, so blocked requests cannot consume other quotas.
 const consumeLimitsScript = [
@@ -140,19 +167,19 @@ export function consumeAiChatLimit({
   // TODO: Add an admin/test-user bypass when roles are introduced.
   return consumeLimits([
     {
-      key: "rate-limit:ai:chat:user:" + userId + ":daily",
+      key: aiChatUserDailyKey(userId),
       limit: AI_CHAT_USER_DAILY_LIMIT,
       windowSeconds: DAILY_WINDOW_SECONDS,
       reason: "AI_CHAT_USER_DAILY_LIMIT",
     },
     {
-      key: "rate-limit:ai:chat:trip:" + tripId + ":daily",
+      key: aiChatTripDailyKey(tripId),
       limit: AI_CHAT_TRIP_DAILY_LIMIT,
       windowSeconds: DAILY_WINDOW_SECONDS,
       reason: "AI_CHAT_TRIP_DAILY_LIMIT",
     },
     {
-      key: "rate-limit:ai:chat:user:" + userId + ":burst",
+      key: aiChatUserBurstKey(userId),
       limit: AI_CHAT_BURST_LIMIT,
       windowSeconds: BURST_WINDOW_SECONDS,
       reason: "AI_CHAT_BURST_LIMIT",
@@ -164,6 +191,43 @@ export function consumeAiChatLimit({
       reason: "AI_GLOBAL_DAILY_REQUEST_LIMIT",
     },
   ]);
+}
+
+export async function getAiChatLimitUsageSnapshot({
+  userId,
+  tripIds = [],
+}: {
+  userId: string;
+  tripIds?: string[];
+}): Promise<AiChatLimitUsageSnapshot | null> {
+  try {
+    const uniqueTripIds = Array.from(new Set(tripIds));
+    const keys = [
+      aiChatUserDailyKey(userId),
+      aiChatUserBurstKey(userId),
+      ...uniqueTripIds.map((tripId) => aiChatTripDailyKey(tripId)),
+    ];
+
+    const values = await redis.mget(...keys);
+    const tripDailyUsedByTripId: Record<string, number> = {};
+
+    uniqueTripIds.forEach((tripId, index) => {
+      tripDailyUsedByTripId[tripId] = toUsageCount(values[index + 2]);
+    });
+
+    return {
+      userDailyUsed: toUsageCount(values[0]),
+      userDailyLimit: AI_CHAT_USER_DAILY_LIMIT,
+      burstUsed: toUsageCount(values[1]),
+      burstLimit: AI_CHAT_BURST_LIMIT,
+      tripDailyLimit: AI_CHAT_TRIP_DAILY_LIMIT,
+      tripDailyUsedByTripId,
+    };
+  } catch (error) {
+    console.error("AI_CHAT_USAGE_SNAPSHOT_REDIS_ERROR", error);
+
+    return null;
+  }
 }
 
 export function consumeAiTripGenerationLimit({

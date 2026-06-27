@@ -324,8 +324,8 @@ export default async function TripPreviewPage({
   return (
     <div className="min-h-screen overflow-x-hidden bg-background px-3 py-4 sm:px-5 lg:px-6">
       <div className="mx-auto w-full max-w-345 space-y-5">
-        <header className="flex flex-col gap-3 rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-5 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex min-w-0 items-center gap-3">
+        <header className="flex flex-col gap-4 rounded-[28px] border border-border bg-card px-4 py-4 shadow-sm sm:px-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
             <Link
               href="/dashboard/new"
               className="flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-dashboard text-secondary-foreground transition hover:bg-card-secondary"
@@ -350,7 +350,7 @@ export default async function TripPreviewPage({
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
             <TripShareDialog
               tripId={trip.id}
               tripTitle={trip.title}
