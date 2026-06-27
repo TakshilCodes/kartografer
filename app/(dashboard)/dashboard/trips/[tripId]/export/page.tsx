@@ -41,14 +41,16 @@ export default async function TripExportPage({
   return (
     <div
       data-dashboard-fullscreen
-      className={`fixed inset-0 z-100 overflow-y-auto trip-export-page min-h-screen bg-[#e9e3da] ${isPdfMode ? "trip-export-pdf-mode bg-white" : ""
-        }`}
+      data-pdf-export-page={isPdfMode ? "true" : undefined}
+      className={`trip-export-page min-h-screen bg-[#e9e3da] ${isPdfMode ? "trip-export-pdf-mode bg-white" : "fixed inset-0 z-100 overflow-y-auto"}`}
     >
       {!isPdfMode ? <TripExportActions tripId={trip.id} /> : null}
 
       <main
         className={
-          isPdfMode ? "bg-white" : "px-2 py-4 sm:px-6 sm:py-10"
+          isPdfMode
+            ? "min-h-screen overflow-visible bg-white"
+            : "px-2 py-4 sm:px-6 sm:py-10"
         }
       >
         {isPdfMode ? (

@@ -621,3 +621,45 @@ td {
   overflow: hidden;
   border-radius: inherit;
 }
+@media print {
+  html,
+  body {
+    width: auto !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  [data-dashboard-shell],
+  [data-dashboard-main],
+  [data-dashboard-fullscreen],
+  [data-pdf-export-page="true"],
+  .trip-export-page,
+  .trip-export-page main {
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    inset: auto !important;
+  }
+
+  [data-dashboard-sidebar] {
+    display: none !important;
+  }
+
+  [data-dashboard-main] {
+    padding-left: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .pdf-page-break {
+    break-before: page;
+    page-break-before: always;
+  }
+
+  .pdf-avoid-break {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

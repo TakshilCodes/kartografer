@@ -185,7 +185,7 @@ export async function GET(request: NextRequest, context: PdfRouteContext) {
     const pdf = await page.pdf({
       format: "A4",
       printBackground: true,
-      preferCSSPageSize: true,
+      preferCSSPageSize: false,
       margin: {
         top: "0",
         right: "0",
