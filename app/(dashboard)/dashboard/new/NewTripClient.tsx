@@ -16,8 +16,9 @@ import {
     Utensils,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createTripAction } from "@/actions/trips/create-trip.action";
+
 import { createManualTripAction } from "@/actions/trips/create-manual-trip.action";
+import { createTripAction } from "@/actions/trips/create-trip.action";
 import PlaceAutocomplete from "@/components/dashboard/PlaceAutocomplete";
 import CustomSelect from "@/components/shared/CustomSelect";
 import TripGenerationLoading from "@/components/trips/new/TripGenerationLoading";
@@ -82,20 +83,20 @@ function AiDraftRecoveryScreen({
     onBackToForm: () => void;
 }) {
     return (
-        <section className="min-h-screen bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
-            <div className="flex min-h-[calc(100vh-2.5rem)] w-full items-center">
-                <div className="w-full rounded-[28px] border border-border bg-card p-5 shadow-sm sm:p-6">
-                    <div className="flex flex-col gap-5 sm:flex-row sm:items-start">
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-warning/10 text-warning">
-                            <AlertTriangle className="h-6 w-6" />
+        <section className="min-h-screen bg-dashboard px-3 py-4 sm:px-6 lg:px-8">
+            <div className="flex min-h-[calc(100vh-2rem)] w-full items-center justify-center">
+                <div className="w-full max-w-3xl rounded-3xl border border-border bg-card p-4 shadow-sm sm:rounded-[28px] sm:p-6">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-warning/10 text-warning sm:h-12 sm:w-12">
+                            <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
 
                         <div className="min-w-0 flex-1">
-                            <p className="text-xs font-black uppercase tracking-[0.18em] text-secondary-foreground">
+                            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-secondary-foreground sm:text-xs">
                                 Draft saved
                             </p>
 
-                            <h1 className="mt-2 text-2xl font-black text-foreground sm:text-3xl">
+                            <h1 className="mt-2 text-xl font-black tracking-tight text-foreground sm:text-3xl">
                                 {getRecoveryTitle(recovery.errorKind)}
                             </h1>
 
@@ -104,15 +105,15 @@ function AiDraftRecoveryScreen({
                             </p>
 
                             <div className="mt-5 rounded-2xl border border-border bg-dashboard px-4 py-3 text-sm font-bold leading-6 text-secondary-foreground">
-                                You can open the saved draft now and add itinerary items manually.
-                                The trip is also available in Recent Trips.
+                                You can open the saved draft now and add itinerary items
+                                manually. The trip is also available in Recent Trips.
                             </div>
 
-                            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+                            <div className="mt-6 grid gap-3 sm:flex sm:flex-wrap">
                                 <button
                                     type="button"
                                     onClick={onOpenDraft}
-                                    className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground transition hover:bg-primary-hover"
+                                    className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-3 text-sm font-black text-primary-foreground transition hover:bg-primary-hover"
                                 >
                                     Open draft trip
                                     <ArrowRight className="h-4 w-4" />
@@ -121,7 +122,7 @@ function AiDraftRecoveryScreen({
                                 <button
                                     type="button"
                                     onClick={onBackToForm}
-                                    className="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-border bg-card px-5 py-3 text-sm font-black text-foreground transition hover:bg-card-secondary"
+                                    className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-2xl border border-border bg-card px-5 py-3 text-sm font-black text-foreground transition hover:bg-card-secondary"
                                 >
                                     Back to form
                                 </button>
@@ -136,9 +137,9 @@ function AiDraftRecoveryScreen({
 
 export default function NewTripClient() {
     const [isLoading, setIsLoading] = useState(false);
-    const [submittingMode, setSubmittingMode] = useState<
-        "ai" | "manual" | null
-    >(null);
+    const [submittingMode, setSubmittingMode] = useState<"ai" | "manual" | null>(
+        null,
+    );
     const submissionLockRef = useRef(false);
 
     const router = useRouter();
@@ -151,13 +152,14 @@ export default function NewTripClient() {
     const [food, setFood] = useState("Any");
     const [pace, setPace] = useState("Balanced");
     const [specialNotes, setSpecialNotes] = useState("");
+
     const specialNotesCharacterCount =
         countNonWhitespaceCharacters(specialNotes);
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
     const [loadingMessage, setLoadingMessage] = useState(
-        "Checking your trip details..."
+        "Checking your trip details...",
     );
 
     useEffect(() => {
@@ -237,12 +239,7 @@ export default function NewTripClient() {
     }
 
     if (isGenerating) {
-        return (
-            <TripGenerationLoading
-                progress={progress}
-                message={loadingMessage}
-            />
-        );
+        return <TripGenerationLoading progress={progress} message={loadingMessage} />;
     }
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -294,13 +291,12 @@ export default function NewTripClient() {
                 }
 
                 router.refresh();
-                router.push(
-                    "/dashboard/trips/" + result.tripId + "/edit"
-                );
+                router.push(`/dashboard/trips/${result.tripId}/edit`);
                 return;
             }
 
             const result = await createTripAction(payload);
+
             setIsLoading(false);
 
             if (!result.ok) {
@@ -332,10 +328,11 @@ export default function NewTripClient() {
             router.refresh();
 
             window.setTimeout(() => {
-                router.push("/dashboard/trips/" + result.tripId);
+                router.push(`/dashboard/trips/${result.tripId}`);
             }, 900);
         } catch (submissionError) {
             console.error("CREATE_TRIP_SUBMISSION_ERROR", submissionError);
+
             submissionLockRef.current = false;
             setIsLoading(false);
             setIsGenerating(false);
@@ -345,13 +342,14 @@ export default function NewTripClient() {
             setError("Something went wrong while creating your trip.");
         }
     }
+
     return (
-        <section className="min-h-screen w-full bg-dashboard px-4 py-5 sm:px-6 lg:px-8">
+        <section className="min-h-screen w-full bg-dashboard px-3 py-4 pb-32 sm:px-6 sm:py-5 lg:px-8 lg:pb-10">
             <div className="mx-auto w-full max-w-245 xl:max-w-260">
-                <div className="mb-8 rounded-4xl border border-border bg-card p-5 shadow-sm sm:p-6">
+                <div className="mb-4 rounded-3xl border border-border bg-card p-4 shadow-sm sm:mb-6 sm:rounded-4xl sm:p-6 lg:mb-8">
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                        <div>
-                            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-black text-secondary-foreground">
+                        <div className="min-w-0">
+                            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-[11px] font-black text-secondary-foreground sm:text-xs">
                                 <Sparkles className="h-3.5 w-3.5" />
                                 Create a new India trip
                             </div>
@@ -361,20 +359,20 @@ export default function NewTripClient() {
                             </h1>
 
                             <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-muted-foreground">
-                                Add the basic details first. Kartografer will later help you
-                                generate, edit, budget, and improve your trip plan.
+                                Add the basic details first. Kartografer will help you generate,
+                                edit, budget, and improve your trip plan.
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="rounded-4xl border border-border bg-card p-5 shadow-sm sm:p-6">
-                        <div className="mb-6">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                    <div className="rounded-3xl border border-border bg-card p-4 shadow-sm sm:rounded-4xl sm:p-6">
+                        <div className="mb-5 sm:mb-6">
                             <h2 className="text-lg font-black text-foreground">
                                 Trip Details
                             </h2>
-                            <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                            <p className="mt-1 text-sm font-semibold leading-6 text-muted-foreground">
                                 Tell us where you are going and how long the trip will be.
                             </p>
                         </div>
@@ -436,13 +434,13 @@ export default function NewTripClient() {
                         </div>
                     </div>
 
-                    <div className="rounded-4xl border border-border bg-card p-5 shadow-sm sm:p-6">
-                        <div className="mb-6">
+                    <div className="rounded-3xl border border-border bg-card p-4 shadow-sm sm:rounded-4xl sm:p-6">
+                        <div className="mb-5 sm:mb-6">
                             <h2 className="text-lg font-black text-foreground">
                                 Preferences
                             </h2>
-                            <p className="mt-1 text-sm font-semibold text-muted-foreground">
-                                These options will help create a better trip structure later.
+                            <p className="mt-1 text-sm font-semibold leading-6 text-muted-foreground">
+                                These options help create a better trip structure.
                             </p>
                         </div>
 
@@ -475,7 +473,7 @@ export default function NewTripClient() {
                             />
                         </div>
 
-                        <div className="mt-4">
+                        <div className="mt-4 mb-10 sm:mb-0">
                             <label
                                 htmlFor="notes"
                                 className="mb-2 block text-sm font-black text-foreground"
@@ -499,10 +497,11 @@ export default function NewTripClient() {
                                     }
                                 }}
                                 placeholder="Example: Need family-friendly hotels, avoid risky roads, include snow places, keep budget low..."
-                                className="w-full resize-none rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:bg-input-hover focus:border-ring focus:ring-4 focus:ring-ring/20"
+                                className="w-full resize-none rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold leading-6 text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:bg-input-hover focus:border-ring focus:ring-4 focus:ring-ring/20"
                             />
-                            <div className="mt-1.5 flex items-center justify-between gap-3 text-xs font-semibold text-muted-foreground">
-                                <span>Keep requests short and relevant to this trip.</span>
+
+                            <div className="mt-2 flex flex-col gap-1.5 text-xs font-semibold text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                                <span className="leading-5">Keep requests short and relevant to this trip.</span>
                                 <span className="shrink-0 tabular-nums">
                                     {specialNotesCharacterCount}/{MAX_SPECIAL_NOTES_LENGTH}
                                 </span>
@@ -510,39 +509,42 @@ export default function NewTripClient() {
                         </div>
                     </div>
 
-                    <div className="sticky bottom-4 rounded-4xl border border-border bg-card/95 p-3 shadow-sm backdrop-blur">
+                    <div className="fixed inset-x-3 bottom-3 z-30 rounded-3xl border border-border bg-card/95 p-3 shadow-xl backdrop-blur sm:sticky sm:bottom-4 sm:rounded-4xl sm:shadow-sm">
                         <div className="flex flex-col gap-3">
-                            {error && (
-                                <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3 text-sm font-bold text-danger">
+                            {error ? (
+                                <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3 text-sm font-bold leading-6 text-danger">
                                     {error}
                                 </div>
-                            )}
+                            ) : null}
 
-                            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                                <div className="px-2">
-                                    <p className="text-sm font-black text-foreground">
+                            <div className="rounded-2xl border border-border bg-dashboard/60 p-3 sm:p-4 lg:flex lg:items-center lg:justify-between lg:gap-6">
+                                <div className="min-w-0">
+                                    <h3 className="text-sm font-black text-foreground">
                                         Choose how you want to begin
-                                    </p>
-                                    <p className="mt-1 max-w-xl text-xs font-semibold leading-5 text-muted-foreground">
-                                        Create an empty trip and plan everything yourself, or let AI build the first itinerary.
+                                    </h3>
+
+                                    <p className="mt-1 hidden max-w-xl text-xs font-semibold leading-5 text-secondary-foreground sm:block">
+                                        Start with an empty itinerary and plan manually, or let AI generate
+                                        the first version for you.
                                     </p>
                                 </div>
 
-                                <div className="flex flex-col gap-2 sm:flex-row">
+                                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:mt-0 lg:flex lg:shrink-0 lg:items-center">
                                     <button
                                         type="submit"
                                         name="creationMode"
                                         value="manual"
                                         disabled={isLoading}
-                                        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-card px-5 py-3 text-sm font-black text-foreground transition hover:bg-secondary disabled:pointer-events-none disabled:opacity-70"
+                                        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-black text-foreground transition hover:bg-card-hover disabled:pointer-events-none disabled:opacity-70 lg:min-w-45"
                                     >
                                         {isLoading && submittingMode === "manual" ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <PencilLine className="h-4 w-4" />
                                         )}
+
                                         {isLoading && submittingMode === "manual"
-                                            ? "Creating trip..."
+                                            ? "Creating..."
                                             : "Create Manually"}
                                     </button>
 
@@ -551,15 +553,16 @@ export default function NewTripClient() {
                                         name="creationMode"
                                         value="ai"
                                         disabled={isLoading}
-                                        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-6 py-3 text-sm font-black text-primary-foreground shadow-sm transition hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-70"
+                                        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground shadow-sm transition hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-70 lg:min-w-48"
                                     >
                                         {isLoading && submittingMode === "ai" ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                         ) : (
                                             <Sparkles className="h-4 w-4" />
                                         )}
+
                                         {isLoading && submittingMode === "ai"
-                                            ? "Generating trip..."
+                                            ? "Generating..."
                                             : "Generate with AI"}
                                     </button>
                                 </div>
@@ -602,8 +605,8 @@ function InputField({
                 {label}
             </label>
 
-            <div className="flex items-center gap-3 rounded-2xl border border-border bg-input px-4 py-3 transition hover:bg-input-hover focus-within:border-ring focus-within:ring-4 focus-within:ring-ring/20">
-                <span className="text-secondary-foreground">{icon}</span>
+            <div className="flex min-h-12 items-center gap-3 rounded-2xl border border-border bg-input px-4 py-3 transition hover:bg-input-hover focus-within:border-ring focus-within:ring-4 focus-within:ring-ring/20">
+                <span className="shrink-0 text-secondary-foreground">{icon}</span>
 
                 <input
                     id={name}
@@ -612,7 +615,7 @@ function InputField({
                     min={min}
                     max={max}
                     placeholder={placeholder}
-                    className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground/70"
+                    className="min-w-0 flex-1 bg-transparent text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground/70"
                 />
             </div>
 

@@ -78,6 +78,7 @@ import {
 } from "@/actions/trips/trip-activity.action";
 import ItemActionsMenu from "@/components/trips/edit/ItemActionsMenu";
 import { MAX_TRIP_DAYS } from "@/lib/trips/trip-limits";
+import ReadMoreText from "@/components/shared/ReadMoreText";
 
 type TripDay = {
     id: string;
@@ -1089,9 +1090,11 @@ export default function ItineraryEditor({
                                                 ) : null}
 
                                                 {transport.description ? (
-                                                    <p className="mt-1 wrap-break-word text-xs leading-5 text-secondary-foreground">
-                                                        {transport.description}
-                                                    </p>
+                                                    <ReadMoreText
+                                                        text={transport.description}
+                                                        lines={1}
+                                                        className="mt-1 wrap-break-word text-xs leading-5 text-secondary-foreground"
+                                                    />
                                                 ) : null}
 
                                                 <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -1298,9 +1301,11 @@ export default function ItineraryEditor({
                                                 ) : null}
 
                                                 {meal.notes ? (
-                                                    <p className="mt-1 wrap-break-word text-xs leading-5 text-secondary-foreground">
-                                                        {meal.notes}
-                                                    </p>
+                                                    <ReadMoreText
+                                                        text={meal.notes}
+                                                        lines={1}
+                                                        className="mt-1 wrap-break-word text-xs leading-5 text-secondary-foreground"
+                                                    />
                                                 ) : null}
                                             </div>
 
@@ -1406,15 +1411,19 @@ export default function ItineraryEditor({
                                                     ) : null}
 
                                                     {activity.description ? (
-                                                        <p className="mt-1 max-w-full wrap-break-word text-xs leading-5 text-secondary-foreground">
-                                                            {activity.description}
-                                                        </p>
+                                                        <ReadMoreText
+                                                            text={activity.description}
+                                                            lines={1}
+                                                            className="mt-1 max-w-full wrap-break-word text-xs leading-5 text-secondary-foreground"
+                                                        />
                                                     ) : null}
 
                                                     {activity.notes ? (
-                                                        <p className="mt-1 max-w-full wrap-break-word text-xs leading-5 text-secondary-foreground">
-                                                            Note: {activity.notes}
-                                                        </p>
+                                                        <ReadMoreText
+                                                            text={activity.notes}
+                                                            lines={1}
+                                                            className="mt-1 max-w-full wrap-break-word text-xs leading-5 text-secondary-foreground"
+                                                        />
                                                     ) : null}
                                                 </div>
                                             </div>
@@ -1473,9 +1482,11 @@ export default function ItineraryEditor({
                                 </button>
                             </div>
 
-                            <p className="text-sm leading-6 text-secondary-foreground">
-                                {selectedDay?.notes}
-                            </p>
+                            <ReadMoreText
+                                text={selectedDay?.notes}
+                                lines={1}
+                                className="text-sm leading-6 text-secondary-foreground"
+                            />
                         </div>
 
                         <div className="rounded-2xl bg-primary p-4 text-primary-foreground">

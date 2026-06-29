@@ -128,10 +128,10 @@ export default function TripExplorePublishDialog({
         },
         "aria-label":
           triggerElement.props["aria-label"] ??
-          (isPublic ? "Manage public trip" : "Publish trip to Explore"),
+          (isPublic ? "Republish current itinerary" : "Publish trip to Explore"),
         title:
           triggerElement.props.title ??
-          (isPublic ? "Manage public trip" : "Publish to Explore"),
+          (isPublic ? "Republish current itinerary" : "Publish to Explore"),
       });
     }
 
@@ -148,8 +148,8 @@ export default function TripExplorePublishDialog({
             }
           }}
           className="inline-flex w-full"
-          aria-label={isPublic ? "Manage public trip" : "Publish to Explore"}
-          title={isPublic ? "Manage public trip" : "Publish to Explore"}
+          aria-label={isPublic ? "Republish current itinerary" : "Publish to Explore"}
+          title={isPublic ? "Republish current itinerary" : "Publish to Explore"}
         >
           {trigger}
         </span>
@@ -163,7 +163,7 @@ export default function TripExplorePublishDialog({
         className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-border bg-card px-5 py-2 text-sm font-black text-foreground transition hover:bg-card-secondary"
       >
         <Globe2 className="h-4 w-4" />
-        {isPublic ? "Manage public trip" : "Publish to Explore"}
+        {isPublic ? "Republish current itinerary" : "Publish to Explore"}
       </button>
     );
   }
@@ -177,6 +177,7 @@ export default function TripExplorePublishDialog({
     const formData = new FormData(event.currentTarget);
 
     startTransition(async () => {
+      const wasPublic = isPublic;
       const result = await publishTripToExploreAction({
         tripId,
         publicTitle: String(formData.get("publicTitle") ?? ""),
@@ -194,7 +195,7 @@ export default function TripExplorePublishDialog({
       }
 
       setIsPublic(true);
-      setSuccess("Trip published to Explore.");
+      setSuccess(`Trip ${wasPublic ? "republished" : "published"} to Explore. Future edits stay private until you republish.`);
       router.refresh();
     });
   }
@@ -230,7 +231,7 @@ export default function TripExplorePublishDialog({
       {isOpen && portalTarget
         ? createPortal(
           <div
-            className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/45 p-3 backdrop-blur-sm"
+            className="fixed inset-0 z-9998 flex items-center justify-center bg-black/45 p-3 backdrop-blur-sm"
             role="dialog"
             aria-modal="true"
             aria-labelledby="publish-trip-dialog-title"
@@ -247,11 +248,13 @@ export default function TripExplorePublishDialog({
                     id="publish-trip-dialog-title"
                     className="text-xl font-black tracking-tight text-foreground sm:text-2xl"
                   >
-                    Publish to Explore
+                    {isPublic ? "Republish to Explore" : "Publish to Explore"}
                   </h2>
 
                   <p className="mt-1 max-w-xl text-sm leading-6 text-secondary-foreground">
-                    Make this itinerary discoverable as a public template.
+                    {isPublic
+                      ? "Save the current itinerary as the new public version. Future edits will stay private until you republish again."
+                      : "Make this itinerary discoverable as a public template."}
                   </p>
                 </div>
 
@@ -342,7 +345,7 @@ export default function TripExplorePublishDialog({
                       {isPending
                         ? "Saving..."
                         : isPublic
-                          ? "Update public listing"
+                          ? "Republish current itinerary"
                           : "Publish trip"}
                     </button>
 

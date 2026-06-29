@@ -1,11 +1,17 @@
 "use server";
 
+import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
+import {
+  createPublicTripSnapshot,
+  getPublicSnapshotContentUpdatedAt,
+  getTripForPublicSnapshot,
+} from "@/lib/explore/public-trip-snapshot";
 
 const tagSchema = z
   .string()
@@ -60,16 +66,9 @@ export async function publishTripToExploreAction(input: z.input<typeof publishSc
       };
     }
 
-    const trip = await prisma.trip.findFirst({
-      where: {
-        id: parsed.data.tripId,
-        userId: session.user.id,
-      },
-      select: {
-        id: true,
-        daysCount: true,
-        toPlace: { select: { name: true } },
-      },
+    const trip = await getTripForPublicSnapshot({
+      tripId: parsed.data.tripId,
+      userId: session.user.id,
     });
 
     if (!trip) {
@@ -79,19 +78,36 @@ export async function publishTripToExploreAction(input: z.input<typeof publishSc
       };
     }
 
+    const publishedAt = new Date();
+    const publicFields = {
+      publicTitle: parsed.data.publicTitle,
+      publicDescription: parsed.data.publicDescription || null,
+      destination: parsed.data.destination,
+      coverImageUrl: parsed.data.coverImageUrl || null,
+      budgetStyle: parsed.data.budgetStyle || null,
+      travelStyle: parsed.data.travelStyle || null,
+      tags: normalizeTags(parsed.data.tags),
+      publishedAt,
+    };
+    const snapshot = createPublicTripSnapshot({ trip, publicFields });
+    const sourceContentUpdatedAt = getPublicSnapshotContentUpdatedAt(trip);
+
     await prisma.trip.update({
       where: { id: trip.id },
       data: {
         isPublic: true,
-        publicTitle: parsed.data.publicTitle,
-        publicDescription: parsed.data.publicDescription || null,
-        destination: parsed.data.destination,
-        coverImageUrl: parsed.data.coverImageUrl || null,
+        publicTitle: publicFields.publicTitle,
+        publicDescription: publicFields.publicDescription,
+        destination: publicFields.destination,
+        coverImageUrl: publicFields.coverImageUrl,
         durationDays: trip.daysCount,
-        budgetStyle: parsed.data.budgetStyle || null,
-        travelStyle: parsed.data.travelStyle || null,
-        tags: normalizeTags(parsed.data.tags),
-        publishedAt: new Date(),
+        budgetStyle: publicFields.budgetStyle,
+        travelStyle: publicFields.travelStyle,
+        tags: publicFields.tags,
+        publishedAt,
+        publicSnapshotJson: snapshot,
+        publicSnapshotUpdatedAt: publishedAt,
+        publicSnapshotContentUpdatedAt: sourceContentUpdatedAt,
       },
     });
 
@@ -151,6 +167,9 @@ export async function unpublishTripFromExploreAction(tripId: string) {
       data: {
         isPublic: false,
         publishedAt: null,
+        publicSnapshotJson: Prisma.JsonNull,
+        publicSnapshotUpdatedAt: null,
+        publicSnapshotContentUpdatedAt: null,
       },
     });
 

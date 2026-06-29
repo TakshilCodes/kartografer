@@ -21,6 +21,7 @@ import {
   Waves,
 } from "lucide-react";
 
+import ReadMoreText from "@/components/shared/ReadMoreText";
 import type { PreviewDayPanel } from "@/lib/trips/build-preview-day-panels";
 import TripPreviewDayTabs from "@/components/trips/preview/TripPreviewDayTabs";
 
@@ -74,6 +75,31 @@ function Surface({
   );
 }
 
+const GENERIC_TIMELINE_LOCATIONS = new Set([
+  "",
+  "activity location",
+  "food stop",
+  "location not set",
+  "no location",
+]);
+
+function isUsefulTimelineLocation(location: string) {
+  return !GENERIC_TIMELINE_LOCATIONS.has(location.trim().toLowerCase());
+}
+
+function shouldShowTimelineTag(tag: string, type: string) {
+  const normalizedTag = tag.trim().toLowerCase();
+
+  if (!normalizedTag || normalizedTag === "activity") return false;
+
+  return normalizedTag !== type.trim().toLowerCase();
+}
+
+function getTimelineCostClass(cost: string) {
+  return cost === "Cost not set"
+    ? "bg-card-secondary text-secondary-foreground"
+    : "bg-selected text-selected-foreground";
+}
 function EmptyRouteState({ tripId }: { tripId: string }) {
   return (
     <div className="rounded-[28px] border border-dashed border-border bg-card-secondary/40 p-5">
@@ -162,10 +188,14 @@ export default function TripPreviewDayPanel({
                   {selectedPanel.displayTitle}
                 </h2>
 
-                <p className="mt-1 text-xs font-semibold text-secondary-foreground">
-                  {selectedPanel.description ??
-                    "Transport first, then breakfast/lunch, then activities, then dinner/snacks."}
-                </p>
+                <ReadMoreText
+                  text={
+                    selectedPanel.description ??
+                    "Transport first, then breakfast/lunch, then activities, then dinner/snacks."
+                  }
+                  lines={2}
+                  className="mt-1 text-xs font-semibold leading-5 text-secondary-foreground"
+                />
               </div>
 
               <Link
@@ -226,88 +256,107 @@ export default function TripPreviewDayPanel({
                           : item.itemKind === "meal"
                             ? Utensils
                             : Route;
+                      const showLocation = isUsefulTimelineLocation(
+                        item.location
+                      );
+                      const showTag = shouldShowTimelineTag(
+                        item.tag,
+                        item.type
+                      );
 
                       return (
                         <div
                           key={item.id}
-                          className="relative grid gap-3 sm:grid-cols-[48px_minmax(0,1fr)]"
+                          className="relative grid gap-3 sm:grid-cols-[32px_minmax(0,1fr)]"
                         >
                           <div className="relative hidden justify-center sm:flex">
-                            <div className="relative z-10 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-xs font-black text-primary shadow-sm">
+                            <div className="relative z-10 mt-2 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-[10px] font-black text-primary shadow-sm">
                               {index + 1}
                             </div>
 
                             {!isLast ? (
-                              <div className="absolute left-1/2 top-10 h-[calc(100%+16px)] w-px -translate-x-1/2 bg-border" />
+                              <div className="absolute left-1/2 top-8 h-[calc(100%+12px)] w-px -translate-x-1/2 bg-border/70" />
                             ) : null}
                           </div>
 
-                          <div className="group relative overflow-hidden rounded-[22px] border border-border bg-card shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                            <div className="absolute inset-y-0 left-0 hidden w-1 bg-primary/80 sm:block" />
-
-                            <div className="grid sm:grid-cols-[130px_minmax(0,1fr)]">
-                              <div className="border-b border-border bg-card-secondary/55 px-4 py-3 sm:border-b-0 sm:border-r">
-                                <div className="flex items-start justify-between gap-3 sm:block">
-                                  <div className="flex items-center gap-3 sm:block">
-                                    <div className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-xs font-black text-primary shadow-sm sm:hidden">
-                                      {index + 1}
-                                    </div>
-
-                                    <div>
-                                      <p className="text-2xl font-black leading-none text-primary">
-                                        {item.time}
-                                      </p>
-
-                                      <p className="mt-1 text-[10px] font-black uppercase tracking-[0.22em] text-secondary-foreground">
-                                        {item.period}
-                                      </p>
-                                    </div>
+                          <article className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md">
+                            <div className="grid min-w-0 md:grid-cols-[92px_minmax(0,1fr)]">
+                              <div className="flex items-center justify-between gap-3 border-b border-border/70 bg-card-secondary/35 px-4 py-3 md:block md:border-b-0 md:border-r md:px-3">
+                                <div className="flex items-center gap-3 md:block">
+                                  <div className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card text-[11px] font-black text-primary shadow-sm sm:hidden">
+                                    {index + 1}
                                   </div>
 
-                                  <div className="mt-0 flex w-fit items-center gap-1 rounded-full bg-card px-2.5 py-1 text-[10px] font-black text-secondary-foreground sm:mt-4">
-                                    <ActivityIcon className="h-3 w-3 text-primary" />
-                                    {item.type}
+                                  <div>
+                                    <p className="text-lg font-black leading-none text-primary md:text-xl">
+                                      {item.time}
+                                    </p>
+
+                                    <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em] text-secondary-foreground">
+                                      {item.period}
+                                    </p>
                                   </div>
+                                </div>
+
+                                <div className="flex w-fit items-center gap-1.5 rounded-full bg-card px-2.5 py-1 text-[10px] font-black text-secondary-foreground shadow-sm md:mt-3">
+                                  <ActivityIcon className="h-3 w-3 text-primary" />
+                                  {item.type}
                                 </div>
                               </div>
 
                               <div className="min-w-0 px-4 py-3.5">
-                                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                                  <div className="min-w-0">
+                                <div className="flex min-w-0 items-start justify-between gap-3">
+                                  <div className="min-w-0 flex-1">
                                     <h3 className="wrap-break-word text-[15px] font-black leading-6 text-foreground">
                                       {item.title}
                                     </h3>
 
-                                    <p className="mt-1 wrap-break-word text-[13px] leading-5 text-secondary-foreground">
-                                      {item.description}
-                                    </p>
-
-                                    <div className="mt-3 flex flex-wrap gap-2">
-                                      <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-dashboard px-2.5 py-1 text-[11px] font-bold text-secondary-foreground">
-                                        <MapPin className="h-3.5 w-3.5 text-primary" />
-                                        {item.location || "No location"}
-                                      </span>
-
-                                      <span className="rounded-full bg-selected/60 px-2.5 py-1 text-[11px] font-black text-selected-foreground">
-                                        {item.tag}
-                                      </span>
-
-                                      <span className="rounded-full bg-card-secondary px-2.5 py-1 text-[11px] font-black text-primary">
-                                        {item.cost}
-                                      </span>
-                                    </div>
+                                    <ReadMoreText
+                                      text={item.description}
+                                      lines={2}
+                                      buttonPlacement="block"
+                                      className="mt-1 wrap-break-word text-[13px] leading-5 text-secondary-foreground"
+                                      buttonClassName="text-[11px]"
+                                    />
                                   </div>
 
-                                  <Link
-                                    href={`/dashboard/trips/${tripId}/edit`}
-                                    className="inline-flex h-fit w-fit shrink-0 cursor-pointer items-center rounded-full border border-border bg-dashboard px-3 py-1.5 text-[11px] font-black text-foreground transition hover:bg-card-secondary sm:opacity-0 sm:group-hover:opacity-100"
+                                  <span
+                                    className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black shadow-sm ${getTimelineCostClass(
+                                      item.cost
+                                    )}`}
                                   >
-                                    Edit
-                                  </Link>
+                                    {item.cost}
+                                  </span>
                                 </div>
+
+                                {(showLocation || showTag) ? (
+                                  <div className="mt-3 flex flex-wrap gap-1.5">
+                                    {showLocation ? (
+                                      <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-dashboard px-2.5 py-1 text-[11px] font-bold text-secondary-foreground">
+                                        <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
+                                        <span className="truncate">
+                                          {item.location}
+                                        </span>
+                                      </span>
+                                    ) : null}
+
+                                    {showTag ? (
+                                      <span className="rounded-full bg-card-secondary px-2.5 py-1 text-[11px] font-black text-primary">
+                                        {item.tag}
+                                      </span>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+
+                                <Link
+                                  href={`/dashboard/trips/${tripId}/edit`}
+                                  className="mt-3 inline-flex h-fit w-fit cursor-pointer items-center rounded-full bg-dashboard px-3 py-1.5 text-[11px] font-black text-secondary-foreground transition hover:bg-card-secondary hover:text-foreground sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+                                >
+                                  Edit
+                                </Link>
                               </div>
                             </div>
-                          </div>
+                          </article>
                         </div>
                       );
                     })}
@@ -335,10 +384,11 @@ export default function TripPreviewDayPanel({
             {selectedPanel.suggestedStay?.name ?? "No stay selected yet"}
           </p>
 
-          <p className="mt-1 text-xs leading-5 text-secondary-foreground">
-            {selectedPanel.suggestedStay?.description ??
-              "No stay selected yet."}
-          </p>
+          <ReadMoreText
+            text={selectedPanel.suggestedStay?.description ?? "No stay selected yet."}
+            lines={2}
+            className="mt-1 text-xs leading-5 text-secondary-foreground"
+          />
 
           <p className="mt-2 text-xs font-black text-primary">
             {selectedPanel.suggestedStay?.costLabel ?? "Cost not set"}
@@ -359,10 +409,14 @@ export default function TripPreviewDayPanel({
               "No transport selected yet"}
           </p>
 
-          <p className="mt-1 text-xs leading-5 text-secondary-foreground">
-            {selectedPanel.suggestedTransport?.description ??
-              "No transport selected yet."}
-          </p>
+          <ReadMoreText
+            text={
+              selectedPanel.suggestedTransport?.description ??
+              "No transport selected yet."
+            }
+            lines={2}
+            className="mt-1 text-xs leading-5 text-secondary-foreground"
+          />
 
           <p className="mt-2 text-xs font-black text-primary">
             {selectedPanel.suggestedTransport?.costLabel ?? "Cost not set"}

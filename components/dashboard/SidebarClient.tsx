@@ -119,7 +119,7 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
       setIsResizingSidebar(false);
     }
 
-    document.body.style.cursor = "col-resize";
+    document.body.style.cursor = "ew-resize";
     document.body.style.userSelect = "none";
 
     window.addEventListener("mousemove", handleMouseMove);
@@ -443,18 +443,26 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
             event.preventDefault();
             setIsResizingSidebar(true);
           }}
-          className={`group absolute right-0 top-0 hidden h-full w-3 translate-x-1/2 cursor-col-resize lg:block ${isResizingSidebar ? "bg-primary/5" : "bg-transparent"
-            }`}
+          className="group absolute -right-2 top-0 hidden h-full w-5 cursor-ew-resize touch-none items-center justify-center lg:flex"
         >
           <span
-            className={`absolute left-1/2 top-1/2 h-20 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full transition-all duration-200 ${isResizingSidebar
-                ? "h-28 w-1.5 bg-primary shadow-[0_0_0_6px_rgba(91,53,26,0.12)]"
-                : "bg-border opacity-45 group-hover:h-28 group-hover:w-1.5 group-hover:bg-primary group-hover:opacity-100 group-hover:shadow-[0_0_0_6px_rgba(91,53,26,0.08)]"
-              }`}
+            className={`pointer-events-none absolute inset-y-7 left-1/2 w-px -translate-x-1/2 rounded-full transition-colors duration-150 ${
+              isResizingSidebar
+                ? "bg-primary/55"
+                : "bg-border/75 group-hover:bg-primary/45"
+            }`}
           />
 
-          <span className="pointer-events-none absolute left-1/2 top-1/2 hidden -translate-y-1/2 translate-x-3 rounded-full border border-border bg-card px-2 py-1 text-[10px] font-black text-secondary-foreground shadow-lg group-hover:block">
-            Drag
+          <span
+            className={`pointer-events-none absolute left-1/2 top-1/2 flex h-18 w-3 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center gap-1 rounded-full border bg-card shadow-sm transition-[border-color,background-color,transform,opacity] duration-150 ${
+              isResizingSidebar
+                ? "scale-105 border-primary/40 bg-card-hover opacity-100"
+                : "border-border opacity-75 group-hover:scale-105 group-hover:border-primary/40 group-hover:bg-card-hover group-hover:opacity-100"
+            }`}
+          >
+            <span className="h-1 w-1 rounded-full bg-secondary-foreground/70 transition-colors group-hover:bg-primary" />
+            <span className="h-1 w-1 rounded-full bg-secondary-foreground/70 transition-colors group-hover:bg-primary" />
+            <span className="h-1 w-1 rounded-full bg-secondary-foreground/70 transition-colors group-hover:bg-primary" />
           </span>
         </button>
       </aside>

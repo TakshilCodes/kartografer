@@ -194,6 +194,10 @@ model Trip {
 
   publishedAt DateTime?
 
+  publicSnapshotJson             Json?
+  publicSnapshotUpdatedAt        DateTime?
+  publicSnapshotContentUpdatedAt DateTime?
+
   days             TripDay[]
   activities       TripActivity[]
   transportOptions TransportOption[]
@@ -216,6 +220,7 @@ model Trip {
   @@index([budgetStyle])
   @@index([travelStyle])
   @@index([publishedAt])
+  @@index([publicSnapshotUpdatedAt])
   @@index([copiedCount])
   @@index([createdAt])
 }

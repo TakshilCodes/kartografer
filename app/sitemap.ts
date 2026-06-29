@@ -1,14 +1,15 @@
-﻿import type { MetadataRoute } from "next";
+import type { MetadataRoute } from "next";
 
 import prisma from "@/lib/prisma";
 import { absoluteUrl } from "@/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const publicTrips = await prisma.trip.findMany({
-    where: { isPublic: true },
+    where: { isPublic: true, publicSnapshotUpdatedAt: { not: null } },
     select: {
       id: true,
       publishedAt: true,
+      publicSnapshotUpdatedAt: true,
       updatedAt: true,
     },
     orderBy: [{ publishedAt: "desc" }, { updatedAt: "desc" }],
@@ -29,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...publicTrips.map((trip) => ({
       url: absoluteUrl(`/explore/${trip.id}`),
-      lastModified: trip.updatedAt ?? trip.publishedAt ?? new Date(),
+      lastModified: trip.publicSnapshotUpdatedAt ?? trip.publishedAt ?? trip.updatedAt ?? new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),

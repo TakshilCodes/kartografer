@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type CSSProperties, useEffect, useMemo, useState } from "react";
 
 import EditTripHeader from "@/components/trips/edit/EditTripHeader";
 import OptionsPanel, {
@@ -14,6 +14,10 @@ import AiAssistantPanel, {
 } from "@/components/trips/edit/AiAssistantPanel";
 import MobileEditorFooter from "@/components/trips/edit/MobileEditorFooter";
 import MobilePanelDrawer from "@/components/trips/edit/MobilePanelDrawer";
+
+const AI_PANEL_DEFAULT_WIDTH = 400;
+const AI_PANEL_MIN_WIDTH = 340;
+const AI_PANEL_MAX_WIDTH = 680;
 
 type TripDay = {
   id: string;
@@ -126,12 +130,15 @@ type EditTripClientProps = {
 };
 
 export default function EditTripClient({ trip }: EditTripClientProps) {
+
   const [selectedDayId, setSelectedDayId] = useState(trip.days[0]?.id ?? "");
-  const [mobilePanel, setMobilePanel] = useState<"options" | "ai" | null>(
-    null,
-  );
+  const [mobilePanel, setMobilePanel] = useState<"options" | "ai" | null>(null);
   const [isOptionsCollapsed, setIsOptionsCollapsed] = useState(false);
   const [isAiAssistantCollapsed, setIsAiAssistantCollapsed] = useState(false);
+  const [aiAssistantWidth, setAiAssistantWidth] = useState(
+    AI_PANEL_DEFAULT_WIDTH,
+  );
+  const [isAiAssistantResizing, setIsAiAssistantResizing] = useState(false);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 1536px)");
@@ -156,7 +163,6 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
     }
 
     syncAiAssistantPanel();
-
     mediaQuery.addEventListener("change", syncAiAssistantPanel);
 
     return () => {
@@ -168,18 +174,28 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
     return trip.days.find((day) => day.id === selectedDayId) ?? trip.days[0];
   }, [selectedDayId, trip.days]);
 
+  const clampedAiAssistantWidth = Math.min(
+    Math.max(aiAssistantWidth, AI_PANEL_MIN_WIDTH),
+    AI_PANEL_MAX_WIDTH,
+  );
+
+  const editorGridStyle = {
+    "--options-panel-width": isOptionsCollapsed ? "52px" : "300px",
+    "--ai-panel-width": isAiAssistantCollapsed
+      ? "52px"
+      : `${clampedAiAssistantWidth}px`,
+  } as CSSProperties;
+
   return (
     <div className="min-h-screen overflow-x-hidden bg-dashboard pb-24 xl:pb-0">
       <EditTripHeader trip={trip} />
 
       <div
-        className={`grid w-full max-w-none gap-4 p-4 transition-[grid-template-columns] duration-300 sm:p-5 lg:p-6 xl:h-[calc(100vh-92px)] xl:overflow-hidden ${isOptionsCollapsed && isAiAssistantCollapsed
-          ? "xl:grid-cols-[52px_minmax(0,1fr)_52px]"
-          : isOptionsCollapsed
-            ? "xl:grid-cols-[52px_minmax(0,1fr)_330px]"
-            : isAiAssistantCollapsed
-              ? "xl:grid-cols-[300px_minmax(0,1fr)_52px]"
-              : "xl:grid-cols-[300px_minmax(0,1fr)_330px]"}`}
+        style={editorGridStyle}
+        className={`grid w-full max-w-none gap-4 p-4 sm:p-5 lg:p-6 xl:h-[calc(100vh-92px)] xl:grid-cols-[var(--options-panel-width)_minmax(0,1fr)_var(--ai-panel-width)] xl:overflow-hidden ${isAiAssistantResizing
+          ? ""
+          : "transition-[grid-template-columns] duration-300"
+          }`}
       >
         <aside className="hidden min-h-0 min-w-0 xl:block xl:h-full xl:overflow-hidden">
           <OptionsPanel
@@ -222,6 +238,11 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
             tripId={trip.id}
             initialMessages={trip.chatMessages}
             isCollapsed={isAiAssistantCollapsed}
+            panelWidth={clampedAiAssistantWidth}
+            minPanelWidth={AI_PANEL_MIN_WIDTH}
+            maxPanelWidth={AI_PANEL_MAX_WIDTH}
+            onPanelWidthChange={setAiAssistantWidth}
+            onPanelResizeStateChange={setIsAiAssistantResizing}
             onToggleCollapsed={() =>
               setIsAiAssistantCollapsed((currentValue) => !currentValue)
             }

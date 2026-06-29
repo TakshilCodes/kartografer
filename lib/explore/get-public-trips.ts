@@ -86,6 +86,7 @@ export async function getPublicTrips({
   const where: Prisma.TripWhereInput = {
     isPublic: true,
     publishedAt: { not: null },
+    publicSnapshotUpdatedAt: { not: null },
     ...(andFilters.length > 0 ? { AND: andFilters } : {}),
   };
 

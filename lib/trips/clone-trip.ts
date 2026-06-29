@@ -1,6 +1,23 @@
-import { ItemSource, TripStatus, TripVisibility, type Prisma } from "@prisma/client";
+import {
+  ActivityCategory,
+  BudgetStatus,
+  BudgetLevel,
+  CostType,
+  FoodPreference,
+  ItemSource,
+  MealType,
+  StayType,
+  TransportMode,
+  TransportPreference,
+  TravelPace,
+  TripStatus,
+  TripType,
+  TripVisibility,
+  Prisma,
+} from "@prisma/client";
 
 import prisma from "@/lib/prisma";
+import { readPublicTripSnapshot } from "@/lib/explore/public-trip-snapshot";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
 
 export async function clonePublicTripForUser({
@@ -14,43 +31,40 @@ export async function clonePublicTripForUser({
     where: {
       id: publicTripId,
       isPublic: true,
+      publicSnapshotUpdatedAt: { not: null },
     },
-    include: {
-      days: {
-        orderBy: { dayNumber: "asc" },
-        include: {
-          activities: { orderBy: [{ position: "asc" }, { createdAt: "asc" }] },
-          transportOptions: { orderBy: { createdAt: "asc" } },
-          stayOptions: { orderBy: { createdAt: "asc" } },
-          mealSuggestions: { orderBy: { createdAt: "asc" } },
-        },
-      },
-      costBreakdown: true,
+    select: {
+      id: true,
+      publicSnapshotJson: true,
     },
   });
 
   if (!sourceTrip) return null;
 
+  const snapshot = readPublicTripSnapshot(sourceTrip.publicSnapshotJson);
+
+  if (!snapshot) return null;
+
   const clonedTrip = await prisma.$transaction(async (tx) => {
     const trip = await tx.trip.create({
       data: {
         userId,
-        fromPlaceId: sourceTrip.fromPlaceId,
-        toPlaceId: sourceTrip.toPlaceId,
-        title: `Copy of ${sourceTrip.publicTitle || sourceTrip.title}`,
-        summary: sourceTrip.publicDescription || sourceTrip.summary,
-        daysCount: sourceTrip.daysCount,
-        peopleCount: sourceTrip.peopleCount,
-        budgetAmount: sourceTrip.budgetAmount,
-        currency: sourceTrip.currency,
-        tripType: sourceTrip.tripType,
-        travelPace: sourceTrip.travelPace,
-        foodPreference: sourceTrip.foodPreference,
-        transportPreference: sourceTrip.transportPreference,
-        specialNotes: sourceTrip.specialNotes,
+        fromPlaceId: snapshot.fromPlaceId,
+        toPlaceId: snapshot.toPlaceId,
+        title: `Copy of ${snapshot.publicTitle || snapshot.title}`,
+        summary: snapshot.publicDescription || snapshot.summary,
+        daysCount: snapshot.daysCount,
+        peopleCount: snapshot.peopleCount,
+        budgetAmount: snapshot.budgetAmount,
+        currency: snapshot.currency,
+        tripType: snapshot.tripType as TripType,
+        travelPace: snapshot.travelPace as TravelPace,
+        foodPreference: snapshot.foodPreference as FoodPreference,
+        transportPreference: snapshot.transportPreference as TransportPreference,
+        specialNotes: snapshot.specialNotes,
         visibility: TripVisibility.PRIVATE,
         status: TripStatus.EDITING,
-        isAiGenerated: sourceTrip.isAiGenerated,
+        isAiGenerated: snapshot.isAiGenerated,
         isPublicShareEnabled: false,
         publicShareSlug: null,
         publicSharedAt: null,
@@ -65,18 +79,21 @@ export async function clonePublicTripForUser({
         tags: [],
         copiedCount: 0,
         publishedAt: null,
+        publicSnapshotJson: Prisma.JsonNull,
+        publicSnapshotUpdatedAt: null,
+        publicSnapshotContentUpdatedAt: null,
         originalTripId: sourceTrip.id,
-        costBreakdown: sourceTrip.costBreakdown
+        costBreakdown: snapshot.costBreakdown
           ? {
               create: {
-                transportCost: sourceTrip.costBreakdown.transportCost,
-                stayCost: sourceTrip.costBreakdown.stayCost,
-                foodCost: sourceTrip.costBreakdown.foodCost,
-                activityCost: sourceTrip.costBreakdown.activityCost,
-                miscCost: sourceTrip.costBreakdown.miscCost,
-                totalEstimatedCost: sourceTrip.costBreakdown.totalEstimatedCost,
-                userBudget: sourceTrip.costBreakdown.userBudget,
-                budgetStatus: sourceTrip.costBreakdown.budgetStatus,
+                transportCost: snapshot.costBreakdown.transportCost,
+                stayCost: snapshot.costBreakdown.stayCost,
+                foodCost: snapshot.costBreakdown.foodCost,
+                activityCost: snapshot.costBreakdown.activityCost,
+                miscCost: snapshot.costBreakdown.miscCost,
+                totalEstimatedCost: snapshot.costBreakdown.totalEstimatedCost,
+                userBudget: snapshot.costBreakdown.userBudget,
+                budgetStatus: snapshot.costBreakdown.budgetStatus as BudgetStatus,
               },
             }
           : undefined,
@@ -86,14 +103,13 @@ export async function clonePublicTripForUser({
 
     const dayIdMap = new Map<string, string>();
 
-    for (const sourceDay of sourceTrip.days) {
+    for (const sourceDay of snapshot.days) {
       const day = await tx.tripDay.create({
         data: {
           tripId: trip.id,
           dayNumber: sourceDay.dayNumber,
           title: sourceDay.title,
           description: sourceDay.description,
-          date: sourceDay.date,
           estimatedCost: sourceDay.estimatedCost,
           notes: sourceDay.notes,
         },
@@ -108,7 +124,7 @@ export async function clonePublicTripForUser({
     const stays: Prisma.StayOptionCreateManyInput[] = [];
     const meals: Prisma.MealSuggestionCreateManyInput[] = [];
 
-    for (const sourceDay of sourceTrip.days) {
+    for (const sourceDay of snapshot.days) {
       const clonedDayId = dayIdMap.get(sourceDay.id);
 
       if (!clonedDayId) continue;
@@ -124,9 +140,9 @@ export async function clonePublicTripForUser({
           startTime: activity.startTime,
           endTime: activity.endTime,
           durationMinutes: activity.durationMinutes,
-          category: activity.category,
+          category: activity.category as ActivityCategory,
           estimatedCost: activity.estimatedCost,
-          isSelected: activity.isSelected,
+          isSelected: true,
           source: ItemSource.CLONED,
           notes: activity.notes,
           position: activity.position,
@@ -138,14 +154,14 @@ export async function clonePublicTripForUser({
           tripId: trip.id,
           tripDayId: clonedDayId,
           title: transport.title,
-          mode: transport.mode,
+          mode: transport.mode as TransportMode,
           fromText: transport.fromText,
           toText: transport.toText,
           description: transport.description,
-          costType: transport.costType,
+          costType: transport.costType as CostType,
           pricePerPerson: transport.pricePerPerson,
           totalCost: transport.totalCost,
-          isSelected: transport.isSelected,
+          isSelected: true,
           source: ItemSource.CLONED,
           notes: transport.notes,
         });
@@ -158,12 +174,12 @@ export async function clonePublicTripForUser({
           name: stay.name,
           city: stay.city,
           area: stay.area,
-          stayType: stay.stayType,
-          budgetLevel: stay.budgetLevel,
+          stayType: stay.stayType as StayType,
+          budgetLevel: stay.budgetLevel as BudgetLevel,
           pricePerNight: stay.pricePerNight,
           nights: stay.nights,
           totalCost: stay.totalCost,
-          isSelected: stay.isSelected,
+          isSelected: true,
           bestFor: stay.bestFor,
           source: ItemSource.CLONED,
           notes: stay.notes,
@@ -174,11 +190,11 @@ export async function clonePublicTripForUser({
         meals.push({
           tripId: trip.id,
           tripDayId: clonedDayId,
-          mealType: meal.mealType,
+          mealType: meal.mealType as MealType,
           title: meal.title,
           locationName: meal.locationName,
           estimatedCost: meal.estimatedCost,
-          isSelected: meal.isSelected,
+          isSelected: true,
           source: ItemSource.CLONED,
           notes: meal.notes,
         });

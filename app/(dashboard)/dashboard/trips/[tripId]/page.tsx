@@ -15,6 +15,7 @@ import {
   Share2,
 } from "lucide-react";
 
+import ReadMoreText from "@/components/shared/ReadMoreText";
 import EmptyTripRecovery from "@/components/trips/preview/EmptyTripRecovery";
 import TripPreviewDayPanel from "@/components/trips/preview/TripPreviewDayPanel";
 import TripShareDialog from "@/components/trips/share/TripShareDialog";
@@ -411,12 +412,12 @@ export default async function TripPreviewPage({
 
                     <span className="min-w-0">
                       <span className="block">
-                        {trip.isPublic ? "Manage public trip" : "Publish to Explore"}
+                        {trip.isPublic ? "Republish current version" : "Publish to Explore"}
                       </span>
 
                       <span className="block text-xs font-semibold text-secondary-foreground">
                         {trip.isPublic
-                          ? "Update public listing"
+                          ? "Save a new public snapshot"
                           : "Share as public template"}
                       </span>
                     </span>
@@ -501,10 +502,14 @@ export default async function TripPreviewPage({
                   </div>
                 </div>
 
-                <p className="mt-5 max-w-4xl text-sm leading-6 text-secondary-foreground">
-                  {trip.summary ??
-                    "This is your travel plan canvas. Review your route, explore the day-by-day itinerary, estimate the trip cost, and customize the plan as you go."}
-                </p>
+                <ReadMoreText
+                  text={
+                    trip.summary ??
+                    "This is your travel plan canvas. Review your route, explore the day-by-day itinerary, estimate the trip cost, and customize the plan as you go."
+                  }
+                  lines={3}
+                  className="mt-5 max-w-4xl text-sm leading-6 text-secondary-foreground"
+                />
 
                 <div className="mt-4 flex flex-wrap gap-2">
                   <TravelBadge>

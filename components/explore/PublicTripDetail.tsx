@@ -17,6 +17,7 @@ import {
 import CoverImagePreview from "@/components/explore/CoverImagePreview";
 import QuickItineraryOverview from "@/components/explore/QuickItineraryOverview";
 import UseItineraryButton from "@/components/explore/UseItineraryButton";
+import ReadMoreText from "../shared/ReadMoreText";
 
 function formatCurrency(amount: unknown) {
   if (amount === null || amount === undefined || amount === "") return "Not set";
@@ -159,9 +160,12 @@ export default function PublicTripDetail({ trip, isLoggedIn }: PublicTripDetailP
                 <h1 className="mt-2 max-w-4xl text-3xl font-black leading-tight tracking-tight text-foreground sm:text-5xl">
                   {title}
                 </h1>
-                <p className="mt-4 max-w-3xl text-sm leading-6 text-secondary-foreground sm:text-base">
-                  {description}
-                </p>
+
+                <ReadMoreText
+                  text={description}
+                  lines={3}
+                  className="mt-4 max-w-3xl text-sm leading-6 text-secondary-foreground sm:text-base"
+                />
 
                 <div className="mt-5 flex flex-wrap gap-2">
                   <MetaPill icon={<CalendarDays className="h-3.5 w-3.5" />} value={`${duration} days`} />
@@ -250,7 +254,12 @@ export default function PublicTripDetail({ trip, isLoggedIn }: PublicTripDetailP
                   <div className="min-w-0">
                     <p className="text-xs font-black uppercase tracking-[0.16em] text-primary">Day {day.dayNumber}</p>
                     <h2 className="mt-1 text-xl font-black text-foreground">{day.title}</h2>
-                    {day.description ? <p className="mt-1 text-sm leading-6 text-secondary-foreground">{day.description}</p> : null}
+                    {day.description ?
+                      <ReadMoreText
+                        text={day.description}
+                        lines={1}
+                        className="mt-1 text-sm leading-6 text-secondary-foreground"
+                      /> : null}
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className="hidden rounded-full bg-card px-3 py-1.5 text-xs font-black text-primary shadow-sm sm:inline-flex">
