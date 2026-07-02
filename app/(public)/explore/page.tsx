@@ -9,6 +9,7 @@ import {
   PAGE_SIZE,
 } from "@/lib/explore/explore-query";
 
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Explore Public Trip Itineraries",

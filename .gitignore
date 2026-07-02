@@ -48,3 +48,6 @@ next-env.d.ts
 
 .vercel
 .env*
+# Local load testing scripts
+load-tests/
+.env.loadtest

@@ -21,20 +21,56 @@ function getDurationFilter(duration: ExploreQuery["duration"]) {
   return { gte: option.min, lte: option.max };
 }
 
-function getOrderBy(sort: ExploreQuery["sort"]): Prisma.TripOrderByWithRelationInput[] {
+function getOrderBy(
+  sort: ExploreQuery["sort"],
+): Prisma.TripOrderByWithRelationInput[] {
   switch (sort) {
     case "popular":
-      return [{ copiedCount: "desc" }, { publishedAt: "desc" }];
     case "most-used":
       return [{ copiedCount: "desc" }, { publishedAt: "desc" }];
+
     case "shortest":
-      return [{ durationDays: "asc" }, { daysCount: "asc" }, { publishedAt: "desc" }];
+      return [
+        { durationDays: "asc" },
+        { daysCount: "asc" },
+        { publishedAt: "desc" },
+      ];
+
     case "longest":
-      return [{ durationDays: "desc" }, { daysCount: "desc" }, { publishedAt: "desc" }];
+      return [
+        { durationDays: "desc" },
+        { daysCount: "desc" },
+        { publishedAt: "desc" },
+      ];
+
     default:
       return [{ publishedAt: "desc" }, { createdAt: "desc" }];
   }
 }
+
+const publicTripCardSelect = {
+  id: true,
+  title: true,
+  summary: true,
+  publicTitle: true,
+  publicDescription: true,
+  coverImageUrl: true,
+  destination: true,
+  durationDays: true,
+  daysCount: true,
+  peopleCount: true,
+  budgetStyle: true,
+  travelStyle: true,
+  tags: true,
+  copiedCount: true,
+  publishedAt: true,
+  toPlace: {
+    select: {
+      name: true,
+      formattedName: true,
+    },
+  },
+} satisfies Prisma.TripSelect;
 
 export async function getPublicTrips({
   query,
@@ -47,21 +83,25 @@ export async function getPublicTrips({
   const andFilters: Prisma.TripWhereInput[] = [];
 
   if (query.search) {
-    andFilters.push({
-      OR: [
-        { publicTitle: { contains: query.search, mode: "insensitive" } },
-        { title: { contains: query.search, mode: "insensitive" } },
-        { destination: { contains: query.search, mode: "insensitive" } },
-        { publicDescription: { contains: query.search, mode: "insensitive" } },
-        { summary: { contains: query.search, mode: "insensitive" } },
-        { tags: { has: query.search.toLowerCase() } },
-      ],
-    });
+    const search = query.search.trim();
+
+    if (search) {
+      andFilters.push({
+        OR: [
+          { publicTitle: { contains: search, mode: "insensitive" } },
+          { title: { contains: search, mode: "insensitive" } },
+          { destination: { contains: search, mode: "insensitive" } },
+          { publicDescription: { contains: search, mode: "insensitive" } },
+          { summary: { contains: search, mode: "insensitive" } },
+          { tags: { has: search.toLowerCase() } },
+        ],
+      });
+    }
   }
 
   if (query.destination) {
     andFilters.push({
-      destination: { contains: query.destination, mode: "insensitive" },
+      destination: { contains: query.destination.trim(), mode: "insensitive" },
     });
   }
 
@@ -90,34 +130,22 @@ export async function getPublicTrips({
     ...(andFilters.length > 0 ? { AND: andFilters } : {}),
   };
 
-  const totalCount = await prisma.trip.count({ where });
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const currentPage = Math.min(query.page, totalPages);
+  const safePage = Math.max(1, query.page);
+  const safePageSize = Math.min(Math.max(1, pageSize), 24);
 
-  const trips = await prisma.trip.findMany({
-    where,
-    orderBy: getOrderBy(query.sort),
-    skip: (currentPage - 1) * pageSize,
-    take: pageSize,
-    select: {
-      id: true,
-      title: true,
-      summary: true,
-      publicTitle: true,
-      publicDescription: true,
-      coverImageUrl: true,
-      destination: true,
-      durationDays: true,
-      daysCount: true,
-      peopleCount: true,
-      budgetStyle: true,
-      travelStyle: true,
-      tags: true,
-      copiedCount: true,
-      publishedAt: true,
-      toPlace: { select: { name: true, formattedName: true } },
-    },
-  });
+  const [totalCount, trips] = await prisma.$transaction([
+    prisma.trip.count({ where }),
+    prisma.trip.findMany({
+      where,
+      orderBy: getOrderBy(query.sort),
+      skip: (safePage - 1) * safePageSize,
+      take: safePageSize,
+      select: publicTripCardSelect,
+    }),
+  ]);
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / safePageSize));
+  const currentPage = Math.min(safePage, totalPages);
 
   return {
     trips: trips.map((trip) => ({

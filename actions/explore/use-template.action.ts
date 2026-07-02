@@ -24,17 +24,19 @@ export async function publicTripAsTemplateAction(input: {
     };
   }
 
+  const publicTripId = parsed.data.publicTripId;
+
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    redirect(
-      `/login?callbackUrl=${encodeURIComponent(`/explore/${parsed.data.publicTripId}`)}`
-    );
+    redirect(`/login?callbackUrl=${encodeURIComponent(`/explore/${publicTripId}`)}`);
   }
+
+  let clonedTripId: string;
 
   try {
     const clonedTrip = await clonePublicTripForUser({
-      publicTripId: parsed.data.publicTripId,
+      publicTripId,
       userId: session.user.id,
     });
 
@@ -45,11 +47,11 @@ export async function publicTripAsTemplateAction(input: {
       };
     }
 
-    revalidatePath("/explore");
-    revalidatePath(`/explore/${parsed.data.publicTripId}`);
-    revalidatePath("/dashboard/trips");
+    clonedTripId = clonedTrip.id;
 
-    redirect(`/dashboard/trips/${clonedTrip.id}/edit`);
+    revalidatePath("/explore");
+    revalidatePath(`/explore/${publicTripId}`);
+    revalidatePath("/dashboard/trips");
   } catch (error) {
     console.error("USE_PUBLIC_TRIP_AS_TEMPLATE_ERROR", error);
 
@@ -58,4 +60,6 @@ export async function publicTripAsTemplateAction(input: {
       error: "Something went wrong while copying this itinerary.",
     };
   }
+
+  redirect(`/dashboard/trips/${clonedTripId}/edit`);
 }

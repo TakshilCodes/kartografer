@@ -1,9 +1,10 @@
 ﻿import type { Metadata } from "next";
 
 import LandingPage from "@/components/landing/LandingPage";
-// import JsonLd from "@/components/seo/JsonLd";
-import { absoluteUrl, siteConfig } from "@/lib/site";
 import JsonLd from "@/components/seo/JsonLd";
+import { absoluteUrl, siteConfig } from "@/lib/site";
+
+export const dynamic = "force-static";
 
 export const metadata: Metadata = {
   title: "Kartografer - AI Travel Planner for Detailed Trip Itineraries",
@@ -51,6 +52,7 @@ export default function Home() {
           },
         ]}
       />
+
       <LandingPage />
     </>
   );

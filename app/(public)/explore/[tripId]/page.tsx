@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { getServerSession } from "next-auth";
 
 import PublicTripDetail from "@/components/explore/PublicTripDetail";
 import JsonLd from "@/components/seo/JsonLd";
 import prisma from "@/lib/prisma";
-import { authOptions } from "@/lib/auth";
 import { absoluteUrl, siteConfig } from "@/lib/site";
 import { readPublicTripSnapshot } from "@/lib/explore/public-trip-snapshot";
+
+export const revalidate = 300;
 
 type ExploreTripDetailPageProps = {
   params: Promise<{ tripId: string }>;
@@ -115,7 +115,6 @@ export default async function ExploreTripDetailPage({
   params,
 }: ExploreTripDetailPageProps) {
   const { tripId } = await params;
-  const session = await getServerSession(authOptions);
 
   const trip = await prisma.trip.findFirst({
     where: {
@@ -179,7 +178,6 @@ export default async function ExploreTripDetailPage({
       />
       <PublicTripDetail
         trip={publicTrip}
-        isLoggedIn={Boolean(session?.user?.id)}
       />
     </>
   );

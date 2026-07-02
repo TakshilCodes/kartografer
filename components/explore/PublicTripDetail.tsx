@@ -55,7 +55,6 @@ function formatDate(value: Date | null) {
 }
 
 type PublicTripDetailProps = {
-  isLoggedIn: boolean;
   trip: {
     id: string;
     title: string;
@@ -131,7 +130,7 @@ type PublicTripDetailProps = {
   };
 };
 
-export default function PublicTripDetail({ trip, isLoggedIn }: PublicTripDetailProps) {
+export default function PublicTripDetail({ trip }: PublicTripDetailProps) {
   const title = trip.publicTitle || trip.title;
   const description = trip.publicDescription || trip.summary || "A public itinerary shared by the Kartografer community.";
   const destination = trip.destination || trip.toPlace?.name || "Open destination";
@@ -191,16 +190,8 @@ export default function PublicTripDetail({ trip, isLoggedIn }: PublicTripDetailP
               <div className="space-y-4 lg:sticky lg:top-4 lg:h-fit">
                 <CoverImagePreview imageUrl={trip.coverImageUrl} title={title} destination={destination} />
                 <section className="rounded-[28px] border border-border bg-card p-4 shadow-sm">
-                  {isLoggedIn ? (
-                    <UseItineraryButton publicTripId={trip.id} />
-                  ) : (
-                    <Link
-                      href={`/login?callbackUrl=${encodeURIComponent(`/explore/${trip.id}`)}`}
-                      className="inline-flex min-h-11 w-full cursor-pointer items-center justify-center rounded-full bg-primary px-5 text-sm font-black text-primary-foreground shadow-lg shadow-primary/15 transition hover:bg-primary-hover"
-                    >
-                      Sign in to use this itinerary
-                    </Link>
-                  )}
+                  <UseItineraryButton publicTripId={trip.id} />
+
                   <p className="mt-3 text-xs leading-5 text-secondary-foreground">
                     This creates a private copy in your workspace. The original trip stays unchanged.
                   </p>
