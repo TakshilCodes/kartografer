@@ -663,3 +663,93 @@ td {
     page-break-inside: avoid;
   }
 }
+/* kartografer-landing-tokens: Lovable-inspired public landing utilities, mapped to Kartografer theme */
+@theme inline {
+  --color-parchment: var(--background);
+  --color-parchment-deep: var(--card-secondary);
+  --color-ink: var(--foreground);
+  --color-ink-soft: var(--secondary-foreground);
+  --color-forest: var(--primary);
+  --color-forest-soft: var(--primary-hover);
+  --color-mapblue: var(--secondary-foreground);
+  --color-mapblue-soft: var(--secondary);
+  --color-sand: var(--secondary);
+  --color-sand-deep: var(--selected);
+  --color-gold: var(--ring);
+  --color-rust: var(--primary-hover);
+  --font-serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.kg-landing {
+  --shadow-paper: 0 1px 0 rgba(60, 40, 20, 0.04), 0 8px 24px -12px rgba(60, 40, 20, 0.18);
+  --shadow-card: 0 1px 0 rgba(60, 40, 20, 0.05), 0 12px 32px -18px rgba(60, 40, 20, 0.22);
+  --shadow-float: 0 24px 60px -28px rgba(60, 40, 20, 0.35);
+  --paper-noise:
+    radial-gradient(circle at 20% 30%, rgba(180, 140, 80, 0.05) 0, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(120, 90, 50, 0.04) 0, transparent 40%);
+  --grid-lines:
+    linear-gradient(rgba(60, 40, 20, 0.045) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(60, 40, 20, 0.045) 1px, transparent 1px) 0 0 / 40px 40px;
+  background-color: var(--background);
+  background-image: var(--paper-noise);
+}
+
+.kg-landing .paper,
+.kg-landing .paper-float {
+  background-color: var(--card);
+  background-image: var(--paper-noise);
+  border: 1px solid var(--border);
+}
+
+.kg-landing .paper {
+  border-radius: 1rem;
+  box-shadow: var(--shadow-paper);
+}
+
+.kg-landing .paper-float {
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-float);
+}
+
+.kg-landing .map-grid {
+  background-image: var(--grid-lines);
+}
+
+.kg-landing .ink-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--foreground) 20%, var(--foreground) 80%, transparent);
+}
+
+.kg-landing .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--secondary) 55%, transparent);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.kg-landing .chip-forest {
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  border-color: color-mix(in oklab, var(--primary) 30%, transparent);
+  color: var(--primary);
+}
+
+.kg-landing .chip-blue {
+  background: color-mix(in oklab, var(--secondary-foreground) 10%, transparent);
+  border-color: color-mix(in oklab, var(--secondary-foreground) 22%, transparent);
+  color: var(--secondary-foreground);
+}
+
+.kg-landing .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--secondary-foreground);
+}

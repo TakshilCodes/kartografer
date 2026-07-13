@@ -358,7 +358,7 @@ export default function NewTripClient() {
                                 Plan your next journey
                             </h1>
 
-                            <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-muted-foreground">
+                            <p className="mt-2 max-w-2xl text-xs font-semibold leading-6 text-muted-foreground">
                                 Add the basic details first. Kartografer will help you generate,
                                 edit, budget, and improve your trip plan.
                             </p>
@@ -517,7 +517,7 @@ export default function NewTripClient() {
                                 </div>
                             ) : null}
 
-                            <div className="rounded-2xl border border-border bg-dashboard/60 p-3 sm:p-4 lg:flex lg:items-center lg:justify-between lg:gap-6">
+                            <div className="rounded-2xl bg-dashboard/60 p-3 sm:p-4 lg:flex lg:items-center lg:justify-between lg:gap-6">
                                 <div className="min-w-0">
                                     <h3 className="text-sm font-black text-foreground">
                                         Choose how you want to begin

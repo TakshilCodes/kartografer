@@ -69,6 +69,7 @@ const sortFilterOptions: Option[] = sortOptions.map((option) => ({
 
 export default function ExploreFilters({ query }: { query: ExploreQuery }) {
   const hasFilters = hasActiveExploreFilters(query);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [duration, setDuration] = useState<string>(query.duration);
   const [budget, setBudget] = useState<string>(query.budget);
@@ -88,6 +89,7 @@ export default function ExploreFilters({ query }: { query: ExploreQuery }) {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setOpenDropdown(null);
+        setFiltersOpen(false);
       }
     }
 
@@ -100,13 +102,73 @@ export default function ExploreFilters({ query }: { query: ExploreQuery }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!filtersOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [filtersOpen]);
+
   return (
-    <form
-      ref={filtersRef}
-      action="/explore"
-      onSubmit={triggerExploreGridLoading}
-      className="relative z-40 overflow-visible rounded-[30px] border border-border bg-card/92 p-3 shadow-[0_18px_55px_rgba(81,49,23,0.08)] backdrop-blur sm:p-4"
-    >
+    <>
+      <div className="flex items-center justify-between gap-3 lg:hidden">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen(true)}
+          className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 text-sm font-black text-foreground shadow-sm transition hover:bg-card-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          aria-haspopup="dialog"
+          aria-expanded={filtersOpen}
+        >
+          <SlidersHorizontal className="h-4 w-4 text-primary" />
+          Filters
+          {hasFilters ? (
+            <span
+              className="h-2 w-2 rounded-full bg-primary"
+              aria-label="Filters active"
+            />
+          ) : null}
+        </button>
+
+        {hasFilters ? (
+          <Link
+            href="/explore"
+            onClick={triggerExploreGridLoading}
+            className="text-xs font-black text-primary underline-offset-4 hover:underline"
+          >
+            Clear filters
+          </Link>
+        ) : null}
+      </div>
+
+      {filtersOpen ? (
+        <button
+          type="button"
+          className="fixed inset-0 z-90 cursor-default bg-foreground/45 backdrop-blur-[2px] lg:hidden"
+          onClick={() => {
+            setOpenDropdown(null);
+            setFiltersOpen(false);
+          }}
+          aria-label="Close filters"
+        />
+      ) : null}
+
+      <form
+        ref={filtersRef}
+        action="/explore"
+        onSubmit={triggerExploreGridLoading}
+        role={filtersOpen ? "dialog" : undefined}
+        aria-modal={filtersOpen ? true : undefined}
+        aria-label={filtersOpen ? "Filter public trips" : undefined}
+        className={`${
+          filtersOpen
+            ? "fixed inset-x-3 top-1/2 z-100 block max-h-[calc(100dvh-2rem)] -translate-y-1/2 overflow-y-auto"
+            : "hidden"
+        } rounded-[26px] border border-border bg-card p-4 shadow-[0_28px_90px_rgba(36,20,8,0.32)] lg:relative lg:inset-auto lg:z-40 lg:block lg:max-h-none lg:translate-y-0 lg:overflow-visible lg:rounded-[30px] lg:bg-card/92 lg:shadow-[0_18px_55px_rgba(81,49,23,0.08)] lg:backdrop-blur`}
+      >
       <div className="mb-3 flex min-h-9 items-center justify-between gap-3 px-1">
         <div className="flex items-center gap-2">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-card-secondary text-primary">
@@ -117,16 +179,30 @@ export default function ExploreFilters({ query }: { query: ExploreQuery }) {
           </p>
         </div>
 
-        {hasFilters ? (
-          <Link
-            href="/explore"
-            onClick={triggerExploreGridLoading}
-            className="hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-black text-foreground transition hover:bg-card-secondary sm:inline-flex"
+        <div className="flex items-center gap-2">
+          {hasFilters ? (
+            <Link
+              href="/explore"
+              onClick={triggerExploreGridLoading}
+              className="hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-black text-foreground transition hover:bg-card-secondary sm:inline-flex"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear
+            </Link>
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => {
+              setOpenDropdown(null);
+              setFiltersOpen(false);
+            }}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:bg-card-secondary lg:hidden"
+            aria-label="Close filters"
           >
-            <X className="h-3.5 w-3.5" />
-            Clear
-          </Link>
-        ) : null}
+            <X className="h-4 w-4" />
+          </button>
+        </div>
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.9fr)_150px_150px_150px_165px_auto] lg:items-end">
@@ -216,7 +292,8 @@ export default function ExploreFilters({ query }: { query: ExploreQuery }) {
           ) : null}
         </div>
       </div>
-    </form>
+      </form>
+    </>
   );
 }
 

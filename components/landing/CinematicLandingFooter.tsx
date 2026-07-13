@@ -105,7 +105,7 @@ export default function LandingFooter() {
                         </div>
                     </div>
 
-                    <div className="h-18 w-full overflow-hidden sm:h-40 lg:h-52">
+                    <div className="h-20 w-full overflow-hidden sm:h-30 lg:h-45">
                         <h2 className="select-none translate-y-4 text-center text-[4rem] font-black leading-none tracking-[-0.09em] text-[#5b351a]/40 sm:translate-y-6 sm:text-[8rem] lg:translate-y-8 lg:text-[12rem]">
                             Kartografer
                         </h2>

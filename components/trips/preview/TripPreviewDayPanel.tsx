@@ -251,8 +251,8 @@ export default function TripPreviewDayPanel({
                       const ActivityIcon =
                         item.itemKind === "activity"
                           ? getActivityIcon(
-                              item.activityCategory?.toUpperCase() ?? ""
-                            )
+                            item.activityCategory?.toUpperCase() ?? ""
+                          )
                           : item.itemKind === "meal"
                             ? Utensils
                             : Route;
@@ -267,7 +267,7 @@ export default function TripPreviewDayPanel({
                       return (
                         <div
                           key={item.id}
-                          className="relative grid gap-3 sm:grid-cols-[32px_minmax(0,1fr)]"
+                          className="grid min-w-0 md:grid-cols-[112px_minmax(0,1fr)]"
                         >
                           <div className="relative hidden justify-center sm:flex">
                             <div className="relative z-10 mt-2 flex h-6 w-6 items-center justify-center rounded-full border border-border bg-card text-[10px] font-black text-primary shadow-sm">
@@ -281,7 +281,7 @@ export default function TripPreviewDayPanel({
 
                           <article className="group relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-md">
                             <div className="grid min-w-0 md:grid-cols-[92px_minmax(0,1fr)]">
-                              <div className="flex items-center justify-between gap-3 border-b border-border/70 bg-card-secondary/35 px-4 py-3 md:block md:border-b-0 md:border-r md:px-3">
+                              <div className="flex min-w-0 items-center justify-between gap-3 border-b border-border/70 bg-card-secondary/35 px-4 py-3 md:block md:border-b-0 md:border-r md:px-2">
                                 <div className="flex items-center gap-3 md:block">
                                   <div className="flex h-7 w-7 items-center justify-center rounded-full border border-border bg-card text-[11px] font-black text-primary shadow-sm sm:hidden">
                                     {index + 1}
@@ -298,9 +298,16 @@ export default function TripPreviewDayPanel({
                                   </div>
                                 </div>
 
-                                <div className="flex w-fit items-center gap-1.5 rounded-full bg-card px-2.5 py-1 text-[10px] font-black text-secondary-foreground shadow-sm md:mt-3">
-                                  <ActivityIcon className="h-3 w-3 text-primary" />
-                                  {item.type}
+                                <div
+                                  className=" inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-background/90 px-2.5 py-1 text-[9px] font-semibold uppercase
+                                  leading-tight tracking-[0.02em] text-secondary-foreground shadow-sm
+                                  md:mt-3 md:flex md:w-full md:flex-col md:justify-center md:gap-1 md:rounded-xl md:px-1.5 md:py-2 md:text-cente "
+                                >
+                                  <ActivityIcon className="h-3 w-3 shrink-0 text-primary" />
+
+                                  <span className="min-w-0 max-w-full wrap-break-word text-center leading-[1.15]">
+                                    {item.type}
+                                  </span>
                                 </div>
                               </div>
 
