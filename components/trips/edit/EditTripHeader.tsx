@@ -38,6 +38,14 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
+
+  function openEditModal() {
+    setTitle(trip.title);
+    setSummary(trip.summary ?? "");
+    setMessage("");
+    setIsEditing(true);
+  }
+
   function handleSave() {
     setMessage("");
 
@@ -75,7 +83,7 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
 
               <button
                 type="button"
-                onClick={() => setIsEditing(true)}
+                onClick={openEditModal}
                 className="group flex max-w-full cursor-pointer items-start gap-2 text-left"
               >
                 <h1 className="truncate text-xl font-black text-foreground sm:text-2xl">
@@ -101,7 +109,7 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
 
             <button
               type="button"
-              onClick={() => setIsEditing(true)}
+              onClick={openEditModal}
               className="inline-flex items-center justify-center cursor-pointer gap-2 rounded-full bg-primary px-5 py-2.5 text-sm font-black text-primary-foreground transition hover:bg-primary-hover"
             >
               <Edit3 className="h-4 w-4" />

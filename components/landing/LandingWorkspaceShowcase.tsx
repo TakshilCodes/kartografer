@@ -7,7 +7,7 @@ import type { ReactNode } from "react";
 import LandingSectionHeading from "@/components/landing/LandingSectionHeading";
 import styles from "@/components/landing/Landing.module.css";
 
-import AIChat from "@/public/landing/workspace/ai_chat_landing.png"
+
 
 const revealViewport = { once: true, amount: 0.15 } as const;
 const smoothEase = [0.22, 1, 0.36, 1] as const;
@@ -145,7 +145,7 @@ function AiChatPanel({ reducedMotion }: { reducedMotion: boolean }) {
           whileInView={{ opacity: 1, x: 0, y: 0 }}
           viewport={revealViewport}
           transition={{ duration: 0.78, delay: 0.12, ease: smoothEase }}
-          className="mt-4 min-h-68 flex-1 overflow-hidden lg:absolute lg:inset-0 lg:mt-0 lg:min-h-0"
+          className="relative mt-4 min-h-68 flex-1 overflow-hidden lg:absolute lg:inset-0 lg:mt-0 lg:min-h-0"
         >
           <AiChatMedia />
         </motion.div>
@@ -295,14 +295,14 @@ function OptionMedia() {
 
 function AiChatMedia() {
   return (
-    <div className="relative h-full min-h-68 overflow-hidden bg-primary/5.5">
-      <div className="absolute inset-x-0 bottom-0 h-[58%] overflow-hidden">
+    <div className="absolute inset-0 overflow-hidden bg-primary/5.5">
+      <div className="absolute inset-x-0 bottom-0 h-full overflow-hidden lg:h-[58%]">
         <Image
           src="/landing/workspace/ai_chat_landing.png"
           alt="Kartografer AI chat preview"
           fill
           sizes="(min-width: 1024px) 50vw, 100vw"
-          className="object-cover object-top"
+          className="object-cover object-bottom-right lg:object-top"
         />
       </div>
     </div>

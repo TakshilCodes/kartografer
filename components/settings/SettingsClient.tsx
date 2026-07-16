@@ -318,7 +318,7 @@ export default function SettingsClient({
     });
   }
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20 sm:pb-0">
       <SettingsSection
         icon={UserRound}
         eyebrow="Account"
@@ -639,18 +639,20 @@ export default function SettingsClient({
           </div>
         ) : null}
       </section>
-      <div className="sticky bottom-3 z-20 flex flex-col gap-3 rounded-lg border border-border bg-card/95 p-4 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="fixed inset-x-0 bottom-0 z-30 flex border-t border-border bg-card/95 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(55,31,13,0.1)] backdrop-blur sm:sticky sm:bottom-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:rounded-lg sm:border sm:p-4 sm:shadow-lg">
+        <div className="hidden sm:block">
           <p className="text-sm font-black text-foreground">Save preference changes</p>
           <p className="text-xs text-muted-foreground">Security changes are saved separately after OTP verification.</p>
         </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <NoticeMessage notice={settingsNotice} />
+        <div className="flex w-full items-center sm:w-auto sm:gap-3">
+          <div className="fixed inset-x-3 bottom-18 z-30 sm:static">
+            <NoticeMessage notice={settingsNotice} />
+          </div>
           <button
             type="button"
             onClick={savePreferences}
             disabled={isSaving}
-            className="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-6 text-sm font-black text-primary-foreground hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-black text-primary-foreground hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:rounded-full"
           >
             {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {isSaving ? "Saving..." : "Save preferences"}

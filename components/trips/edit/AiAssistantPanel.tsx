@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   type FormEvent,
@@ -343,8 +343,21 @@ export function AiChatContent({
 
     if (!trimmedMessage || isPending) return;
 
+    const optimisticMessageId = `pending-user-${Date.now()}`;
+    const optimisticUserMessage: ChatMessageDto = {
+      id: optimisticMessageId,
+      role: "user",
+      content: trimmedMessage,
+      createdAt: new Date().toISOString(),
+      proposal: null,
+    };
+
     setError(null);
     setInput("");
+    setMessages((currentMessages) => [
+      ...currentMessages,
+      optimisticUserMessage,
+    ]);
 
     startTransition(async () => {
       const result = await sendTripChatMessageAction({
@@ -353,14 +366,20 @@ export function AiChatContent({
       });
 
       if (!result.ok) {
+        setMessages((currentMessages) =>
+          currentMessages.filter(
+            (message) => message.id !== optimisticMessageId,
+          ),
+        );
         setError(getActionErrorMessage(result.error));
         setInput(trimmedMessage);
         return;
       }
 
       setMessages((currentMessages) => [
-        ...currentMessages,
-        result.userMessage,
+        ...currentMessages.map((message) =>
+          message.id === optimisticMessageId ? result.userMessage : message,
+        ),
         result.assistantMessage,
       ]);
     });

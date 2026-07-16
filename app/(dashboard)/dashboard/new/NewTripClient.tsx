@@ -509,16 +509,16 @@ export default function NewTripClient() {
                         </div>
                     </div>
 
-                    <div className="fixed inset-x-3 bottom-3 z-30 rounded-3xl border border-border bg-card/95 p-3 shadow-xl backdrop-blur sm:sticky sm:bottom-4 sm:rounded-4xl sm:shadow-sm">
+                    <div className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-card/95 px-3 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))] shadow-[0_-10px_30px_rgba(55,31,13,0.1)] backdrop-blur sm:sticky sm:bottom-4 sm:rounded-4xl sm:border sm:p-3 sm:shadow-sm">
                         <div className="flex flex-col gap-3">
                             {error ? (
-                                <div className="rounded-2xl border border-danger/20 bg-danger/10 px-4 py-3 text-sm font-bold leading-6 text-danger">
+                                <div className="fixed inset-x-3 bottom-18 rounded-2xl border border-danger/20 bg-card px-4 py-3 text-sm font-bold leading-6 text-danger shadow-lg sm:static sm:bg-danger/10 sm:shadow-none">
                                     {error}
                                 </div>
                             ) : null}
 
-                            <div className="rounded-2xl bg-dashboard/60 p-3 sm:p-4 lg:flex lg:items-center lg:justify-between lg:gap-6">
-                                <div className="min-w-0">
+                            <div className="sm:rounded-2xl sm:bg-dashboard/60 sm:p-4 lg:flex lg:items-center lg:justify-between lg:gap-6">
+                                <div className="hidden min-w-0 sm:block">
                                     <h3 className="text-sm font-black text-foreground">
                                         Choose how you want to begin
                                     </h3>
@@ -529,13 +529,13 @@ export default function NewTripClient() {
                                     </p>
                                 </div>
 
-                                <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:mt-0 lg:flex lg:shrink-0 lg:items-center">
+                                <div className="grid grid-cols-2 gap-2 sm:mt-3 lg:mt-0 lg:flex lg:shrink-0 lg:items-center">
                                     <button
                                         type="submit"
                                         name="creationMode"
                                         value="manual"
                                         disabled={isLoading}
-                                        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-black text-foreground transition hover:bg-card-hover disabled:pointer-events-none disabled:opacity-70 lg:min-w-45"
+                                        className="inline-flex h-11 min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-2 text-xs font-black text-foreground transition hover:bg-card-hover disabled:pointer-events-none disabled:opacity-70 sm:gap-2 sm:rounded-2xl sm:px-4 sm:text-sm lg:min-w-45"
                                     >
                                         {isLoading && submittingMode === "manual" ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -553,7 +553,7 @@ export default function NewTripClient() {
                                         name="creationMode"
                                         value="ai"
                                         disabled={isLoading}
-                                        className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-primary px-4 py-3 text-sm font-black text-primary-foreground shadow-sm transition hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-70 lg:min-w-48"
+                                        className="inline-flex h-11 min-w-0 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-primary px-2 text-xs font-black text-primary-foreground shadow-sm transition hover:bg-primary-hover disabled:pointer-events-none disabled:opacity-70 sm:gap-2 sm:rounded-2xl sm:px-4 sm:text-sm lg:min-w-48"
                                     >
                                         {isLoading && submittingMode === "ai" ? (
                                             <Loader2 className="h-4 w-4 animate-spin" />
