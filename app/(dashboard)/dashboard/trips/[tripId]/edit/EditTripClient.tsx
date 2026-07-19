@@ -18,6 +18,11 @@ import MobilePanelDrawer from "@/components/trips/edit/MobilePanelDrawer";
 const AI_PANEL_DEFAULT_WIDTH = 400;
 const AI_PANEL_MIN_WIDTH = 340;
 const AI_PANEL_MAX_WIDTH = 680;
+const AI_PANEL_WIDTH_STORAGE_KEY = "kartografer-ai-assistant-width";
+
+function clampAiPanelWidth(width: number) {
+  return Math.min(Math.max(width, AI_PANEL_MIN_WIDTH), AI_PANEL_MAX_WIDTH);
+}
 
 type TripDay = {
   id: string;
@@ -141,6 +146,19 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
   const [isAiAssistantResizing, setIsAiAssistantResizing] = useState(false);
 
   useEffect(() => {
+    const savedWidth = window.localStorage.getItem(AI_PANEL_WIDTH_STORAGE_KEY);
+    const parsedWidth = savedWidth ? Number(savedWidth) : Number.NaN;
+
+    if (Number.isNaN(parsedWidth)) return;
+
+    const frameId = window.requestAnimationFrame(() => {
+      setAiAssistantWidth(clampAiPanelWidth(parsedWidth));
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
+  }, []);
+
+  useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 1536px)");
 
     function syncOptionsPanel() {
@@ -174,10 +192,14 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
     return trip.days.find((day) => day.id === selectedDayId) ?? trip.days[0];
   }, [selectedDayId, trip.days]);
 
-  const clampedAiAssistantWidth = Math.min(
-    Math.max(aiAssistantWidth, AI_PANEL_MIN_WIDTH),
-    AI_PANEL_MAX_WIDTH,
-  );
+  const clampedAiAssistantWidth = clampAiPanelWidth(aiAssistantWidth);
+
+  function handleAiAssistantWidthChange(width: number) {
+    const nextWidth = clampAiPanelWidth(width);
+
+    setAiAssistantWidth(nextWidth);
+    window.localStorage.setItem(AI_PANEL_WIDTH_STORAGE_KEY, String(nextWidth));
+  }
 
   const editorGridStyle = {
     "--options-panel-width": isOptionsCollapsed ? "52px" : "300px",
@@ -241,7 +263,7 @@ export default function EditTripClient({ trip }: EditTripClientProps) {
             panelWidth={clampedAiAssistantWidth}
             minPanelWidth={AI_PANEL_MIN_WIDTH}
             maxPanelWidth={AI_PANEL_MAX_WIDTH}
-            onPanelWidthChange={setAiAssistantWidth}
+            onPanelWidthChange={handleAiAssistantWidthChange}
             onPanelResizeStateChange={setIsAiAssistantResizing}
             onToggleCollapsed={() =>
               setIsAiAssistantCollapsed((currentValue) => !currentValue)

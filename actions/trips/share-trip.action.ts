@@ -11,7 +11,6 @@ import { createUniquePublicShareSlug } from "@/lib/trips/public-share-slug";
 
 const tripIdSchema = z.string().trim().min(1, "Trip id is required.");
 
-
 function revalidateSharePages(tripId: string, slug?: string | null) {
   revalidatePath(`/dashboard/trips/${tripId}`);
 

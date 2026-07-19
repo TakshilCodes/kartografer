@@ -19,7 +19,9 @@ export function getGeminiApiKeys() {
     .filter(Boolean);
 
   if (keys.length === 0) {
-    throw new Error("GEMINI_API_KEYS is missing. Add one or more comma-separated Gemini API keys.");
+    throw new Error(
+      "GEMINI_API_KEYS is missing. Add one or more comma-separated Gemini API keys.",
+    );
   }
 
   return keys;
@@ -81,7 +83,7 @@ async function generateWithModel({
 }
 
 export async function generateTextWithGemini(
-  input: GenerateTextWithGeminiInput
+  input: GenerateTextWithGeminiInput,
 ): Promise<GenerateTextWithGeminiResult> {
   const apiKeys = getGeminiApiKeys();
   const models = getGeminiModels();
@@ -117,7 +119,7 @@ export async function generateTextWithGemini(
             const delay = attempt * 1500;
 
             console.warn(
-              `Gemini request failed with retryable error. Retrying ${attempt + 1}/3 in ${delay}ms...`
+              `Gemini request failed with retryable error. Retrying ${attempt + 1}/3 in ${delay}ms...`,
             );
 
             await sleep(delay);

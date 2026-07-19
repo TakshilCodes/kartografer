@@ -1,7 +1,4 @@
-export type AiGenerationErrorKind =
-  | "AI_RATE_LIMIT"
-  | "AI_BUSY"
-  | "AI_FAILED";
+export type AiGenerationErrorKind = "AI_RATE_LIMIT" | "AI_BUSY" | "AI_FAILED";
 
 type AiErrorDetails = {
   error: string;

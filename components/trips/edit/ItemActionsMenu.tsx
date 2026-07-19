@@ -37,7 +37,6 @@ export default function ItemActionsMenu({
 }: ItemActionsMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [pendingAction, setPendingAction] = useState<string | null>(null);
-  const [mounted, setMounted] = useState(false);
   const [menuPosition, setMenuPosition] = useState({
     top: 0,
     left: 0,
@@ -47,9 +46,6 @@ export default function ItemActionsMenu({
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -127,8 +123,14 @@ export default function ItemActionsMenu({
     }
   }
 
+  const portalTarget =
+    typeof document !== "undefined"
+      ? document.querySelector<HTMLElement>("[data-dashboard-shell]") ??
+        document.body
+      : null;
+
   const menu =
-    mounted && isOpen
+    isOpen && portalTarget
       ? createPortal(
           <div
             ref={menuRef}
@@ -138,7 +140,7 @@ export default function ItemActionsMenu({
               top: menuPosition.top,
               left: menuPosition.left,
             }}
-            className=" z-999999 w-52 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-border bg-card p-1.5 shadow-xl "
+            className="z-999999 w-52 max-w-[calc(100vw-1.5rem)] overflow-hidden rounded-2xl border border-border bg-card p-1.5 shadow-xl"
           >
             {actions.map((action) => {
               const isPending = pendingAction === action.label;
@@ -173,7 +175,7 @@ export default function ItemActionsMenu({
               );
             })}
           </div>,
-          document.body,
+          portalTarget,
         )
       : null;
 

@@ -44,7 +44,7 @@ export function extractJsonFromAiText(text: string) {
 }
 
 export async function generateTripWithAi(
-  input: GenerateTripInput
+  input: GenerateTripInput,
 ): Promise<GeneratedTrip> {
   const prompt = buildGenerateTripPrompt(input);
 
@@ -57,7 +57,10 @@ export async function generateTripWithAi(
   const parsedTrip = generatedTripSchema.safeParse(json);
 
   if (!parsedTrip.success) {
-    console.error("AI trip schema validation failed:", parsedTrip.error.flatten());
+    console.error(
+      "AI trip schema validation failed:",
+      parsedTrip.error.flatten(),
+    );
 
     throw new Error("AI generated trip did not match the required schema.");
   }

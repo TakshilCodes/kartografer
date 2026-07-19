@@ -73,9 +73,10 @@ function toMessageDto(message: {
   changeSummary?: string | null;
   status?: "NONE" | "PENDING" | "APPLIED" | "DISCARDED";
 }): ChatMessageDto {
-  const parsedProposal = tripAiChangeResponseSchema.shape.proposedChanges.safeParse(
-    message.proposedChangesJson
-  );
+  const parsedProposal =
+    tripAiChangeResponseSchema.shape.proposedChanges.safeParse(
+      message.proposedChangesJson,
+    );
   const changes = parsedProposal.success ? parsedProposal.data : [];
   const status = message.status ?? "NONE";
 
@@ -116,7 +117,7 @@ function getNumberText(value: unknown) {
 function addItem(
   map: SelectedItemByDay,
   tripDayId: string | null,
-  item: TripChatPromptItem
+  item: TripChatPromptItem,
 ) {
   if (!tripDayId) return;
 
@@ -138,7 +139,10 @@ function parseAiChatResponse(text: string) {
       return parsed.data;
     }
 
-    console.error("TRIP_CHAT_PROPOSAL_VALIDATION_ERROR", parsed.error.flatten());
+    console.error(
+      "TRIP_CHAT_PROPOSAL_VALIDATION_ERROR",
+      parsed.error.flatten(),
+    );
 
     if (
       typeof json === "object" &&
@@ -172,7 +176,7 @@ function isLikelyChangeRequest(message: string) {
   if (isAdviceQuestion) return false;
 
   return /\b(add|apply|change|cheaper|delete|include|improve|make|move|reduce|remove|replace|switch|update)\b/i.test(
-    message
+    message,
   );
 }
 
@@ -204,7 +208,7 @@ Do not return plain text outside JSON.
 }
 
 export async function sendTripChatMessageAction(
-  input: SendTripChatMessageInput
+  input: SendTripChatMessageInput,
 ): Promise<SendTripChatMessageResult> {
   try {
     const session = await getServerSession(authOptions);
@@ -406,79 +410,63 @@ export async function sendTripChatMessageAction(
     const activitiesByDay: SelectedItemByDay = {};
 
     for (const transport of trip.transportOptions) {
-      addItem(
-        transportsByDay,
-        transport.tripDayId,
-        {
-          id: transport.id,
-          title: [
-            transport.title,
-            transport.mode,
-            transport.fromText && transport.toText
-              ? `${transport.fromText} to ${transport.toText}`
-              : null,
-            formatCost("cost", transport.totalCost),
-          ]
-            .filter(Boolean)
-            .join(" | "),
-        }
-      );
+      addItem(transportsByDay, transport.tripDayId, {
+        id: transport.id,
+        title: [
+          transport.title,
+          transport.mode,
+          transport.fromText && transport.toText
+            ? `${transport.fromText} to ${transport.toText}`
+            : null,
+          formatCost("cost", transport.totalCost),
+        ]
+          .filter(Boolean)
+          .join(" | "),
+      });
     }
 
     for (const stay of trip.stayOptions) {
-      addItem(
-        staysByDay,
-        stay.tripDayId,
-        {
-          id: stay.id,
-          title: [
-            stay.name,
-            stay.area ?? stay.city,
-            stay.stayType,
-            formatCost("cost", stay.totalCost),
-          ]
-            .filter(Boolean)
-            .join(" | "),
-        }
-      );
+      addItem(staysByDay, stay.tripDayId, {
+        id: stay.id,
+        title: [
+          stay.name,
+          stay.area ?? stay.city,
+          stay.stayType,
+          formatCost("cost", stay.totalCost),
+        ]
+          .filter(Boolean)
+          .join(" | "),
+      });
     }
 
     for (const meal of trip.mealSuggestions) {
-      addItem(
-        mealsByDay,
-        meal.tripDayId,
-        {
-          id: meal.id,
-          title: [
-            meal.mealType,
-            meal.title,
-            meal.locationName,
-            formatCost("cost", meal.estimatedCost),
-          ]
-            .filter(Boolean)
-            .join(" | "),
-        }
-      );
+      addItem(mealsByDay, meal.tripDayId, {
+        id: meal.id,
+        title: [
+          meal.mealType,
+          meal.title,
+          meal.locationName,
+          formatCost("cost", meal.estimatedCost),
+        ]
+          .filter(Boolean)
+          .join(" | "),
+      });
     }
 
     for (const activity of trip.activities) {
-      addItem(
-        activitiesByDay,
-        activity.tripDayId,
-        {
-          id: activity.id,
-          title: [
-            activity.startTime && activity.endTime
-              ? `${activity.startTime}-${activity.endTime}`
-              : null,
-            activity.title,
-            activity.category,
-            formatCost("cost", activity.estimatedCost),
-          ]
-            .filter(Boolean)
-            .join(" | "),
-        }
-      );
+      addItem(activitiesByDay, activity.tripDayId, {
+        id: activity.id,
+        title: [
+          activity.startTime && activity.endTime
+            ? `${activity.startTime}-${activity.endTime}`
+            : null,
+          activity.title,
+          activity.category,
+          formatCost("cost", activity.estimatedCost),
+        ]
+          .filter(Boolean)
+          .join(" | "),
+      });
     }
 
     const prompt = buildTripChatPrompt({
@@ -498,7 +486,7 @@ export async function sendTripChatMessageAction(
           trip.fromPlace?.formattedName ?? trip.fromPlace?.name ?? "Not set",
         toPlace: trip.toPlace?.formattedName ?? trip.toPlace?.name ?? "Not set",
         totalEstimatedCost: getNumberText(
-          trip.costBreakdown?.totalEstimatedCost
+          trip.costBreakdown?.totalEstimatedCost,
         ),
         budgetStatus: trip.costBreakdown?.budgetStatus ?? null,
         days: trip.days.map((day) => ({

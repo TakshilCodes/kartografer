@@ -1,7 +1,7 @@
 "use client";
 
-import type { CSSProperties, FormEvent, ReactNode } from "react";
-import { useEffect, useState, useTransition } from "react";
+import type { FormEvent, ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -87,40 +87,59 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
   const [actionError, setActionError] = useState("");
   const [isPending, startTransition] = useTransition();
 
-  const [sidebarWidth, setSidebarWidth] = useState(() => {
-    if (typeof window === "undefined") {
-      return DEFAULT_SIDEBAR_WIDTH;
-    }
-
-    const savedWidth = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
-
-    if (!savedWidth) {
-      return DEFAULT_SIDEBAR_WIDTH;
-    }
-
-    const parsedWidth = Number(savedWidth);
-
-    if (Number.isNaN(parsedWidth)) {
-      return DEFAULT_SIDEBAR_WIDTH;
-    }
-
-    return clampSidebarWidth(parsedWidth);
-  });
+  const sidebarWidthRef = useRef(DEFAULT_SIDEBAR_WIDTH);
   const [isResizingSidebar, setIsResizingSidebar] = useState(false);
+
+  useLayoutEffect(() => {
+    const savedWidth = window.localStorage.getItem(SIDEBAR_WIDTH_STORAGE_KEY);
+    const parsedWidth = savedWidth ? Number(savedWidth) : Number.NaN;
+    const restoredWidth = Number.isNaN(parsedWidth)
+      ? DEFAULT_SIDEBAR_WIDTH
+      : clampSidebarWidth(parsedWidth);
+
+    sidebarWidthRef.current = restoredWidth;
+    document.documentElement.style.setProperty(
+      "--dashboard-sidebar-width",
+      `${restoredWidth}px`,
+    );
+
+    return () => {
+      document.documentElement.style.removeProperty("--dashboard-sidebar-width");
+    };
+  }, []);
 
   useEffect(() => {
     if (!isResizingSidebar) return;
 
+    const dashboardMain = document.querySelector<HTMLElement>(
+      "[data-dashboard-main]",
+    );
+
     function handleMouseMove(event: MouseEvent) {
-      setSidebarWidth(clampSidebarWidth(event.clientX));
+      const nextWidth = clampSidebarWidth(event.clientX);
+
+      sidebarWidthRef.current = nextWidth;
+      document.documentElement.style.setProperty(
+        "--dashboard-sidebar-width",
+        `${nextWidth}px`,
+      );
+      window.localStorage.setItem(
+        SIDEBAR_WIDTH_STORAGE_KEY,
+        String(nextWidth),
+      );
     }
 
     function handleMouseUp() {
+      window.localStorage.setItem(
+        SIDEBAR_WIDTH_STORAGE_KEY,
+        String(sidebarWidthRef.current),
+      );
       setIsResizingSidebar(false);
     }
 
     document.body.style.cursor = "ew-resize";
     document.body.style.userSelect = "none";
+    dashboardMain?.style.setProperty("transition-duration", "0ms");
 
     window.addEventListener("mousemove", handleMouseMove);
     window.addEventListener("mouseup", handleMouseUp);
@@ -128,20 +147,13 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
     return () => {
       document.body.style.cursor = "";
       document.body.style.userSelect = "";
+      dashboardMain?.style.removeProperty("transition-duration");
 
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
   }, [isResizingSidebar]);
 
-  useEffect(() => {
-    if (isResizingSidebar) return;
-
-    window.localStorage.setItem(
-      SIDEBAR_WIDTH_STORAGE_KEY,
-      String(sidebarWidth),
-    );
-  }, [isResizingSidebar, sidebarWidth]);
 
   useEffect(() => {
     if (!actionError) return;
@@ -157,16 +169,6 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
     setIsMobileSidebarOpen(false);
   }
 
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--dashboard-sidebar-width",
-      `${sidebarWidth}px`,
-    );
-
-    return () => {
-      document.documentElement.style.removeProperty("--dashboard-sidebar-width");
-    };
-  }, [sidebarWidth]);
 
   function openRenameModal(trip: RecentTrip) {
     setActionError("");
@@ -281,12 +283,7 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
       ) : null}
 
       <aside
-        style={
-          {
-            "--sidebar-width": `${sidebarWidth}px`,
-          } as CSSProperties
-        }
-        className={`fixed left-0 top-0 z-50 flex h-dvh min-h-0 w-72 shrink-0 flex-col overflow-hidden border-r border-border bg-dashboard transition-transform duration-300 lg:z-40 lg:w-(--sidebar-width) lg:translate-x-0 ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed left-0 top-0 z-50 flex h-dvh min-h-0 w-72 shrink-0 flex-col overflow-hidden border-r border-border bg-dashboard lg:z-40 lg:w-(--dashboard-sidebar-width,18rem) lg:translate-x-0 ${isResizingSidebar ? "transition-none" : "transition-[width,transform] duration-300"} ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
       >
         {/* Top/logo area */}

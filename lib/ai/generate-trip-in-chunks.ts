@@ -55,7 +55,7 @@ function createTripSummary(input: GenerateTripInput) {
 
   return truncateText(
     `A ${input.daysCount}-day trip from ${input.fromPlace} to ${input.toPlace} for ${input.peopleCount} people${budgetText}, planned with a ${input.travelPace.toLowerCase()} pace.`,
-    1500
+    1500,
   );
 }
 
@@ -77,7 +77,7 @@ function validateChunkDays({
 
   if (sortedDays.length !== expectedCount) {
     throw new Error(
-      `AI generated ${sortedDays.length} days for days ${range.startDay}-${range.endDay}, but ${expectedCount} days were expected.`
+      `AI generated ${sortedDays.length} days for days ${range.startDay}-${range.endDay}, but ${expectedCount} days were expected.`,
     );
   }
 
@@ -87,7 +87,7 @@ function validateChunkDays({
 
     if (actualDayNumber !== expectedDayNumber) {
       throw new Error(
-        `AI generated invalid day numbers for days ${range.startDay}-${range.endDay}. Expected day ${expectedDayNumber}, got ${actualDayNumber ?? "nothing"}.`
+        `AI generated invalid day numbers for days ${range.startDay}-${range.endDay}. Expected day ${expectedDayNumber}, got ${actualDayNumber ?? "nothing"}.`,
       );
     }
   }
@@ -106,7 +106,7 @@ function validateCompleteTripDays({
 
   if (sortedDays.length !== daysCount) {
     throw new Error(
-      `AI generated ${sortedDays.length} total days, but ${daysCount} days were expected.`
+      `AI generated ${sortedDays.length} total days, but ${daysCount} days were expected.`,
     );
   }
 
@@ -116,7 +116,7 @@ function validateCompleteTripDays({
 
     if (actualDayNumber !== expectedDayNumber) {
       throw new Error(
-        `AI generated an incomplete itinerary. Expected day ${expectedDayNumber}, got ${actualDayNumber ?? "nothing"}.`
+        `AI generated an incomplete itinerary. Expected day ${expectedDayNumber}, got ${actualDayNumber ?? "nothing"}.`,
       );
     }
   }
@@ -146,7 +146,7 @@ function createChunkGenerationError({
 }) {
   const message = error instanceof Error ? error.message : "Unknown AI error.";
   const chunkError = new Error(
-    `AI failed while generating days ${range.startDay}-${range.endDay}: ${message}`
+    `AI failed while generating days ${range.startDay}-${range.endDay}: ${message}`,
   );
   const status = getErrorStatus(error);
 
@@ -181,7 +181,7 @@ async function generateDaysChunk({
     if (!parsedChunk.success) {
       console.error(
         `AI trip chunk schema validation failed for days ${range.startDay}-${range.endDay}:`,
-        parsedChunk.error.flatten()
+        parsedChunk.error.flatten(),
       );
 
       throw new Error("AI chunk did not match the required schema.");
@@ -200,7 +200,7 @@ async function generateDaysChunk({
 }
 
 export async function generateTripInChunks(
-  input: GenerateTripInput
+  input: GenerateTripInput,
 ): Promise<GeneratedTrip> {
   const ranges = createDayRanges(input.daysCount);
   const generatedDays: GeneratedTripDay[] = [];
@@ -228,7 +228,7 @@ export async function generateTripInChunks(
   if (!parsedTrip.success) {
     console.error(
       "AI chunked trip schema validation failed:",
-      parsedTrip.error.flatten()
+      parsedTrip.error.flatten(),
     );
 
     throw new Error("AI chunked trip did not match the required schema.");

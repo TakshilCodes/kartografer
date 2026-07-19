@@ -25,7 +25,10 @@ export async function updateUserSettingsAction(input: unknown) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return { ok: false as const, error: "You must be logged in to update settings." };
+      return {
+        ok: false as const,
+        error: "You must be logged in to update settings.",
+      };
     }
 
     const parsed = UpdateUserSettingsSchema.safeParse(input);
@@ -58,6 +61,9 @@ export async function updateUserSettingsAction(input: unknown) {
     return { ok: true as const, settings, error: null };
   } catch (error) {
     console.error("UPDATE_USER_SETTINGS_ERROR", error);
-    return { ok: false as const, error: "Settings could not be saved. Please try again." };
+    return {
+      ok: false as const,
+      error: "Settings could not be saved. Please try again.",
+    };
   }
 }

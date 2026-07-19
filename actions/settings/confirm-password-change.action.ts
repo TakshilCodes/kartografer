@@ -10,8 +10,14 @@ import redis from "@/lib/redis";
 
 const ConfirmPasswordChangeSchema = z
   .object({
-    otp: z.string().trim().regex(/^\d{6}$/, "Enter the 6-digit verification code."),
-    password: z.string().min(8, "Password must be at least 8 characters.").max(100, "Password is too long."),
+    otp: z
+      .string()
+      .trim()
+      .regex(/^\d{6}$/, "Enter the 6-digit verification code."),
+    password: z
+      .string()
+      .min(8, "Password must be at least 8 characters.")
+      .max(100, "Password is too long."),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -35,29 +41,44 @@ export async function confirmPasswordChangeAction(input: unknown) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return { ok: false as const, error: "You must be logged in to change your password." };
+      return {
+        ok: false as const,
+        error: "You must be logged in to change your password.",
+      };
     }
 
     const parsed = ConfirmPasswordChangeSchema.safeParse(input);
     if (!parsed.success) {
-      return { ok: false as const, error: parsed.error.issues[0]?.message ?? "Invalid password details." };
+      return {
+        ok: false as const,
+        error: parsed.error.issues[0]?.message ?? "Invalid password details.",
+      };
     }
 
     const key = otpKey(session.user.id);
     const pendingRaw = await redis.get(key);
     if (!pendingRaw) {
-      return { ok: false as const, error: "The code expired. Request a new code." };
+      return {
+        ok: false as const,
+        error: "The code expired. Request a new code.",
+      };
     }
 
     const pending = JSON.parse(pendingRaw) as PendingPasswordChange;
     if (pending.userId !== session.user.id) {
       await redis.del(key);
-      return { ok: false as const, error: "This verification request is invalid." };
+      return {
+        ok: false as const,
+        error: "This verification request is invalid.",
+      };
     }
 
     if (pending.attempts >= 5) {
       await redis.del(key);
-      return { ok: false as const, error: "Too many incorrect attempts. Request a new code." };
+      return {
+        ok: false as const,
+        error: "Too many incorrect attempts. Request a new code.",
+      };
     }
 
     if (pending.otp !== parsed.data.otp) {
@@ -65,7 +86,7 @@ export async function confirmPasswordChangeAction(input: unknown) {
         key,
         JSON.stringify({ ...pending, attempts: pending.attempts + 1 }),
         "EX",
-        10 * 60
+        10 * 60,
       );
       return { ok: false as const, error: "Invalid verification code." };
     }
@@ -78,9 +99,16 @@ export async function confirmPasswordChangeAction(input: unknown) {
 
     await redis.del(key);
 
-    return { ok: true as const, error: null, message: "Password updated successfully." };
+    return {
+      ok: true as const,
+      error: null,
+      message: "Password updated successfully.",
+    };
   } catch (error) {
     console.error("CONFIRM_PASSWORD_CHANGE_ERROR", error);
-    return { ok: false as const, error: "Your password could not be updated. Please try again." };
+    return {
+      ok: false as const,
+      error: "Your password could not be updated. Please try again.",
+    };
   }
 }

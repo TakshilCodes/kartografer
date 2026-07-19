@@ -101,7 +101,7 @@ const consumeLimitsScript = [
 ].join("\n");
 
 async function consumeLimits(
-  definitions: LimitDefinition[]
+  definitions: LimitDefinition[],
 ): Promise<AiRateLimitResult> {
   try {
     const keys = definitions.map((definition) => definition.key);
@@ -114,7 +114,7 @@ async function consumeLimits(
       consumeLimitsScript,
       keys.length,
       ...keys,
-      ...args
+      ...args,
     )) as Array<number | string>;
 
     const allowed = Number(response[0]) === 1;
@@ -132,7 +132,7 @@ async function consumeLimits(
         current: Number(response[1 + index * 2]),
         ttl: Math.max(
           1,
-          Number(response[2 + index * 2]) || definition.windowSeconds
+          Number(response[2 + index * 2]) || definition.windowSeconds,
         ),
       }))
       .filter(({ definition, current }) => current >= definition.limit)
