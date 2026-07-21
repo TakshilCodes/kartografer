@@ -10,7 +10,9 @@ type VerifyOtpPageProps = {
   }>;
 };
 
-export default async function VerifyOtpPage({ searchParams }: VerifyOtpPageProps) {
+export default async function VerifyOtpPage({
+  searchParams,
+}: VerifyOtpPageProps) {
   const session = await getServerSession(authOptions);
 
   if (session?.user?.id) {

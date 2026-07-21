@@ -45,7 +45,7 @@ function revalidateTripShell(tripId: string) {
 }
 
 export async function createTripAction(
-  input: unknown
+  input: unknown,
 ): Promise<CreateTripActionResult> {
   try {
     const session = await getServerSession(authOptions);

@@ -96,7 +96,7 @@ export async function saveGeneratedTrip({
     {
       maxWait: 10000,
       timeout: 30000,
-    }
+    },
   );
 }
 
@@ -198,7 +198,9 @@ async function saveTransportItems({
   tripDayId,
   items,
   isSelected,
-}: SaveCommonInput<GeneratedTrip["days"][number]["selected"]["transports"][number]>) {
+}: SaveCommonInput<
+  GeneratedTrip["days"][number]["selected"]["transports"][number]
+>) {
   if (items.length === 0) return;
 
   await tx.transportOption.createMany({
@@ -226,7 +228,9 @@ async function saveStayItems({
   tripDayId,
   items,
   isSelected,
-}: SaveCommonInput<GeneratedTrip["days"][number]["selected"]["stays"][number]>) {
+}: SaveCommonInput<
+  GeneratedTrip["days"][number]["selected"]["stays"][number]
+>) {
   if (items.length === 0) return;
 
   await tx.stayOption.createMany({
@@ -255,7 +259,9 @@ async function saveMealItems({
   tripDayId,
   items,
   isSelected,
-}: SaveCommonInput<GeneratedTrip["days"][number]["selected"]["meals"][number]>) {
+}: SaveCommonInput<
+  GeneratedTrip["days"][number]["selected"]["meals"][number]
+>) {
   if (items.length === 0) return;
 
   await tx.mealSuggestion.createMany({
@@ -279,7 +285,9 @@ async function saveActivityItems({
   tripDayId,
   items,
   isSelected,
-}: SaveCommonInput<GeneratedTrip["days"][number]["selected"]["activities"][number]>) {
+}: SaveCommonInput<
+  GeneratedTrip["days"][number]["selected"]["activities"][number]
+>) {
   if (items.length === 0) return;
 
   await tx.tripActivity.createMany({

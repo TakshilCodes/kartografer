@@ -1,12 +1,17 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
+import {
+  cleanNullableText,
+  findOwnedTrip,
+  revalidateTripEditorPages,
+  tripDayBelongsToTrip,
+} from "@/actions/trips/trip-action-helpers";
 
 const activityCategorySchema = z.enum([
   "SIGHTSEEING",
@@ -149,45 +154,7 @@ type UpdateTripActivityInput = z.input<typeof updateTripActivitySchema>;
 type DeleteTripActivityInput = z.infer<typeof deleteTripActivitySchema>;
 type SelectTripActivityInput = z.infer<typeof selectTripActivitySchema>;
 
-function cleanText(value?: string | null) {
-  return value?.trim() ? value.trim() : null;
-}
-
-function revalidateTripPages(tripId: string) {
-  revalidatePath(`/dashboard/trips/${tripId}`);
-  revalidatePath(`/dashboard/trips/${tripId}/edit`);
-  revalidatePath("/dashboard/new");
-}
-
-async function verifyTripOwnership(tripId: string, userId: string) {
-  return prisma.trip.findFirst({
-    where: {
-      id: tripId,
-      userId,
-    },
-    select: {
-      id: true,
-    },
-  });
-}
-
-async function verifyTripDayBelongsToTrip(tripDayId: string, tripId: string) {
-  const tripDay = await prisma.tripDay.findFirst({
-    where: {
-      id: tripDayId,
-      tripId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return Boolean(tripDay);
-}
-
-export async function createTripActivityAction(
-  input: CreateTripActivityInput
-) {
+export async function createTripActivityAction(input: CreateTripActivityInput) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -225,7 +192,7 @@ export async function createTripActivityAction(
       position,
     } = parsedInput.data;
 
-    const trip = await verifyTripOwnership(tripId, session.user.id);
+    const trip = await findOwnedTrip(tripId, session.user.id);
 
     if (!trip) {
       return {
@@ -234,7 +201,7 @@ export async function createTripActivityAction(
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -261,16 +228,16 @@ export async function createTripActivityAction(
         tripId,
         tripDayId,
         title,
-        description: cleanText(description),
-        locationName: cleanText(locationName),
-        address: cleanText(address),
-        startTime: cleanText(startTime),
-        endTime: cleanText(endTime),
+        description: cleanNullableText(description),
+        locationName: cleanNullableText(locationName),
+        address: cleanNullableText(address),
+        startTime: cleanNullableText(startTime),
+        endTime: cleanNullableText(endTime),
         durationMinutes,
         category,
         estimatedCost,
         source: "USER_ADDED",
-        notes: cleanText(notes),
+        notes: cleanNullableText(notes),
         position: position ?? (lastActivity?.position ?? -1) + 1,
       },
       select: {
@@ -281,7 +248,7 @@ export async function createTripActivityAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -298,9 +265,7 @@ export async function createTripActivityAction(
   }
 }
 
-export async function updateTripActivityAction(
-  input: UpdateTripActivityInput
-) {
+export async function updateTripActivityAction(input: UpdateTripActivityInput) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -359,7 +324,7 @@ export async function updateTripActivityAction(
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -375,21 +340,21 @@ export async function updateTripActivityAction(
       data: {
         tripDayId,
         title,
-        description: cleanText(description),
-        locationName: cleanText(locationName),
-        address: cleanText(address),
-        startTime: cleanText(startTime),
-        endTime: cleanText(endTime),
+        description: cleanNullableText(description),
+        locationName: cleanNullableText(locationName),
+        address: cleanNullableText(address),
+        startTime: cleanNullableText(startTime),
+        endTime: cleanNullableText(endTime),
         durationMinutes,
         category,
         estimatedCost,
-        notes: cleanText(notes),
+        notes: cleanNullableText(notes),
         ...(typeof position === "number" ? { position } : {}),
       },
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -405,9 +370,7 @@ export async function updateTripActivityAction(
   }
 }
 
-export async function deleteTripActivityAction(
-  input: DeleteTripActivityInput
-) {
+export async function deleteTripActivityAction(input: DeleteTripActivityInput) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -458,7 +421,7 @@ export async function deleteTripActivityAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -474,9 +437,7 @@ export async function deleteTripActivityAction(
   }
 }
 
-export async function selectTripActivityAction(
-  input: SelectTripActivityInput
-) {
+export async function selectTripActivityAction(input: SelectTripActivityInput) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -530,7 +491,7 @@ export async function selectTripActivityAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -547,7 +508,7 @@ export async function selectTripActivityAction(
 }
 
 export async function unselectTripActivityAction(
-  input: SelectTripActivityInput
+  input: SelectTripActivityInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -602,7 +563,7 @@ export async function unselectTripActivityAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,

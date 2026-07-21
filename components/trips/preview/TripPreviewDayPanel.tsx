@@ -251,17 +251,17 @@ export default function TripPreviewDayPanel({
                       const ActivityIcon =
                         item.itemKind === "activity"
                           ? getActivityIcon(
-                            item.activityCategory?.toUpperCase() ?? ""
-                          )
+                              item.activityCategory?.toUpperCase() ?? "",
+                            )
                           : item.itemKind === "meal"
                             ? Utensils
                             : Route;
                       const showLocation = isUsefulTimelineLocation(
-                        item.location
+                        item.location,
                       );
                       const showTag = shouldShowTimelineTag(
                         item.tag,
-                        item.type
+                        item.type,
                       );
 
                       return (
@@ -329,14 +329,14 @@ export default function TripPreviewDayPanel({
 
                                   <span
                                     className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black shadow-sm ${getTimelineCostClass(
-                                      item.cost
+                                      item.cost,
                                     )}`}
                                   >
                                     {item.cost}
                                   </span>
                                 </div>
 
-                                {(showLocation || showTag) ? (
+                                {showLocation || showTag ? (
                                   <div className="mt-3 flex flex-wrap gap-1.5">
                                     {showLocation ? (
                                       <span className="inline-flex max-w-full items-center gap-1.5 rounded-full bg-dashboard px-2.5 py-1 text-[11px] font-bold text-secondary-foreground">
@@ -392,7 +392,10 @@ export default function TripPreviewDayPanel({
           </p>
 
           <ReadMoreText
-            text={selectedPanel.suggestedStay?.description ?? "No stay selected yet."}
+            text={
+              selectedPanel.suggestedStay?.description ??
+              "No stay selected yet."
+            }
             lines={2}
             className="mt-1 text-xs leading-5 text-secondary-foreground"
           />

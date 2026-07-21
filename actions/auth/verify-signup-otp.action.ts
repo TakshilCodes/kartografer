@@ -7,10 +7,7 @@ import redis from "@/lib/redis";
 
 const VerifySignupOtpSchema = z.object({
   email: z.string().email("Invalid email address"),
-  otp: z
-    .string()
-    .min(6, "OTP must be 6 digits")
-    .max(6, "OTP must be 6 digits"),
+  otp: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),
 });
 
 type VerifySignupOtpInput = z.infer<typeof VerifySignupOtpSchema>;
@@ -74,7 +71,7 @@ export async function verifySignupOtpAction(values: VerifySignupOtpInput) {
           attempts: pending.attempts + 1,
         }),
         "EX",
-        10 * 60
+        10 * 60,
       );
 
       return {

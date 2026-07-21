@@ -102,7 +102,7 @@ function MealModalInner({
   onSave,
 }: Omit<MealModalProps, "isOpen">) {
   const [form, setForm] = useState<MealFormValues>(() =>
-    editingMeal ? getFormValuesFromMeal(editingMeal) : getDefaultFormValues()
+    editingMeal ? getFormValuesFromMeal(editingMeal) : getDefaultFormValues(),
   );
 
   const notesLength = form.notes.length;
@@ -159,7 +159,10 @@ function MealModalInner({
             <input
               value={form.title}
               onChange={(event) =>
-                setForm((current) => ({ ...current, title: event.target.value }))
+                setForm((current) => ({
+                  ...current,
+                  title: event.target.value,
+                }))
               }
               className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold text-foreground outline-none transition focus:border-ring"
               placeholder="Vegetarian Kashmiri thali"
@@ -249,11 +252,7 @@ function MealModalInner({
               onClick={() => onSave(form)}
               className="cursor-pointer rounded-full bg-primary px-5 py-2.5 text-sm font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isPending
-                ? "Saving..."
-                : editingMeal
-                  ? "Save meal"
-                  : "Add meal"}
+              {isPending ? "Saving..." : editingMeal ? "Save meal" : "Add meal"}
             </button>
           </div>
         </div>

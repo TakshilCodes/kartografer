@@ -36,7 +36,7 @@ export default function TripExportActions({ tripId }: TripExportActionsProps) {
       const anchor = document.createElement("a");
       anchor.href = downloadUrl;
       anchor.download = getDownloadFilename(
-        response.headers.get("content-disposition")
+        response.headers.get("content-disposition"),
       );
       document.body.appendChild(anchor);
       anchor.click();
@@ -46,7 +46,7 @@ export default function TripExportActions({ tripId }: TripExportActionsProps) {
       setError(
         downloadError instanceof Error
           ? downloadError.message
-          : "The PDF could not be generated."
+          : "The PDF could not be generated.",
       );
     } finally {
       setIsDownloading(false);

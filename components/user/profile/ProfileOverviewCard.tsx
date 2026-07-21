@@ -30,7 +30,10 @@ export default function ProfileOverviewCard({
   return (
     <section className="relative overflow-hidden rounded-lg border border-border bg-card shadow-sm">
       <div className="relative min-h-40 overflow-hidden border-b border-primary/20 bg-primary p-5 sm:p-6">
-        <Map className="absolute -right-5 -top-6 h-44 w-44 rotate-6 text-primary-foreground opacity-[0.07]" strokeWidth={1} />
+        <Map
+          className="absolute -right-5 -top-6 h-44 w-44 rotate-6 text-primary-foreground opacity-[0.07]"
+          strokeWidth={1}
+        />
         <div className="absolute inset-x-0 bottom-0 border-t border-primary-foreground/10" />
 
         <div className="relative flex items-start justify-between gap-4">

@@ -45,13 +45,16 @@ export default async function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dashboard px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-      <div className="mx-auto w-full max-w-[1180px]">
-        <header className="mb-6 border-b border-border pb-5">
-          <p className="text-xs font-black uppercase text-muted-foreground">Workspace controls</p>
-          <h1 className="mt-1 text-3xl font-black text-foreground">Settings</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-secondary-foreground">
-            Secure your account and choose how Kartografer looks, shares, and exports future journeys.
+    <div className="min-h-screen bg-dashboard px-3 py-4 sm:px-5 lg:px-6 lg:py-6">
+      <div className="mx-auto w-full max-w-[1080px]">
+        <header className="mb-4 border-b border-border pb-4">
+          <p className="text-xs font-black uppercase text-muted-foreground">
+            Workspace controls
+          </p>
+          <h1 className="mt-1 text-2xl font-black text-foreground sm:text-3xl">Settings</h1>
+          <p className="mt-1.5 max-w-2xl text-sm leading-5 text-secondary-foreground">
+            Secure your account and choose how Kartografer looks, shares, and
+            exports future journeys.
           </p>
         </header>
 

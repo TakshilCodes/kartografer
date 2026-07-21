@@ -80,7 +80,7 @@ export default function PlaceAutocomplete({
         setIsOpen(true);
 
         const response = await fetch(
-          `/api/places/search?q=${encodeURIComponent(trimmedQuery)}`
+          `/api/places/search?q=${encodeURIComponent(trimmedQuery)}`,
         );
 
         const data = await response.json();

@@ -6,11 +6,7 @@ const moneySchema = z
   .nullable()
   .optional();
 
-const timeSchema = z
-  .string()
-  .trim()
-  .nullable()
-  .optional();
+const timeSchema = z.string().trim().nullable().optional();
 
 function normalizeEnumKey(value: string) {
   return value
@@ -25,7 +21,7 @@ function normalizeEnumKey(value: string) {
 
 function aiEnum<const TValues extends readonly [string, ...string[]]>(
   values: TValues,
-  aliases: Partial<Record<string, TValues[number]>> = {}
+  aliases: Partial<Record<string, TValues[number]>> = {},
 ) {
   const allowedValues = new Set<string>(values);
 
@@ -34,8 +30,10 @@ function aiEnum<const TValues extends readonly [string, ...string[]]>(
 
     const normalizedValue = normalizeEnumKey(value);
 
-    return aliases[normalizedValue] ??
-      (allowedValues.has(normalizedValue) ? normalizedValue : value);
+    return (
+      aliases[normalizedValue] ??
+      (allowedValues.has(normalizedValue) ? normalizedValue : value)
+    );
   }, z.enum(values));
 }
 
@@ -67,7 +65,7 @@ const transportModeSchema = aiEnum(
     BOAT: "FERRY",
     SUBWAY: "METRO",
     LOCAL_TRAIN: "TRAIN",
-  }
+  },
 );
 
 const costTypeSchema = aiEnum(["PER_PERSON", "TOTAL"], {
@@ -109,7 +107,7 @@ const stayTypeSchema = aiEnum(
     COTTAGE: "HOMESTAY",
     APARTMENT: "OTHER",
     AIRBNB: "OTHER",
-  }
+  },
 );
 
 const budgetLevelSchema = aiEnum(["BUDGET", "MID_RANGE", "PREMIUM", "LUXURY"], {
@@ -125,12 +123,15 @@ const budgetLevelSchema = aiEnum(["BUDGET", "MID_RANGE", "PREMIUM", "LUXURY"], {
   EXPENSIVE: "LUXURY",
 });
 
-const mealTypeSchema = aiEnum(["BREAKFAST", "LUNCH", "DINNER", "SNACK", "OTHER"], {
-  BRUNCH: "OTHER",
-  EVENING_SNACK: "SNACK",
-  TEA: "SNACK",
-  DRINKS: "SNACK",
-});
+const mealTypeSchema = aiEnum(
+  ["BREAKFAST", "LUNCH", "DINNER", "SNACK", "OTHER"],
+  {
+    BRUNCH: "OTHER",
+    EVENING_SNACK: "SNACK",
+    TEA: "SNACK",
+    DRINKS: "SNACK",
+  },
+);
 
 const activityCategorySchema = aiEnum(
   [
@@ -162,7 +163,7 @@ const activityCategorySchema = aiEnum(
     REST_STOP: "TRANSPORT_BREAK",
     TRANSFER: "TRANSPORT_BREAK",
     TRAVEL: "TRANSPORT_BREAK",
-  }
+  },
 );
 
 export const generatedTransportSchema = z.object({

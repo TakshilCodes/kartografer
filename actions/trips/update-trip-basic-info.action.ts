@@ -25,7 +25,7 @@ const updateTripBasicInfoSchema = z.object({
 type UpdateTripBasicInfoInput = z.infer<typeof updateTripBasicInfoSchema>;
 
 export async function updateTripBasicInfoAction(
-  input: UpdateTripBasicInfoInput
+  input: UpdateTripBasicInfoInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -43,8 +43,7 @@ export async function updateTripBasicInfoAction(
       return {
         success: false,
         message:
-          parsedInput.error.issues[0]?.message ??
-          "Invalid trip information.",
+          parsedInput.error.issues[0]?.message ?? "Invalid trip information.",
       };
     }
 

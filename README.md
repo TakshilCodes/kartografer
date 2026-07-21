@@ -9,7 +9,7 @@ A full-stack AI travel planner that turns a rough travel idea into a structured,
 <br/>
 
 **[Live Site → kartografer.com](https://kartografer.com)**
- 
+
 <br/>
 
 ![Next.js](https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
@@ -129,12 +129,12 @@ The export preview page doubles as the print template. The owner sees exactly wh
 
 Kartografer has three content layers with strict server-side isolation:
 
-| Layer | Auth Required | Data Exposed |
-|---|---|---|
-| Private workspace | Yes + ownership | All trip data |
-| Public share link | No | Selected itinerary only |
-| Explore / public detail | No | Published metadata + selected itinerary |
-| PDF export | Yes + ownership | Selected itinerary only |
+| Layer                   | Auth Required   | Data Exposed                            |
+| ----------------------- | --------------- | --------------------------------------- |
+| Private workspace       | Yes + ownership | All trip data                           |
+| Public share link       | No              | Selected itinerary only                 |
+| Explore / public detail | No              | Published metadata + selected itinerary |
+| PDF export              | Yes + ownership | Selected itinerary only                 |
 
 Server actions always re-check ownership. Public routes never query unselected options or private trip fields. IDs from the client are never trusted without a DB ownership check.
 
@@ -175,28 +175,34 @@ Server actions always re-check ownership. Public routes never query unselected o
 ## 🛠️ Tech Stack
 
 ### Frontend
+
 - Next.js App Router
 - TypeScript
 - Tailwind CSS (custom CSS variables — warm brown / cream / parchment design system)
 - Framer Motion
 
 ### Backend
+
 - Next.js Server Actions
 - Next.js API Routes
 - NextAuth (email/password + Google OAuth)
 - Zod (server action validation)
 
 ### Database
+
 - PostgreSQL
 - Prisma ORM
 
 ### Storage & Media
+
 - Cloudinary (cover image uploads, in-browser 16:9 cropping)
 
 ### Caching & Rate Limiting
+
 - Redis (per-user rate limits for AI generation, AI chat, manual trip creation)
 
 ### PDF Generation
+
 - Puppeteer Core
 - @sparticuz/chromium
 - Serverless Chromium
@@ -236,21 +242,21 @@ Server actions always re-check ownership. Public routes never query unselected o
 ---
 
 ### Case Study 4 — PDF as a First-Class Feature
- 
+
 **Problem:** Generating a PDF from a web app is notoriously inconsistent. CSS-to-PDF libraries strip layout, lose fonts, and produce ugly output. Browser print dialogs add headers/footers and vary across OS. On top of that, different owners want different things in their proposal — some want the cost breakdown visible, others want a clean itinerary-only document without pricing or branding.
- 
+
 **Solution:** A headless serverless Chromium browser renders the same HTML template that the export preview page uses. The API route launches Playwright headlessly, navigates to the export page with `?mode=pdf`, and captures it as an A4 PDF. The user sees exactly what they'll get in the preview before downloading.
- 
+
 For content control, owners configure their proposal via a settings panel before exporting — toggling four sections independently:
- 
+
 - **Estimated cost and breakdown** — show or hide the selected itinerary cost summary
 - **Planned budget** — show or hide the budget entered at trip creation
 - **Traveler notes** — include or exclude trip-level and day-level special notes
 - **Kartografer branding** — show or hide the "generated with" footer
-These preferences are saved in `UserSettings` and read at render time by the export template. The same toggle state applies to both the preview page and the downloaded PDF — what the owner sees in the browser is exactly what the PDF generator captures.
- 
+  These preferences are saved in `UserSettings` and read at render time by the export template. The same toggle state applies to both the preview page and the downloaded PDF — what the owner sees in the browser is exactly what the PDF generator captures.
+
 **Result:** Pixel-accurate PDF output with owner-controlled content. The preview and download share one template. No separate design to maintain, and no one-size-fits-all proposal format.
- 
+
 ---
 
 ## ⚙️ Local Setup
@@ -319,33 +325,33 @@ Open `http://localhost:3000`
 ---
 
 ## 🗺️ Roadmap
- 
+
 Kartografer V1 is a complete, deployable product. Future versions will move it from a portfolio project toward a real travel startup platform:
- 
+
 **Scaling AI Without a Budget — The Free Tier Problem** — This is the most honest and interesting infrastructure challenge on the roadmap. Kartografer currently runs on Gemini's free tier with multi-key rotation. That works at low traffic, but free tier rate limits are per-key, per-minute, and per-day — stacking keys only helps so much before the ceiling becomes a real wall. Paying for a proper AI API budget isn't viable at this stage. The approach being explored instead:
- 
+
 - **Aggressive result caching** — Many users plan trips to the same popular destinations (Bali, Paris, Tokyo, etc.). Generated itineraries for common destination + duration + travel style combinations could be cached in Redis and served instantly without a Gemini call, reserving live AI capacity for genuinely unique inputs.
 - **Community-seeded generation** — The public Explore library already holds high-quality human-approved itineraries. Rather than always generating from scratch, the system could use an existing published itinerary as a base and ask Gemini to personalize it for the new user's preferences — a much cheaper prompt than a full generation.
 - **Async generation with position-aware queuing** — Instead of synchronous generation that either succeeds or hits a rate limit mid-request, move to a queue where each job waits for an available key window. Users see a live position indicator ("Generating your trip — you're #3 in queue") and get notified when it's ready. This smooths out burst traffic without needing more API budget.
 - **BYOK (Bring Your Own Key)** — Power users or early adopters could optionally connect their own Gemini API key in settings, unlocking unlimited personal generation. This is a pattern used by several AI tools to extend capacity without the platform bearing the full cost.
-This constraint is a real startup problem — building under resource limits forces more creative system design than an unlimited budget ever would.
+  This constraint is a real startup problem — building under resource limits forces more creative system design than an unlimited budget ever would.
 
 **AI Tier System** — Replace the current flat rate limit with a proper free/pro tier. Free users get limited AI generations per month. Pro users unlock higher limits, longer trip generation, and advanced AI chat features. This means building subscription management (likely Stripe), usage tracking per billing cycle, and graceful limit UI instead of hard errors.
- 
+
 **Premium Subscriptions** — Gated features like PDF export, AI chat history, and advanced itinerary export formats (DOCX, calendar sync) behind a paid plan. The architecture already separates owner-only features — subscription checks slot naturally into the same middleware pattern.
- 
+
 **Saved / Bookmarked Trips** — Let logged-out or logged-in users save public trips they find on Explore without cloning them. Cloning creates a full copy; bookmarking is a lightweight reference. Requires a new join table and a "Saved" section in the dashboard.
- 
+
 **User Profiles** — Public profile pages showing a user's published trips, travel stats, and travel style. Builds community around the Explore feed and gives power users a shareable presence.
- 
+
 **Advanced Explore Filters** — Currently Explore supports basic search and sorting. The roadmap includes multi-select filters for destination region, travel style, budget style, duration range, and tag combinations — with server-side query building to keep it fast at scale.
- 
+
 **Queue-Based AI Generation** — The current AI generation is synchronous: the user waits on the request. For long trips, this is slow and fragile. Moving to a job queue (BullMQ or similar) would let users submit a generation job, get a processing state, and be notified when the trip is ready — more reliable, more scalable, better UX.
- 
+
 **Admin & Moderation Tools** — As Explore grows, a lightweight admin panel for reviewing flagged public trips, managing reported content, and monitoring AI usage per user becomes necessary before a public launch.
- 
+
 **Collaborative Trip Planning** — Real-time or async collaboration where multiple users can edit the same trip workspace. This is architecturally significant — it requires either operational transforms, a CRDT approach, or a turn-based lock model to prevent conflicting edits.
- 
+
 ---
 
 ## 📌 Project Status

@@ -35,7 +35,7 @@ export default function DayInfoModal({
   onSave,
 }: DayInfoModalProps) {
   const [form, setForm] = useState<DayInfoFormValues>(
-    () => initialValues ?? emptyValues
+    () => initialValues ?? emptyValues,
   );
 
   if (!isOpen) return null;
@@ -128,7 +128,6 @@ export default function DayInfoModal({
               placeholder="Any important notes for this day..."
             />
           </div>
-
         </div>
 
         <div className="shrink-0 border-t border-border bg-card p-5">

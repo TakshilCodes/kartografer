@@ -44,7 +44,7 @@ export default function ConfirmDialog() {
   const styles = getVariantStyles(variant ?? "default");
 
   return (
-    <div className="fixed inset-0 z-100 flex items-end justify-center bg-foreground/30 p-3 backdrop-blur-sm sm:items-center">
+    <div className="fixed inset-0 z-9999999 flex items-end justify-center p-3 backdrop-blur-sm sm:items-center">
       <button
         type="button"
         onClick={() => close(false)}

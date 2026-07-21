@@ -98,12 +98,12 @@ export default function NewPasswordClient({ token }: NewPasswordClientProps) {
       <section className="relative z-10 flex min-h-screen items-center justify-center px-4 py-24">
         <div className="w-full max-w-110">
           <div className="mb-6 text-center">
-                        <BrandLogo
-                            className="mb-4 w-full justify-center"
-                            compactClassName="h-12 w-12"
-                            wordmarkClassName="h-auto w-44 sm:w-48"
-                            priority
-                        />
+            <BrandLogo
+              className="mb-4 w-full justify-center"
+              compactClassName="h-12 w-12"
+              wordmarkClassName="h-auto w-44 sm:w-48"
+              priority
+            />
             <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-white/45 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-secondary-foreground shadow-sm backdrop-blur-xl">
               <ShieldCheck className="h-3.5 w-3.5" />
               Secure reset
@@ -162,7 +162,9 @@ export default function NewPasswordClient({ token }: NewPasswordClientProps) {
                     <input
                       type={showPassword ? "text" : "password"}
                       value={confirmPassword}
-                      onChange={(event) => setConfirmPassword(event.target.value)}
+                      onChange={(event) =>
+                        setConfirmPassword(event.target.value)
+                      }
                       placeholder="Repeat new password"
                       className="w-full bg-transparent text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground"
                       required

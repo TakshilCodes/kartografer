@@ -131,7 +131,7 @@ function ActivityModalInner({
   const [form, setForm] = useState<ActivityFormValues>(() =>
     editingActivity
       ? getFormValuesFromActivity(editingActivity)
-      : getDefaultFormValues()
+      : getDefaultFormValues(),
   );
 
   const descriptionLength = form.description.length;
@@ -180,7 +180,10 @@ function ActivityModalInner({
             <input
               value={form.title}
               onChange={(event) =>
-                setForm((current) => ({ ...current, title: event.target.value }))
+                setForm((current) => ({
+                  ...current,
+                  title: event.target.value,
+                }))
               }
               className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold text-foreground outline-none transition focus:border-ring"
               placeholder="Shikara Ride"
@@ -239,7 +242,10 @@ function ActivityModalInner({
             <input
               value={form.address}
               onChange={(event) =>
-                setForm((current) => ({ ...current, address: event.target.value }))
+                setForm((current) => ({
+                  ...current,
+                  address: event.target.value,
+                }))
               }
               className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold text-foreground outline-none transition focus:border-ring"
               placeholder="Optional address / area"

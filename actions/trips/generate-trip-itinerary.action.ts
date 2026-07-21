@@ -14,18 +14,13 @@ import {
   consumeAiTripGenerationLimit,
   getAiRateLimitErrorMessage,
 } from "@/lib/rate-limit/ai-rate-limit";
-import {
-  MAX_TRIP_DAYS,
-  MAX_TRIP_PEOPLE,
-} from "@/lib/trips/trip-limits";
+import { MAX_TRIP_DAYS, MAX_TRIP_PEOPLE } from "@/lib/trips/trip-limits";
 
 const generateTripItinerarySchema = z.object({
   tripId: z.string().trim().min(1, "Trip id is required."),
 });
 
-type GenerateTripItineraryInput = z.infer<
-  typeof generateTripItinerarySchema
->;
+type GenerateTripItineraryInput = z.infer<typeof generateTripItinerarySchema>;
 
 type GenerateTripItineraryResult =
   | {
@@ -69,7 +64,7 @@ function hasAnyItineraryItems(count: {
 }
 
 export async function generateTripItineraryAction(
-  input: GenerateTripItineraryInput
+  input: GenerateTripItineraryInput,
 ): Promise<GenerateTripItineraryResult> {
   try {
     const session = await getServerSession(authOptions);

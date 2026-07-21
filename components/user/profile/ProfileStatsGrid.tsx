@@ -30,7 +30,11 @@ export default function ProfileStatsGrid(props: ProfileStatsGridProps) {
     { label: "AI planned", value: props.aiGeneratedTrips, icon: Sparkles },
     { label: "Public links", value: props.publicSharedTrips, icon: Share2 },
     { label: "Draft trips", value: props.draftTrips, icon: FilePenLine },
-    { label: "Days planned", value: props.totalDaysPlanned, icon: CalendarRange },
+    {
+      label: "Days planned",
+      value: props.totalDaysPlanned,
+      icon: CalendarRange,
+    },
     { label: "Last trip update", value: lastUpdated, icon: Clock3 },
   ];
 
@@ -40,7 +44,9 @@ export default function ProfileStatsGrid(props: ProfileStatsGridProps) {
         <p className="text-xs font-black uppercase text-muted-foreground">
           Travel footprint
         </p>
-        <h2 className="mt-1 text-xl font-black text-foreground">Your trip stats</h2>
+        <h2 className="mt-1 text-xl font-black text-foreground">
+          Your trip stats
+        </h2>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">

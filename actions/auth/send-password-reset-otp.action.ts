@@ -25,7 +25,7 @@ function getPasswordResetOtpRateLimitKey(email: string) {
 }
 
 export async function sendPasswordResetOtpAction(
-  values: SendPasswordResetOtpInput
+  values: SendPasswordResetOtpInput,
 ) {
   try {
     const configError = assertOtpEmailConfig();
@@ -97,7 +97,7 @@ export async function sendPasswordResetOtpAction(
         createdAt: new Date().toISOString(),
       }),
       "EX",
-      10 * 60
+      10 * 60,
     );
 
     await sendOtpEmail({

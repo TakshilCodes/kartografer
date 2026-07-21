@@ -11,7 +11,11 @@ type TagInputProps = {
 
 const MAX_TAG_LENGTH = 35;
 
-export default function TagInput({ value, onChange, maxTags = 15 }: TagInputProps) {
+export default function TagInput({
+  value,
+  onChange,
+  maxTags = 15,
+}: TagInputProps) {
   const [input, setInput] = useState("");
   const [error, setError] = useState("");
 
@@ -118,7 +122,9 @@ export default function TagInput({ value, onChange, maxTags = 15 }: TagInputProp
           }}
           onKeyDown={handleKeyDown}
           onBlur={() => addTag(input)}
-          placeholder={value.length ? "Add another tag" : "Add tags and press Enter"}
+          placeholder={
+            value.length ? "Add another tag" : "Add tags and press Enter"
+          }
           className="min-w-35 flex-1 bg-transparent px-1 py-1.5 text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground"
         />
       </div>
@@ -127,7 +133,9 @@ export default function TagInput({ value, onChange, maxTags = 15 }: TagInputProp
         <p className="font-semibold text-secondary-foreground">
           {value.length}/{maxTags} tags added
         </p>
-        <p className="font-semibold text-secondary-foreground">Example: road-trip, family, budget</p>
+        <p className="font-semibold text-secondary-foreground">
+          Example: road-trip, family, budget
+        </p>
       </div>
 
       {error ? (

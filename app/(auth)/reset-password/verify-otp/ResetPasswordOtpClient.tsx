@@ -67,7 +67,7 @@ export default function ResetPasswordOtpClient({
 
   function handleKeyDown(
     index: number,
-    event: React.KeyboardEvent<HTMLInputElement>
+    event: React.KeyboardEvent<HTMLInputElement>,
   ) {
     if (event.key === "Backspace" && !otpValues[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
@@ -94,7 +94,7 @@ export default function ResetPasswordOtpClient({
 
     const nextOtp = Array.from(
       { length: 6 },
-      (_, index) => pastedValue[index] ?? ""
+      (_, index) => pastedValue[index] ?? "",
     );
 
     setOtpValues(nextOtp);
@@ -124,7 +124,7 @@ export default function ResetPasswordOtpClient({
 
       setSuccessMsg("Code verified. Opening password reset...");
       router.push(
-        `/reset-password/new-password?token=${encodeURIComponent(result.resetToken)}`
+        `/reset-password/new-password?token=${encodeURIComponent(result.resetToken)}`,
       );
     });
   }
@@ -169,12 +169,12 @@ export default function ResetPasswordOtpClient({
       <section className="relative z-10 flex min-h-screen items-center justify-center px-4 py-24">
         <div className="w-full max-w-115">
           <div className="mb-6 text-center">
-                        <BrandLogo
-                            className="mb-4 w-full justify-center"
-                            compactClassName="h-12 w-12"
-                            wordmarkClassName="h-auto w-44 sm:w-48"
-                            priority
-                        />
+            <BrandLogo
+              className="mb-4 w-full justify-center"
+              compactClassName="h-12 w-12"
+              wordmarkClassName="h-auto w-44 sm:w-48"
+              priority
+            />
             <div className="mx-auto mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-white/45 px-4 py-2 text-xs font-black uppercase tracking-[0.2em] text-secondary-foreground shadow-sm backdrop-blur-xl">
               <ShieldCheck className="h-3.5 w-3.5" />
               Password reset

@@ -92,16 +92,15 @@ function UsageMetricCard({
 
   const isExhausted =
     typeof current === "number" && typeof max === "number" && current >= max;
-  const progressBarClass =
-    isExhausted
-      ? "bg-danger"
-      : tone === "primary"
-        ? "bg-primary"
-        : tone === "success"
-          ? "bg-success"
-          : tone === "warning"
-            ? "bg-warning"
-            : "bg-primary";
+  const progressBarClass = isExhausted
+    ? "bg-danger"
+    : tone === "primary"
+      ? "bg-primary"
+      : tone === "success"
+        ? "bg-success"
+        : tone === "warning"
+          ? "bg-warning"
+          : "bg-primary";
 
   return (
     <div className="group relative overflow-hidden rounded-3xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/25 hover:bg-card-hover/35 hover:shadow-md">
@@ -197,7 +196,7 @@ function AiAssistantTripUsageSection({
           trips.map((trip) => {
             const progressPercent = Math.min(
               100,
-              Math.round((trip.quotaMessagesToday / perTripLimit) * 100)
+              Math.round((trip.quotaMessagesToday / perTripLimit) * 100),
             );
             const isExhausted = trip.quotaMessagesToday >= perTripLimit;
 
@@ -228,8 +227,9 @@ function AiAssistantTripUsageSection({
                     </h3>
 
                     <p className="mt-1 line-clamp-1 text-xs font-semibold text-secondary-foreground">
-                      {[trip.fromPlace, trip.toPlace].filter(Boolean).join(" -> ") ||
-                        "Route details unavailable"}
+                      {[trip.fromPlace, trip.toPlace]
+                        .filter(Boolean)
+                        .join(" -> ") || "Route details unavailable"}
                     </p>
                   </div>
 
@@ -239,7 +239,8 @@ function AiAssistantTripUsageSection({
                         {trip.quotaMessagesToday}/{perTripLimit} used
                       </span>
                       <span className="text-[11px] font-bold text-secondary-foreground">
-                        {Math.max(0, perTripLimit - trip.quotaMessagesToday)} left
+                        {Math.max(0, perTripLimit - trip.quotaMessagesToday)}{" "}
+                        left
                       </span>
                     </div>
 
@@ -269,8 +270,8 @@ function AiAssistantTripUsageSection({
                 </p>
 
                 <p className="mt-1 text-xs font-semibold leading-5 text-secondary-foreground">
-                  Once you chat with Kartografer AI inside a trip, that trip will
-                  appear here with its per-trip daily usage.
+                  Once you chat with Kartografer AI inside a trip, that trip
+                  will appear here with its per-trip daily usage.
                 </p>
               </div>
             </div>
@@ -700,7 +701,7 @@ export default async function ProfilePage() {
   }
 
   const aiAssistantRecentTripUsage = Array.from(
-    aiAssistantTripUsageMap.values()
+    aiAssistantTripUsageMap.values(),
   )
     .map((trip) => ({
       ...trip,
@@ -711,7 +712,7 @@ export default async function ProfilePage() {
     .sort(
       (left, right) =>
         right.quotaMessagesToday - left.quotaMessagesToday ||
-        right.lastUsedAt.getTime() - left.lastUsedAt.getTime()
+        right.lastUsedAt.getTime() - left.lastUsedAt.getTime(),
     )
     .slice(0, 5);
 
@@ -721,7 +722,7 @@ export default async function ProfilePage() {
     aiChatUsageSnapshot?.burstUsed ?? dbAiAssistantMessagesLastMinute;
   const aiAssistantTripMessagesToday = aiAssistantRecentTripUsage.reduce(
     (max, trip) => Math.max(max, trip.quotaMessagesToday),
-    0
+    0,
   );
 
   return (

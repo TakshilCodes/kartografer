@@ -5,23 +5,23 @@ import { authOptions } from "@/lib/auth";
 import SidebarClient from "./SidebarClient";
 
 export default async function Sidebar() {
-    const session = await getServerSession(authOptions);
+  const session = await getServerSession(authOptions);
 
-    const recentTrips = session?.user?.id
-        ? await prisma.trip.findMany({
-            where: {
-                userId: session.user.id,
-            },
-            select: {
-                id: true,
-                title: true,
-            },
-            orderBy: {
-                updatedAt: "desc",
-            },
-            take: 8,
-        })
-        : [];
+  const recentTrips = session?.user?.id
+    ? await prisma.trip.findMany({
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          id: true,
+          title: true,
+        },
+        orderBy: {
+          updatedAt: "desc",
+        },
+        take: 8,
+      })
+    : [];
 
-    return <SidebarClient recentTrips={recentTrips} />;
+  return <SidebarClient recentTrips={recentTrips} />;
 }

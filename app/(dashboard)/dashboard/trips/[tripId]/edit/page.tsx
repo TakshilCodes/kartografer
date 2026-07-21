@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
-import { tripAiChangeResponseSchema } from "@/lib/ai/schemas/trip-ai-change.schema";
+import { parseStoredTripChatPayload } from "@/lib/ai/trip-chat/proposal";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
 import EditTripClient from "./EditTripClient";
 import type { AiChangeProposalDto } from "@/actions/trips/send-trip-chat-message.action";
@@ -21,12 +21,14 @@ function buildChatProposal(message: {
   changeSummary: string | null;
   status: "NONE" | "PENDING" | "APPLIED" | "DISCARDED";
 }) {
-  const parsedChanges = tripAiChangeResponseSchema.shape.proposedChanges.safeParse(
-    message.proposedChangesJson
-  );
-  const changes = parsedChanges.success ? parsedChanges.data : [];
+  const payload = parseStoredTripChatPayload(message.proposedChangesJson);
+  const changes = payload?.changes ?? [];
 
-  if (message.role !== "ASSISTANT" || changes.length === 0 || message.status === "NONE") {
+  if (
+    message.role !== "ASSISTANT" ||
+    changes.length === 0 ||
+    message.status === "NONE"
+  ) {
     return null;
   }
 
@@ -41,11 +43,13 @@ function buildChatProposal(message: {
     id: message.id,
     status,
     summary: message.changeSummary,
-    changes: changes.map((change) => ({
+    changes: changes.map((change, index) => ({
       type: change.type,
       label: change.label,
       reason: change.reason,
+      cost: payload?.costPreview?.changes[index] ?? null,
     })),
+    costPreview: payload?.costPreview ?? null,
   };
 }
 
@@ -221,15 +225,15 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
         transportPreference: trip.transportPreference,
         fromPlace: trip.fromPlace
           ? {
-            name: trip.fromPlace.name,
-            formattedName: trip.fromPlace.formattedName,
-          }
+              name: trip.fromPlace.name,
+              formattedName: trip.fromPlace.formattedName,
+            }
           : null,
         toPlace: trip.toPlace
           ? {
-            name: trip.toPlace.name,
-            formattedName: trip.toPlace.formattedName,
-          }
+              name: trip.toPlace.name,
+              formattedName: trip.toPlace.formattedName,
+            }
           : null,
         days: trip.days.map((day) => ({
           id: day.id,
@@ -304,6 +308,12 @@ export default async function EditTripPage({ params }: EditTripPageProps) {
             content: message.content,
             createdAt: message.createdAt.toISOString(),
             proposal: buildChatProposal(message),
+            result:
+              parseStoredTripChatPayload(message.proposedChangesJson)?.result ??
+              null,
+            recommendations:
+              parseStoredTripChatPayload(message.proposedChangesJson)
+                ?.recommendations ?? [],
           })),
       }}
     />

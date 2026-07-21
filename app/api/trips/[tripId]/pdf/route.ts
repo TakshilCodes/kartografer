@@ -44,7 +44,7 @@ function parseRequestCookies(cookieHeader: string, origin: string) {
     })
     .filter(
       (cookie): cookie is { name: string; value: string; url: string } =>
-        cookie !== null
+        cookie !== null,
     );
 }
 
@@ -93,8 +93,9 @@ async function launchPdfBrowser() {
 export async function GET(request: NextRequest, context: PdfRouteContext) {
   const steps: string[] = [];
   let tripId = "unknown";
-  let browser: Awaited<ReturnType<typeof import("puppeteer-core").launch>> | null =
-    null;
+  let browser: Awaited<
+    ReturnType<typeof import("puppeteer-core").launch>
+  > | null = null;
 
   function mark(step: string) {
     steps.push(step);
@@ -223,12 +224,12 @@ export async function GET(request: NextRequest, context: PdfRouteContext) {
         debug:
           process.env.NODE_ENV !== "production"
             ? {
-              steps,
-              message: error instanceof Error ? error.message : String(error),
-            }
+                steps,
+                message: error instanceof Error ? error.message : String(error),
+              }
             : {
-              steps,
-            },
+                steps,
+              },
       },
       { status: 500 },
     );

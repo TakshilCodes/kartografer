@@ -134,7 +134,7 @@ function StayModalInner({
   onSave,
 }: Omit<StayModalProps, "isOpen">) {
   const [form, setForm] = useState<StayFormValues>(() =>
-    editingStay ? getFormValuesFromStay(editingStay) : getDefaultFormValues()
+    editingStay ? getFormValuesFromStay(editingStay) : getDefaultFormValues(),
   );
 
   const bestForLength = form.bestFor.length;
@@ -198,7 +198,10 @@ function StayModalInner({
               <input
                 value={form.city}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, city: event.target.value }))
+                  setForm((current) => ({
+                    ...current,
+                    city: event.target.value,
+                  }))
                 }
                 className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold text-foreground outline-none transition focus:border-ring"
                 placeholder="Srinagar"
@@ -212,7 +215,10 @@ function StayModalInner({
               <input
                 value={form.area}
                 onChange={(event) =>
-                  setForm((current) => ({ ...current, area: event.target.value }))
+                  setForm((current) => ({
+                    ...current,
+                    area: event.target.value,
+                  }))
                 }
                 className="w-full rounded-2xl border border-border bg-input px-4 py-3 text-sm font-semibold text-foreground outline-none transition focus:border-ring"
                 placeholder="Dal Lake"
@@ -374,11 +380,7 @@ function StayModalInner({
               onClick={() => onSave(form)}
               className="cursor-pointer rounded-full bg-primary px-5 py-2.5 text-sm font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {isPending
-                ? "Saving..."
-                : editingStay
-                  ? "Save stay"
-                  : "Add stay"}
+              {isPending ? "Saving..." : editingStay ? "Save stay" : "Add stay"}
             </button>
           </div>
         </div>

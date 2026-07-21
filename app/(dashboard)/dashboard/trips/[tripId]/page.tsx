@@ -23,7 +23,7 @@ import TripExplorePublishDialog from "@/components/explore/TripExplorePublishDia
 import { getPublicTripShareUrl } from "@/lib/app-url";
 import { buildPreviewDayPanels } from "@/lib/trips/build-preview-day-panels";
 import { ensureTripCostBreakdown } from "@/lib/trips/recalculate-trip-cost";
-import TripPreviewActionsMenu from "@/components/trips/preview/TripPreviewActionsMenu"
+import TripPreviewActionsMenu from "@/components/trips/preview/TripPreviewActionsMenu";
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
@@ -37,7 +37,8 @@ type TripPreviewPageProps = {
 };
 
 function formatCurrency(amount: unknown) {
-  if (amount === null || amount === undefined || amount === "") return "Not set";
+  if (amount === null || amount === undefined || amount === "")
+    return "Not set";
 
   const value = Number(amount);
 
@@ -312,11 +313,9 @@ export default async function TripPreviewPage({
   const foodEstimate = getNumberValue(trip.costBreakdown?.foodCost);
   const activityEstimate = getNumberValue(trip.costBreakdown?.activityCost);
   const miscEstimate = getNumberValue(trip.costBreakdown?.miscCost);
-  const estimatedTotal = getNumberValue(
-    trip.costBreakdown?.totalEstimatedCost
-  );
+  const estimatedTotal = getNumberValue(trip.costBreakdown?.totalEstimatedCost);
   const budgetAmount = getNumberValue(
-    trip.costBreakdown?.userBudget ?? trip.budgetAmount
+    trip.costBreakdown?.userBudget ?? trip.budgetAmount,
   );
   const budgetStatus = trip.costBreakdown?.budgetStatus ?? "UNKNOWN";
   const remainingAmount = budgetAmount - estimatedTotal;
@@ -396,7 +395,9 @@ export default async function TripPreviewPage({
                 initialIsPublic={trip.isPublic}
                 initialPublicTitle={trip.publicTitle}
                 initialPublicDescription={trip.publicDescription}
-                initialDestination={trip.destination ?? trip.toPlace?.name ?? null}
+                initialDestination={
+                  trip.destination ?? trip.toPlace?.name ?? null
+                }
                 initialCoverImageUrl={trip.coverImageUrl}
                 initialBudgetStyle={trip.budgetStyle}
                 initialTravelStyle={trip.travelStyle}
@@ -412,7 +413,9 @@ export default async function TripPreviewPage({
 
                     <span className="min-w-0">
                       <span className="block">
-                        {trip.isPublic ? "Republish current version" : "Publish to Explore"}
+                        {trip.isPublic
+                          ? "Republish current version"
+                          : "Publish to Explore"}
                       </span>
 
                       <span className="block text-xs font-semibold text-secondary-foreground">
@@ -593,7 +596,7 @@ export default async function TripPreviewPage({
 
                     <span
                       className={`rounded-full px-2.5 py-1 text-[11px] font-black ${getBudgetStatusClass(
-                        budgetStatus
+                        budgetStatus,
                       )}`}
                     >
                       {getBudgetStatusLabel(budgetStatus)}
@@ -603,7 +606,10 @@ export default async function TripPreviewPage({
 
                 <div className="p-4">
                   <div className="space-y-3">
-                    <CostRow label="Stay" value={formatCurrency(stayEstimate)} />
+                    <CostRow
+                      label="Stay"
+                      value={formatCurrency(stayEstimate)}
+                    />
 
                     <CostRow
                       label="Transport"
@@ -621,7 +627,10 @@ export default async function TripPreviewPage({
                     />
 
                     {miscEstimate > 0 ? (
-                      <CostRow label="Misc" value={formatCurrency(miscEstimate)} />
+                      <CostRow
+                        label="Misc"
+                        value={formatCurrency(miscEstimate)}
+                      />
                     ) : null}
                   </div>
 
@@ -630,7 +639,9 @@ export default async function TripPreviewPage({
                   <CostRow
                     label="Budget"
                     value={
-                      budgetAmount > 0 ? formatCurrency(budgetAmount) : "Not set"
+                      budgetAmount > 0
+                        ? formatCurrency(budgetAmount)
+                        : "Not set"
                     }
                   />
 

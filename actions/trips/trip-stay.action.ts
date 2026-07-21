@@ -1,12 +1,17 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
+import {
+  cleanNullableText,
+  findOwnedTrip,
+  revalidateTripEditorPages,
+  tripDayBelongsToTrip,
+} from "@/actions/trips/trip-action-helpers";
 
 const stayTypeSchema = z.enum([
   "HOTEL",
@@ -141,47 +146,6 @@ type DeleteStayOptionInput = z.infer<typeof deleteStayOptionSchema>;
 type SelectStayOptionInput = z.infer<typeof selectStayOptionSchema>;
 type UnselectStayOptionInput = DeleteStayOptionInput;
 
-function cleanText(value?: string | null) {
-  return value?.trim() ? value.trim() : null;
-}
-
-function revalidateTripPages(tripId: string) {
-  revalidatePath(`/dashboard/trips/${tripId}`);
-  revalidatePath(`/dashboard/trips/${tripId}/edit`);
-  revalidatePath("/dashboard/new");
-}
-
-async function verifyTripOwnership(tripId: string, userId: string) {
-  return prisma.trip.findFirst({
-    where: {
-      id: tripId,
-      userId,
-    },
-    select: {
-      id: true,
-    },
-  });
-}
-
-async function verifyTripDayBelongsToTrip(
-  tripDayId: string | null | undefined,
-  tripId: string
-) {
-  if (!tripDayId) return true;
-
-  const tripDay = await prisma.tripDay.findFirst({
-    where: {
-      id: tripDayId,
-      tripId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return Boolean(tripDay);
-}
-
 export async function createStayOptionAction(input: CreateStayOptionInput) {
   try {
     const session = await getServerSession(authOptions);
@@ -219,7 +183,7 @@ export async function createStayOptionAction(input: CreateStayOptionInput) {
       isSelected,
     } = parsedInput.data;
 
-    const trip = await verifyTripOwnership(tripId, session.user.id);
+    const trip = await findOwnedTrip(tripId, session.user.id);
 
     if (!trip) {
       return {
@@ -228,7 +192,7 @@ export async function createStayOptionAction(input: CreateStayOptionInput) {
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -242,17 +206,17 @@ export async function createStayOptionAction(input: CreateStayOptionInput) {
         tripId,
         tripDayId: tripDayId || null,
         name,
-        city: cleanText(city),
-        area: cleanText(area),
+        city: cleanNullableText(city),
+        area: cleanNullableText(area),
         stayType,
         budgetLevel,
         pricePerNight,
         nights,
         totalCost,
         isSelected: isSelected ?? true,
-        bestFor: cleanText(bestFor),
+        bestFor: cleanNullableText(bestFor),
         source: "USER_ADDED",
-        notes: cleanText(notes),
+        notes: cleanNullableText(notes),
       },
       select: {
         id: true,
@@ -263,7 +227,7 @@ export async function createStayOptionAction(input: CreateStayOptionInput) {
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -338,7 +302,7 @@ export async function updateStayOptionAction(input: UpdateStayOptionInput) {
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -354,21 +318,21 @@ export async function updateStayOptionAction(input: UpdateStayOptionInput) {
       data: {
         tripDayId: tripDayId || null,
         name,
-        city: cleanText(city),
-        area: cleanText(area),
+        city: cleanNullableText(city),
+        area: cleanNullableText(area),
         stayType,
         budgetLevel,
         pricePerNight,
         nights,
         totalCost,
-        bestFor: cleanText(bestFor),
-        notes: cleanText(notes),
+        bestFor: cleanNullableText(bestFor),
+        notes: cleanNullableText(notes),
         ...(typeof isSelected === "boolean" ? { isSelected } : {}),
       },
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -434,7 +398,7 @@ export async function deleteStayOptionAction(input: DeleteStayOptionInput) {
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -493,7 +457,7 @@ export async function selectStayOptionAction(input: SelectStayOptionInput) {
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -513,7 +477,7 @@ export async function selectStayOptionAction(input: SelectStayOptionInput) {
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -529,9 +493,7 @@ export async function selectStayOptionAction(input: SelectStayOptionInput) {
   }
 }
 
-export async function unselectStayOptionAction(
-  input: UnselectStayOptionInput
-) {
+export async function unselectStayOptionAction(input: UnselectStayOptionInput) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -584,7 +546,7 @@ export async function unselectStayOptionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,

@@ -12,13 +12,33 @@ import {
 } from "@/lib/ai/schemas/generated-trip.schema";
 
 const DAYS_PER_CHUNK = 3;
+const CHUNK_GENERATION_CONCURRENCY = 1;
+const MAX_ATTEMPTS_PER_MODEL = 1;
+const MAX_REQUESTS_PER_CHUNK = 2;
+const MAX_SCHEMA_REPAIR_ATTEMPTS = 2;
+const MAX_CHUNK_API_ATTEMPTS = 3;
+
+const chunkGenerationConfig = {
+  responseMimeType: "application/json",
+  temperature: 0.35,
+  maxOutputTokens: 8192,
+};
+
+export const longTripGenerationPolicy = {
+  daysPerChunk: DAYS_PER_CHUNK,
+  concurrency: CHUNK_GENERATION_CONCURRENCY,
+  maxAttemptsPerModel: MAX_ATTEMPTS_PER_MODEL,
+  maxRequestsPerChunk: MAX_REQUESTS_PER_CHUNK,
+  schemaRepairAttempts: MAX_SCHEMA_REPAIR_ATTEMPTS,
+  apiAttempts: MAX_CHUNK_API_ATTEMPTS,
+} as const;
 
 type DayRange = {
   startDay: number;
   endDay: number;
 };
 
-function createDayRanges(daysCount: number): DayRange[] {
+export function createDayRanges(daysCount: number): DayRange[] {
   const ranges: DayRange[] = [];
 
   for (let startDay = 1; startDay <= daysCount; startDay += DAYS_PER_CHUNK) {
@@ -137,6 +157,31 @@ function getErrorStatus(error: unknown) {
   return null;
 }
 
+function isRetryableChunkError(error: unknown) {
+  const status = getErrorStatus(error);
+  return (
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504
+  );
+}
+
+function getChunkRetryDelay(apiAttempt: number) {
+  return apiAttempt * 2500;
+}
+
+function getLongTripGenerationModels() {
+  return [
+    process.env.GEMINI_FALLBACK_MODEL ?? "gemini-2.5-flash-lite",
+    process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
+  ];
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 function createChunkGenerationError({
   error,
   range,
@@ -164,55 +209,155 @@ async function generateDaysChunk({
   input: GenerateTripInput;
   range: DayRange;
 }) {
-  try {
-    const prompt = buildGenerateTripDaysChunkPrompt({
-      ...input,
-      startDay: range.startDay,
-      endDay: range.endDay,
-    });
+  const startedAt = Date.now();
+  const rangeLabel = `${range.startDay}-${range.endDay}`;
+  const prompt = buildGenerateTripDaysChunkPrompt({
+    ...input,
+    startDay: range.startDay,
+    endDay: range.endDay,
+  });
 
-    const result = await generateTextWithGemini({
-      prompt,
-    });
+  console.info("AI_TRIP_CHUNK_GENERATION_STARTED", {
+    range: rangeLabel,
+    totalDays: input.daysCount,
+  });
 
-    const json = extractJsonFromAiText(result.text);
-    const parsedChunk = generatedTripChunkSchema.safeParse(json);
+  for (
+    let apiAttempt = 1;
+    apiAttempt <= MAX_CHUNK_API_ATTEMPTS;
+    apiAttempt += 1
+  ) {
+    try {
+      for (
+        let schemaAttempt = 1;
+        schemaAttempt <= MAX_SCHEMA_REPAIR_ATTEMPTS;
+        schemaAttempt += 1
+      ) {
+        const result = await generateTextWithGemini({
+          prompt,
+          config: chunkGenerationConfig,
+          models: getLongTripGenerationModels(),
+          maxAttemptsPerModel: MAX_ATTEMPTS_PER_MODEL,
+          maxRequests: MAX_REQUESTS_PER_CHUNK,
+        });
 
-    if (!parsedChunk.success) {
-      console.error(
-        `AI trip chunk schema validation failed for days ${range.startDay}-${range.endDay}:`,
-        parsedChunk.error.flatten(),
-      );
+        try {
+          const json = extractJsonFromAiText(result.text);
+          const parsedChunk = generatedTripChunkSchema.safeParse(json);
 
-      throw new Error("AI chunk did not match the required schema.");
+          if (!parsedChunk.success) {
+            console.error("AI_TRIP_CHUNK_SCHEMA_INVALID", {
+              range: rangeLabel,
+              apiAttempt,
+              schemaAttempt,
+              issues: parsedChunk.error.issues
+                .slice(0, 3)
+                .map((issue) => issue.path.join(".")),
+            });
+            throw new Error("AI chunk did not match the required schema.");
+          }
+
+          const days = validateChunkDays({
+            days: parsedChunk.data.days,
+            range,
+          });
+
+          console.info("AI_TRIP_CHUNK_GENERATION_SUCCEEDED", {
+            range: rangeLabel,
+            durationMs: Date.now() - startedAt,
+            model: result.modelUsed,
+            finishReason: result.finishReason,
+            apiAttempt,
+            schemaAttempt,
+          });
+
+          return days;
+        } catch (schemaError) {
+          if (schemaAttempt === MAX_SCHEMA_REPAIR_ATTEMPTS) {
+            throw schemaError;
+          }
+
+          console.warn("AI_TRIP_CHUNK_SCHEMA_RETRY", {
+            range: rangeLabel,
+            apiAttempt,
+            schemaAttempt,
+          });
+        }
+      }
+    } catch (error) {
+      const shouldRetry =
+        apiAttempt < MAX_CHUNK_API_ATTEMPTS && isRetryableChunkError(error);
+
+      if (!shouldRetry) {
+        console.error("AI_TRIP_CHUNK_GENERATION_FAILED", {
+          range: rangeLabel,
+          durationMs: Date.now() - startedAt,
+          apiAttempt,
+          status: getErrorStatus(error),
+          message: error instanceof Error ? error.message : "Unknown AI error.",
+        });
+        throw createChunkGenerationError({ error, range });
+      }
+
+      const retryDelayMs = getChunkRetryDelay(apiAttempt);
+      console.warn("AI_TRIP_CHUNK_API_RETRY", {
+        range: rangeLabel,
+        apiAttempt,
+        retryDelayMs,
+        status: getErrorStatus(error),
+      });
+      await sleep(retryDelayMs);
     }
-
-    return validateChunkDays({
-      days: parsedChunk.data.days,
-      range,
-    });
-  } catch (error) {
-    throw createChunkGenerationError({
-      error,
-      range,
-    });
   }
-}
 
+  throw new Error("AI chunk generation retry limit was reached.");
+}
+async function generateChunksWithLimitedConcurrency({
+  input,
+  ranges,
+}: {
+  input: GenerateTripInput;
+  ranges: DayRange[];
+}) {
+  const chunks: GeneratedTripDay[][] = new Array(ranges.length);
+  let nextIndex = 0;
+  let firstFailure: unknown = null;
+
+  async function worker() {
+    while (firstFailure === null) {
+      const index = nextIndex;
+      nextIndex += 1;
+      const range = ranges[index];
+
+      if (!range) return;
+
+      try {
+        chunks[index] = await generateDaysChunk({ input, range });
+      } catch (error) {
+        firstFailure = error;
+        return;
+      }
+    }
+  }
+
+  const workerCount = Math.min(CHUNK_GENERATION_CONCURRENCY, ranges.length);
+  await Promise.all(Array.from({ length: workerCount }, () => worker()));
+
+  if (firstFailure !== null) {
+    throw firstFailure;
+  }
+
+  return chunks;
+}
 export async function generateTripInChunks(
   input: GenerateTripInput,
 ): Promise<GeneratedTrip> {
   const ranges = createDayRanges(input.daysCount);
-  const generatedDays: GeneratedTripDay[] = [];
-
-  for (const range of ranges) {
-    const chunkDays = await generateDaysChunk({
-      input,
-      range,
-    });
-
-    generatedDays.push(...chunkDays);
-  }
+  const generatedChunkDays = await generateChunksWithLimitedConcurrency({
+    input,
+    ranges,
+  });
+  const generatedDays = generatedChunkDays.flat();
 
   const combinedTrip = {
     title: createTripTitle(input),

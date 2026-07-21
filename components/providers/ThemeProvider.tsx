@@ -41,7 +41,7 @@ function getInitialPreference(initialPreference: ThemePreferenceValue) {
 function applyTheme(preference: ThemePreferenceValue) {
   const resolved = resolveTheme(preference);
   const dashboardShell = document.querySelector<HTMLElement>(
-    "[data-dashboard-shell]"
+    "[data-dashboard-shell]",
   );
 
   document.documentElement.classList.remove("dark");
@@ -63,7 +63,7 @@ export function ThemeProvider({
   initialPreference?: ThemePreferenceValue;
 }) {
   const [preference, setPreference] = useState<ThemePreferenceValue>(() =>
-    getInitialPreference(initialPreference)
+    getInitialPreference(initialPreference),
   );
   const setThemePreference = useCallback((next: ThemePreferenceValue) => {
     setPreference(next);
@@ -86,10 +86,12 @@ export function ThemeProvider({
 
   const value = useMemo(
     () => ({ preference, setThemePreference }),
-    [preference, setThemePreference]
+    [preference, setThemePreference],
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 }
 
 export function ThemePreferenceSync({

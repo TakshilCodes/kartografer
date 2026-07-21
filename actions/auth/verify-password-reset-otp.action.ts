@@ -8,15 +8,10 @@ import redis from "@/lib/redis";
 
 const VerifyPasswordResetOtpSchema = z.object({
   email: z.string().email("Invalid email address"),
-  otp: z
-    .string()
-    .min(6, "OTP must be 6 digits")
-    .max(6, "OTP must be 6 digits"),
+  otp: z.string().min(6, "OTP must be 6 digits").max(6, "OTP must be 6 digits"),
 });
 
-type VerifyPasswordResetOtpInput = z.infer<
-  typeof VerifyPasswordResetOtpSchema
->;
+type VerifyPasswordResetOtpInput = z.infer<typeof VerifyPasswordResetOtpSchema>;
 
 type PendingPasswordResetPayload = {
   email: string;
@@ -34,7 +29,7 @@ function getPasswordResetSessionKey(token: string) {
 }
 
 export async function verifyPasswordResetOtpAction(
-  values: VerifyPasswordResetOtpInput
+  values: VerifyPasswordResetOtpInput,
 ) {
   try {
     const parsed = VerifyPasswordResetOtpSchema.safeParse(values);
@@ -80,7 +75,7 @@ export async function verifyPasswordResetOtpAction(
           attempts: pending.attempts + 1,
         }),
         "EX",
-        10 * 60
+        10 * 60,
       );
 
       return {
@@ -99,7 +94,7 @@ export async function verifyPasswordResetOtpAction(
         createdAt: new Date().toISOString(),
       }),
       "EX",
-      10 * 60
+      10 * 60,
     );
 
     await redis.del(otpKey);

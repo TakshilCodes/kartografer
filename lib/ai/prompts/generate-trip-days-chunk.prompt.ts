@@ -14,7 +14,7 @@ function formatBudget(amount: number | null, currency: string) {
 }
 
 export function buildGenerateTripDaysChunkPrompt(
-  input: GenerateTripDaysChunkPromptInput
+  input: GenerateTripDaysChunkPromptInput,
 ) {
   const budget = formatBudget(input.budgetAmount, input.currency);
   const daysInChunk = input.endDay - input.startDay + 1;

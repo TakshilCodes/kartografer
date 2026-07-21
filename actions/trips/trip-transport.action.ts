@@ -1,12 +1,17 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
+import {
+  cleanNullableText,
+  findOwnedTrip,
+  revalidateTripEditorPages,
+  tripDayBelongsToTrip,
+} from "@/actions/trips/trip-action-helpers";
 
 const transportModeSchema = z.enum([
   "FLIGHT",
@@ -120,67 +125,18 @@ const selectTransportOptionSchema = z.object({
   tripDayId: z.string().trim().optional().nullable(),
 });
 
-type CreateTransportOptionInput = z.input<
-  typeof createTransportOptionSchema
->;
+type CreateTransportOptionInput = z.input<typeof createTransportOptionSchema>;
 
-type UpdateTransportOptionInput = z.input<
-  typeof updateTransportOptionSchema
->;
+type UpdateTransportOptionInput = z.input<typeof updateTransportOptionSchema>;
 
-type DeleteTransportOptionInput = z.infer<
-  typeof deleteTransportOptionSchema
->;
+type DeleteTransportOptionInput = z.infer<typeof deleteTransportOptionSchema>;
 
-type SelectTransportOptionInput = z.infer<
-  typeof selectTransportOptionSchema
->;
+type SelectTransportOptionInput = z.infer<typeof selectTransportOptionSchema>;
 
 type UnselectTransportOptionInput = DeleteTransportOptionInput;
 
-function cleanText(value?: string | null) {
-  return value?.trim() ? value.trim() : null;
-}
-
-function revalidateTripPages(tripId: string) {
-  revalidatePath(`/dashboard/trips/${tripId}`);
-  revalidatePath(`/dashboard/trips/${tripId}/edit`);
-  revalidatePath("/dashboard/new");
-}
-
-async function verifyTripOwnership(tripId: string, userId: string) {
-  return prisma.trip.findFirst({
-    where: {
-      id: tripId,
-      userId,
-    },
-    select: {
-      id: true,
-    },
-  });
-}
-
-async function verifyTripDayBelongsToTrip(
-  tripDayId: string | null | undefined,
-  tripId: string
-) {
-  if (!tripDayId) return true;
-
-  const tripDay = await prisma.tripDay.findFirst({
-    where: {
-      id: tripDayId,
-      tripId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return Boolean(tripDay);
-}
-
 export async function createTransportOptionAction(
-  input: CreateTransportOptionInput
+  input: CreateTransportOptionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -218,7 +174,7 @@ export async function createTransportOptionAction(
       isSelected,
     } = parsedInput.data;
 
-    const trip = await verifyTripOwnership(tripId, session.user.id);
+    const trip = await findOwnedTrip(tripId, session.user.id);
 
     if (!trip) {
       return {
@@ -227,7 +183,7 @@ export async function createTransportOptionAction(
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -242,15 +198,15 @@ export async function createTransportOptionAction(
         tripDayId: tripDayId || null,
         title,
         mode,
-        fromText: cleanText(fromText),
-        toText: cleanText(toText),
-        description: cleanText(description),
+        fromText: cleanNullableText(fromText),
+        toText: cleanNullableText(toText),
+        description: cleanNullableText(description),
         costType,
         pricePerPerson,
         totalCost,
         isSelected: isSelected ?? true,
         source: "USER_ADDED",
-        notes: cleanText(notes),
+        notes: cleanNullableText(notes),
       },
       select: {
         id: true,
@@ -261,7 +217,7 @@ export async function createTransportOptionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -279,7 +235,7 @@ export async function createTransportOptionAction(
 }
 
 export async function updateTransportOptionAction(
-  input: UpdateTransportOptionInput
+  input: UpdateTransportOptionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -338,7 +294,7 @@ export async function updateTransportOptionAction(
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -355,19 +311,19 @@ export async function updateTransportOptionAction(
         tripDayId: tripDayId || null,
         title,
         mode,
-        fromText: cleanText(fromText),
-        toText: cleanText(toText),
-        description: cleanText(description),
+        fromText: cleanNullableText(fromText),
+        toText: cleanNullableText(toText),
+        description: cleanNullableText(description),
         costType,
         pricePerPerson,
         totalCost,
-        notes: cleanText(notes),
+        notes: cleanNullableText(notes),
         ...(typeof isSelected === "boolean" ? { isSelected } : {}),
       },
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -384,7 +340,7 @@ export async function updateTransportOptionAction(
 }
 
 export async function deleteTransportOptionAction(
-  input: DeleteTransportOptionInput
+  input: DeleteTransportOptionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -436,7 +392,7 @@ export async function deleteTransportOptionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -453,7 +409,7 @@ export async function deleteTransportOptionAction(
 }
 
 export async function selectTransportOptionAction(
-  input: SelectTransportOptionInput
+  input: SelectTransportOptionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -498,7 +454,7 @@ export async function selectTransportOptionAction(
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -518,7 +474,7 @@ export async function selectTransportOptionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -535,7 +491,7 @@ export async function selectTransportOptionAction(
 }
 
 export async function unselectTransportOptionAction(
-  input: UnselectTransportOptionInput
+  input: UnselectTransportOptionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -590,7 +546,7 @@ export async function unselectTransportOptionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,

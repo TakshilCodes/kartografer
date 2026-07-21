@@ -30,7 +30,7 @@ function hashIdentifier(value: string) {
 
 function getHeaderValue(
   headers: Record<string, unknown> | undefined,
-  name: string
+  name: string,
 ) {
   const value = headers?.[name] ?? headers?.[name.toLowerCase()];
 
@@ -53,13 +53,13 @@ function getClientIp(headers: Record<string, unknown> | undefined) {
 
 async function consumeLimit(
   key: string,
-  limit: number
+  limit: number,
 ): Promise<RateLimitResult> {
   const result = (await redis.eval(
     consumeScript,
     1,
     key,
-    LOGIN_WINDOW_SECONDS
+    LOGIN_WINDOW_SECONDS,
   )) as [number | string, number | string];
 
   const count = Number(result[0]);
@@ -106,7 +106,7 @@ export async function consumeLoginAttempt({
       retryAfterSeconds:
         blockedResults.length > 0
           ? Math.max(
-              ...blockedResults.map((result) => result.retryAfterSeconds)
+              ...blockedResults.map((result) => result.retryAfterSeconds),
             )
           : 0,
     };

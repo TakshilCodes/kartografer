@@ -24,9 +24,14 @@ function getErrorMessage(error: unknown) {
   return String(error).toLowerCase();
 }
 
+function getFailedChunkRange(error: unknown) {
+  const match = getErrorMessage(error).match(/days\s+(\d+)\s*-\s*(\d+)/i);
+  return match ? ` The day ${match[1]}-${match[2]} section could not be generated.` : "";
+}
 export function getAiGenerationErrorDetails(error: unknown): AiErrorDetails {
   const status = getErrorStatus(error);
   const message = getErrorMessage(error);
+  const failedChunkRange = getFailedChunkRange(error);
 
   if (
     status === 429 ||
@@ -39,7 +44,8 @@ export function getAiGenerationErrorDetails(error: unknown): AiErrorDetails {
     return {
       errorKind: "AI_RATE_LIMIT",
       error:
-        "AI trip generation limit has been reached for now. Your trip draft was saved, but the itinerary could not be generated yet.",
+        "AI trip generation limit has been reached for now. Your trip draft was saved, but the itinerary could not be generated yet." +
+          failedChunkRange,
     };
   }
 
@@ -55,27 +61,30 @@ export function getAiGenerationErrorDetails(error: unknown): AiErrorDetails {
     return {
       errorKind: "AI_BUSY",
       error:
-        "Kartografer AI is in high demand right now. Your trip draft was saved, but the itinerary could not be generated yet.",
+        "Kartografer AI is in high demand right now. Your trip draft was saved, but the itinerary could not be generated yet." +
+          failedChunkRange,
     };
   }
 
   return {
     errorKind: "AI_FAILED",
     error:
-      "Kartografer AI could not generate the itinerary right now. Your trip draft was saved, so you can open it and edit manually.",
+      "Kartografer AI could not generate the itinerary right now. Your trip draft was saved, so you can open it and edit manually." +
+        failedChunkRange,
   };
 }
 
 export function getRetryAiErrorMessage(error: unknown) {
   const details = getAiGenerationErrorDetails(error);
+  const failedChunkRange = getFailedChunkRange(error);
 
   if (details.errorKind === "AI_RATE_LIMIT") {
-    return "AI trip generation limit has been reached for now. Please try again in a few minutes.";
+    return "AI trip generation limit has been reached for now. Please try again in a few minutes." + failedChunkRange;
   }
 
   if (details.errorKind === "AI_BUSY") {
-    return "Kartografer AI is currently busy. Please try again in a few minutes.";
+    return "Kartografer AI is currently busy. Please try again in a few minutes." + failedChunkRange;
   }
 
-  return "Kartografer AI could not generate this itinerary right now. Please try again in a few minutes.";
+  return "Kartografer AI could not generate this itinerary right now. Please try again in a few minutes." + failedChunkRange;
 }

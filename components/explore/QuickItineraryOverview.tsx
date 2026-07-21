@@ -10,7 +10,9 @@ type QuickItineraryOverviewProps = {
   }>;
 };
 
-export default function QuickItineraryOverview({ days }: QuickItineraryOverviewProps) {
+export default function QuickItineraryOverview({
+  days,
+}: QuickItineraryOverviewProps) {
   const [activeDay, setActiveDay] = useState(days[0]?.dayNumber ?? 1);
   const dayNumbers = useMemo(() => days.map((day) => day.dayNumber), [days]);
 
@@ -24,7 +26,9 @@ export default function QuickItineraryOverview({ days }: QuickItineraryOverviewP
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
 
         const firstVisible = visibleEntries[0];
-        const dayNumber = Number(firstVisible?.target.getAttribute("data-day-number"));
+        const dayNumber = Number(
+          firstVisible?.target.getAttribute("data-day-number"),
+        );
 
         if (dayNumber && dayNumbers.includes(dayNumber)) {
           setActiveDay(dayNumber);
@@ -34,7 +38,7 @@ export default function QuickItineraryOverview({ days }: QuickItineraryOverviewP
         root: null,
         rootMargin: "-24% 0px -62% 0px",
         threshold: [0.05, 0.15, 0.3, 0.55],
-      }
+      },
     );
 
     dayNumbers.forEach((dayNumber) => {
@@ -56,7 +60,10 @@ export default function QuickItineraryOverview({ days }: QuickItineraryOverviewP
   if (days.length === 0) return null;
 
   return (
-    <nav className="rounded-[28px] border border-border bg-card p-5 shadow-sm" aria-label="Day plan overview">
+    <nav
+      className="rounded-[28px] border border-border bg-card p-5 shadow-sm"
+      aria-label="Day plan overview"
+    >
       <h2 className="text-lg font-black text-foreground">Day Plan</h2>
       <div className="mt-4">
         <div className="relative space-y-1">
@@ -88,7 +95,9 @@ export default function QuickItineraryOverview({ days }: QuickItineraryOverviewP
                   }`}
                 >
                   <span className="shrink-0">Day {day.dayNumber}</span>
-                  <span className={`min-w-0 truncate text-xs font-bold ${isActive ? "text-primary/85" : "text-muted-foreground"}`}>
+                  <span
+                    className={`min-w-0 truncate text-xs font-bold ${isActive ? "text-primary/85" : "text-muted-foreground"}`}
+                  >
                     {day.title}
                   </span>
                 </span>

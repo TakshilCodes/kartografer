@@ -1,7 +1,13 @@
 "use client";
 
 import type { FormEvent, ReactNode } from "react";
-import { useEffect, useLayoutEffect, useRef, useState, useTransition } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useTransition,
+} from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -17,7 +23,10 @@ import {
   X,
 } from "lucide-react";
 
-import { deleteTripAction, renameTripAction } from "@/actions/trips/trip.action";
+import {
+  deleteTripAction,
+  renameTripAction,
+} from "@/actions/trips/trip.action";
 import ItemActionsMenu from "@/components/trips/edit/ItemActionsMenu";
 import LogoutButton from "@/components/shared/LogoutButton";
 import BrandLogo from "@/components/shared/BrandLogo";
@@ -60,10 +69,11 @@ function SidebarLink({ href, icon, label, onClick }: SidebarLinkProps) {
     <Link
       href={href}
       onClick={onClick}
-      className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition ${active
-        ? "bg-primary text-primary-foreground shadow-sm"
-        : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
-        }`}
+      className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 text-sm font-bold transition ${
+        active
+          ? "bg-primary text-primary-foreground shadow-sm"
+          : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
+      }`}
     >
       <span className="shrink-0">{icon}</span>
       <span className="truncate">{label}</span>
@@ -104,7 +114,9 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
     );
 
     return () => {
-      document.documentElement.style.removeProperty("--dashboard-sidebar-width");
+      document.documentElement.style.removeProperty(
+        "--dashboard-sidebar-width",
+      );
     };
   }, []);
 
@@ -123,10 +135,7 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
         "--dashboard-sidebar-width",
         `${nextWidth}px`,
       );
-      window.localStorage.setItem(
-        SIDEBAR_WIDTH_STORAGE_KEY,
-        String(nextWidth),
-      );
+      window.localStorage.setItem(SIDEBAR_WIDTH_STORAGE_KEY, String(nextWidth));
     }
 
     function handleMouseUp() {
@@ -154,7 +163,6 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
     };
   }, [isResizingSidebar]);
 
-
   useEffect(() => {
     if (!actionError) return;
 
@@ -168,7 +176,6 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
   function closeMobileSidebar() {
     setIsMobileSidebarOpen(false);
   }
-
 
   function openRenameModal(trip: RecentTrip) {
     setActionError("");
@@ -283,8 +290,9 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
       ) : null}
 
       <aside
-        className={`fixed left-0 top-0 z-50 flex h-dvh min-h-0 w-72 shrink-0 flex-col overflow-hidden border-r border-border bg-dashboard lg:z-40 lg:w-(--dashboard-sidebar-width,18rem) lg:translate-x-0 ${isResizingSidebar ? "transition-none" : "transition-[width,transform] duration-300"} ${isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+        className={`fixed left-0 top-0 z-50 flex h-dvh min-h-0 w-72 shrink-0 flex-col overflow-hidden border-r border-border bg-dashboard lg:z-40 lg:w-(--dashboard-sidebar-width,18rem) lg:translate-x-0 ${isResizingSidebar ? "transition-none" : "transition-[width,transform] duration-300"} ${
+          isMobileSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         {/* Top/logo area */}
         <div className="shrink-0 px-4 pt-4">
@@ -354,10 +362,11 @@ export default function SidebarClient({ recentTrips }: SidebarClientProps) {
                   return (
                     <div
                       key={trip.id}
-                      className={`flex items-center gap-2 rounded-2xl py-1.5 pl-3 pr-1.5 text-sm font-bold transition ${active
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
-                        }`}
+                      className={`flex items-center gap-2 rounded-2xl py-1.5 pl-3 pr-1.5 text-sm font-bold transition ${
+                        active
+                          ? "bg-primary text-primary-foreground shadow-sm"
+                          : "text-secondary-foreground hover:bg-card-hover hover:text-foreground"
+                      }`}
                     >
                       <Link
                         href={href}

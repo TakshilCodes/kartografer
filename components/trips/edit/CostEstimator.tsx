@@ -80,9 +80,7 @@ export default function CostEstimator({
   const foodCost = getNumberValue(costBreakdown?.foodCost);
   const activityCost = getNumberValue(costBreakdown?.activityCost);
   const miscCost = getNumberValue(costBreakdown?.miscCost);
-  const totalEstimatedCost = getNumberValue(
-    costBreakdown?.totalEstimatedCost
-  );
+  const totalEstimatedCost = getNumberValue(costBreakdown?.totalEstimatedCost);
   const budgetAmount = getNumberValue(costBreakdown?.userBudget ?? userBudget);
   const budgetStatus = costBreakdown?.budgetStatus ?? "UNKNOWN";
   const usedPercent =
@@ -143,7 +141,7 @@ export default function CostEstimator({
 
             <span
               className={`w-fit rounded-full px-3 py-1.5 text-xs font-black ${getBudgetStatusClass(
-                budgetStatus
+                budgetStatus,
               )}`}
             >
               {getBudgetStatusLabel(budgetStatus)}

@@ -81,10 +81,7 @@ export default function HeroSplineScene({
 
 function SplineSkeleton() {
   return (
-    <div
-      className="absolute inset-0 overflow-hidden"
-      aria-hidden="true"
-    >
+    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
       <div className="absolute inset-[12%] animate-pulse rounded-[42%] bg-primary/[0.035] blur-3xl" />
 
       <div className="absolute left-[15%] top-[32%] h-[38%] w-[68%] animate-pulse rounded-[45%] bg-primary/4.5" />

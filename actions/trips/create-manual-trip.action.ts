@@ -33,7 +33,7 @@ function revalidateTripPages(tripId: string) {
 }
 
 export async function createManualTripAction(
-  input: unknown
+  input: unknown,
 ): Promise<CreateManualTripResult> {
   try {
     const session = await getServerSession(authOptions);

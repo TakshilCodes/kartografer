@@ -2,55 +2,53 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-
-
   /* Main backgrounds */
   --background: #ffffff;
   --dashboard: #ffffff;
-  --card: #FFFFFF;
-  --card-secondary: #F1E4D0;
-  --card-hover: #EFE0C8;
+  --card: #ffffff;
+  --card-secondary: #f1e4d0;
+  --card-hover: #efe0c8;
 
   /* Text */
 
-  --foreground: #1F1408;
-  --muted-foreground: #1F1101;
+  --foreground: #1f1408;
+  --muted-foreground: #1f1101;
   --secondary-foreground: #54371d;
 
   /* Brand */
 
   --primary: #54371d;
-  --primary-foreground: #FFF8ED;
-  --primary-hover: #6B4727;
+  --primary-foreground: #fff8ed;
+  --primary-hover: #6b4727;
 
   /* Buttons / accents */
 
-  --secondary: #EAD8BD;
+  --secondary: #ead8bd;
   --secondary-foreground: #54371d;
-  --secondary-hover: #DFC49D;
-  --accent: #1F1101;
+  --secondary-hover: #dfc49d;
+  --accent: #1f1101;
   --accent-foreground: #54371d;
 
   /* Borders / inputs */
 
-  --border: #E2D4BF;
-  --input: #FFFDF8;
-  --ring: #C0843E;
+  --border: #e2d4bf;
+  --input: #fffdf8;
+  --ring: #c0843e;
 
   /* States */
 
-  --danger: #4A2A16;
-  --danger-hover: #5A341C;
-  --danger-foreground: #FFF8ED;
-  --warning: #8A5A1F;
-  --warning-hover: #9A6728;
-  --warning-foreground: #FFF8ED;
-  --success: #4B5A24;
-  --success-hover: #5D6B2E;
-  --success-foreground: #FFF8ED;
-  --selected: #D8B98C;
-  --selected-hover: #CFAE7E;
-  --selected-foreground: #2B1A0A;
+  --danger: #4a2a16;
+  --danger-hover: #5a341c;
+  --danger-foreground: #fff8ed;
+  --warning: #8a5a1f;
+  --warning-hover: #9a6728;
+  --warning-foreground: #fff8ed;
+  --success: #4b5a24;
+  --success-hover: #5d6b2e;
+  --success-foreground: #fff8ed;
+  --selected: #d8b98c;
+  --selected-hover: #cfae7e;
+  --selected-foreground: #2b1a0a;
 }
 
 /* .dark {
@@ -144,9 +142,15 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-display: var(--font-inter), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-mono: var(--font-inter), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  --font-display:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, sans-serif;
+  --font-mono:
+    var(--font-inter), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    monospace;
 
   --color-background: var(--background);
   --color-dashboard: var(--dashboard);
@@ -374,7 +378,6 @@ td {
 }
 
 @keyframes soft-glow {
-
   0%,
   100% {
     opacity: 0.45;
@@ -418,7 +421,6 @@ td {
 .animate-soft-glow {
   animation: soft-glow 5s ease-in-out infinite;
 }
-
 
 .animate-slide-fade-in {
   animation: slide-fade-in 0.25s ease-out both;
@@ -488,7 +490,7 @@ td {
 
 .border-glow-card::before,
 .border-glow-card::after,
-.border-glow-card>.edge-light {
+.border-glow-card > .edge-light {
   content: "";
   position: absolute;
   inset: 0;
@@ -499,7 +501,7 @@ td {
 
 .border-glow-card:not(:hover):not(.sweep-active)::before,
 .border-glow-card:not(:hover):not(.sweep-active)::after,
-.border-glow-card:not(:hover):not(.sweep-active)>.edge-light {
+.border-glow-card:not(:hover):not(.sweep-active) > .edge-light {
   opacity: 0.16;
   transition: opacity 0.75s ease-in-out;
 }
@@ -521,7 +523,7 @@ td {
   opacity: var(--fill-opacity, 0.22);
 }
 
-.border-glow-card:hover>.edge-light {
+.border-glow-card:hover > .edge-light {
   opacity: 0.82;
 }
 
@@ -539,13 +541,18 @@ td {
     var(--gradient-seven) border-box,
     var(--gradient-base) border-box;
 
-  opacity: calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  opacity: calc(
+    (var(--edge-proximity) - var(--color-sensitivity)) /
+      (100 - var(--color-sensitivity))
+  );
 
-  mask-image: conic-gradient(from var(--cursor-angle) at center,
-      black calc(var(--cone-spread) * 1%),
-      transparent calc((var(--cone-spread) + 15) * 1%),
-      transparent calc((100 - var(--cone-spread) - 15) * 1%),
-      black calc((100 - var(--cone-spread)) * 1%));
+  mask-image: conic-gradient(
+    from var(--cursor-angle) at center,
+    black calc(var(--cone-spread) * 1%),
+    transparent calc((var(--cone-spread) + 15) * 1%),
+    transparent calc((100 - var(--cone-spread) - 15) * 1%),
+    black calc((100 - var(--cone-spread)) * 1%)
+  );
 }
 
 .border-glow-card::after {
@@ -567,32 +574,43 @@ td {
     radial-gradient(ellipse at 33% 33%, black 5%, transparent 40%),
     radial-gradient(ellipse at 66% 33%, black 5%, transparent 40%),
     radial-gradient(ellipse at 33% 66%, black 5%, transparent 40%),
-    conic-gradient(from var(--cursor-angle) at center,
+    conic-gradient(
+      from var(--cursor-angle) at center,
       transparent 5%,
       black 15%,
       black 85%,
-      transparent 95%);
+      transparent 95%
+    );
 
   mask-composite: subtract, add, add, add, add, add;
-  opacity: calc(var(--fill-opacity, 0.22) * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  opacity: calc(
+    var(--fill-opacity, 0.22) *
+      (var(--edge-proximity) - var(--color-sensitivity)) /
+      (100 - var(--color-sensitivity))
+  );
   mix-blend-mode: soft-light;
 }
 
-.border-glow-card>.edge-light {
+.border-glow-card > .edge-light {
   inset: calc(var(--glow-padding) * -1);
   z-index: 1;
   pointer-events: none;
   mix-blend-mode: plus-lighter;
-  opacity: calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+  opacity: calc(
+    (var(--edge-proximity) - var(--edge-sensitivity)) /
+      (100 - var(--edge-sensitivity))
+  );
 
-  mask-image: conic-gradient(from var(--cursor-angle) at center,
-      black 2.5%,
-      transparent 10%,
-      transparent 90%,
-      black 97.5%);
+  mask-image: conic-gradient(
+    from var(--cursor-angle) at center,
+    black 2.5%,
+    transparent 10%,
+    transparent 90%,
+    black 97.5%
+  );
 }
 
-.border-glow-card>.edge-light::before {
+.border-glow-card > .edge-light::before {
   content: "";
   position: absolute;
   inset: var(--glow-padding);
@@ -682,15 +700,27 @@ td {
 }
 
 .kg-landing {
-  --shadow-paper: 0 1px 0 rgba(60, 40, 20, 0.04), 0 8px 24px -12px rgba(60, 40, 20, 0.18);
-  --shadow-card: 0 1px 0 rgba(60, 40, 20, 0.05), 0 12px 32px -18px rgba(60, 40, 20, 0.22);
+  --shadow-paper:
+    0 1px 0 rgba(60, 40, 20, 0.04), 0 8px 24px -12px rgba(60, 40, 20, 0.18);
+  --shadow-card:
+    0 1px 0 rgba(60, 40, 20, 0.05), 0 12px 32px -18px rgba(60, 40, 20, 0.22);
   --shadow-float: 0 24px 60px -28px rgba(60, 40, 20, 0.35);
   --paper-noise:
-    radial-gradient(circle at 20% 30%, rgba(180, 140, 80, 0.05) 0, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(120, 90, 50, 0.04) 0, transparent 40%);
+    radial-gradient(
+      circle at 20% 30%,
+      rgba(180, 140, 80, 0.05) 0,
+      transparent 40%
+    ),
+    radial-gradient(
+      circle at 80% 70%,
+      rgba(120, 90, 50, 0.04) 0,
+      transparent 40%
+    );
   --grid-lines:
-    linear-gradient(rgba(60, 40, 20, 0.045) 1px, transparent 1px) 0 0 / 40px 40px,
-    linear-gradient(90deg, rgba(60, 40, 20, 0.045) 1px, transparent 1px) 0 0 / 40px 40px;
+    linear-gradient(rgba(60, 40, 20, 0.045) 1px, transparent 1px) 0 0 / 40px
+      40px,
+    linear-gradient(90deg, rgba(60, 40, 20, 0.045) 1px, transparent 1px) 0 0 /
+      40px 40px;
   background-color: var(--background);
   background-image: var(--paper-noise);
 }
@@ -718,7 +748,13 @@ td {
 
 .kg-landing .ink-rule {
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--foreground) 20%, var(--foreground) 80%, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--foreground) 20%,
+    var(--foreground) 80%,
+    transparent
+  );
 }
 
 .kg-landing .chip {
@@ -742,7 +778,11 @@ td {
 
 .kg-landing .chip-blue {
   background: color-mix(in oklab, var(--secondary-foreground) 10%, transparent);
-  border-color: color-mix(in oklab, var(--secondary-foreground) 22%, transparent);
+  border-color: color-mix(
+    in oklab,
+    var(--secondary-foreground) 22%,
+    transparent
+  );
   color: var(--secondary-foreground);
 }
 

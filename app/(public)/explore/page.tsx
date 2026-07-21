@@ -49,7 +49,8 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
             Explore Trips
           </h1>
           <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-secondary-foreground sm:text-base">
-            Discover public itineraries and use them as a starting point for your own trip.
+            Discover public itineraries and use them as a starting point for
+            your own trip.
           </p>
         </header>
 
@@ -57,7 +58,8 @@ export default async function ExplorePage({ searchParams }: ExplorePageProps) {
 
         <div className="flex items-center justify-between gap-4 px-1">
           <p className="text-sm font-bold text-secondary-foreground">
-            {result.totalCount} {result.totalCount === 1 ? "trip" : "trips"} found
+            {result.totalCount} {result.totalCount === 1 ? "trip" : "trips"}{" "}
+            found
           </p>
           <p className="text-sm font-bold text-secondary-foreground">
             Page {result.currentPage} of {result.totalPages}

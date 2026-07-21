@@ -7,8 +7,6 @@ import type { ReactNode } from "react";
 import LandingSectionHeading from "@/components/landing/LandingSectionHeading";
 import styles from "@/components/landing/Landing.module.css";
 
-
-
 const revealViewport = { once: true, amount: 0.15 } as const;
 const smoothEase = [0.22, 1, 0.36, 1] as const;
 
@@ -139,9 +137,7 @@ function AiChatPanel({ reducedMotion }: { reducedMotion: boolean }) {
         </motion.div>
 
         <motion.div
-          initial={
-            reducedMotion ? false : { opacity: 0, x: 18, y: 22 }
-          }
+          initial={reducedMotion ? false : { opacity: 0, x: 18, y: 22 }}
           whileInView={{ opacity: 1, x: 0, y: 0 }}
           viewport={revealViewport}
           transition={{ duration: 0.78, delay: 0.12, ease: smoothEase }}

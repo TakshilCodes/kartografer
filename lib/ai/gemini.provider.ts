@@ -1,11 +1,25 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, type GenerateContentConfig } from "@google/genai";
 
 type GenerateTextWithGeminiInput = {
   prompt: string;
+  config?: GenerateContentConfig;
+  /** Keeps interactive callers from waiting through every key/model retry. */
+  maxAttemptsPerModel?: number;
+  maxRequests?: number;
+  /** Internal callers can prefer a model order for a specific workload. */
+  models?: string[];
 };
 
 type GenerateTextWithGeminiResult = {
   text: string;
+  modelUsed: string;
+  finishReason: string | null;
+  usage: {
+    promptTokenCount: number | null;
+    candidatesTokenCount: number | null;
+    thoughtsTokenCount: number | null;
+    totalTokenCount: number | null;
+  } | null;
 };
 
 function sleep(ms: number) {
@@ -52,25 +66,33 @@ function isRetryableGeminiError(error: unknown) {
   );
 }
 
-function getGeminiModels() {
-  return [
+function getGeminiModels(preferredModels?: string[]) {
+  const configuredModels = [
     process.env.GEMINI_MODEL ?? "gemini-2.5-flash",
     process.env.GEMINI_FALLBACK_MODEL ?? "gemini-2.5-flash-lite",
   ];
+  const models = preferredModels?.length
+    ? preferredModels
+    : configuredModels;
+
+  return [...new Set(models.filter(Boolean))];
 }
 
 async function generateWithModel({
   ai,
   model,
   prompt,
+  config,
 }: {
   ai: GoogleGenAI;
   model: string;
   prompt: string;
-}) {
+  config?: GenerateContentConfig;
+}): Promise<GenerateTextWithGeminiResult> {
   const response = await ai.models.generateContent({
     model,
     contents: prompt,
+    config,
   });
 
   const text = response.text;
@@ -79,14 +101,30 @@ async function generateWithModel({
     throw new Error(`Gemini model ${model} returned an empty response.`);
   }
 
-  return text;
+  const usage = response.usageMetadata;
+  return {
+    text,
+    modelUsed: response.modelVersion ?? model,
+    finishReason: response.candidates?.[0]?.finishReason ?? null,
+    usage: usage
+      ? {
+          promptTokenCount: usage.promptTokenCount ?? null,
+          candidatesTokenCount: usage.candidatesTokenCount ?? null,
+          thoughtsTokenCount: usage.thoughtsTokenCount ?? null,
+          totalTokenCount: usage.totalTokenCount ?? null,
+        }
+      : null,
+  };
 }
 
 export async function generateTextWithGemini(
   input: GenerateTextWithGeminiInput,
 ): Promise<GenerateTextWithGeminiResult> {
   const apiKeys = getGeminiApiKeys();
-  const models = getGeminiModels();
+  const models = getGeminiModels(input.models);
+  const maxAttemptsPerModel = input.maxAttemptsPerModel ?? 3;
+  const maxRequests = input.maxRequests ?? Number.POSITIVE_INFINITY;
+  let requestCount = 0;
   let lastError: unknown = null;
 
   for (const [keyIndex, apiKey] of apiKeys.entries()) {
@@ -95,17 +133,22 @@ export async function generateTextWithGemini(
     });
 
     for (const [modelIndex, model] of models.entries()) {
-      for (let attempt = 1; attempt <= 3; attempt++) {
+      for (let attempt = 1; attempt <= maxAttemptsPerModel; attempt++) {
+        if (requestCount >= maxRequests) {
+          throw lastError instanceof Error
+            ? lastError
+            : new Error(
+                "Gemini request limit reached before a response was returned.",
+              );
+        }
         try {
-          const text = await generateWithModel({
+          requestCount += 1;
+          return await generateWithModel({
             ai,
             model,
             prompt: input.prompt,
+            config: input.config,
           });
-
-          return {
-            text,
-          };
         } catch (error) {
           lastError = error;
 
@@ -113,13 +156,13 @@ export async function generateTextWithGemini(
             throw error;
           }
 
-          const isLastAttempt = attempt === 3;
+          const isLastAttempt = attempt === maxAttemptsPerModel;
 
           if (!isLastAttempt) {
             const delay = attempt * 1500;
 
             console.warn(
-              `Gemini request failed with retryable error. Retrying ${attempt + 1}/3 in ${delay}ms...`,
+              `Gemini request failed with retryable error. Retrying ${attempt + 1}/${maxAttemptsPerModel} in ${delay}ms...`,
             );
 
             await sleep(delay);

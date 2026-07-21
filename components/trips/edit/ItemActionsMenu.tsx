@@ -46,7 +46,6 @@ export default function ItemActionsMenu({
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-
   useEffect(() => {
     if (!isOpen) return;
 
@@ -59,10 +58,7 @@ export default function ItemActionsMenu({
       const menuWidth = 208;
       const viewportPadding = 12;
 
-      let left =
-        align === "left"
-          ? rect.left
-          : rect.right - menuWidth;
+      let left = align === "left" ? rect.left : rect.right - menuWidth;
 
       left = Math.max(
         viewportPadding,
@@ -125,8 +121,8 @@ export default function ItemActionsMenu({
 
   const portalTarget =
     typeof document !== "undefined"
-      ? document.querySelector<HTMLElement>("[data-dashboard-shell]") ??
-        document.body
+      ? (document.querySelector<HTMLElement>("[data-dashboard-shell]") ??
+        document.body)
       : null;
 
   const menu =

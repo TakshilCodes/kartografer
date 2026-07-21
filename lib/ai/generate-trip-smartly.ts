@@ -1,7 +1,4 @@
-import {
-  generateTripWithAi,
-  type GenerateTripInput,
-} from "@/lib/ai/ai-client";
+import { generateTripWithAi, type GenerateTripInput } from "@/lib/ai/ai-client";
 import { generateTripInChunks } from "@/lib/ai/generate-trip-in-chunks";
 import type { GeneratedTrip } from "@/lib/ai/schemas/generated-trip.schema";
 import {
@@ -14,7 +11,7 @@ import {
 const CHUNKED_GENERATION_DAY_THRESHOLD = 7;
 
 export async function generateTripSmartly(
-  input: GenerateTripInput
+  input: GenerateTripInput,
 ): Promise<GeneratedTrip> {
   if (input.daysCount > MAX_TRIP_DAYS) {
     throw new Error(`Trips cannot be more than ${MAX_TRIP_DAYS} days.`);
@@ -29,7 +26,7 @@ export async function generateTripSmartly(
     MAX_SPECIAL_NOTES_LENGTH
   ) {
     throw new Error(
-      `Special notes cannot be more than ${MAX_SPECIAL_NOTES_LENGTH} characters, excluding spaces.`
+      `Special notes cannot be more than ${MAX_SPECIAL_NOTES_LENGTH} characters, excluding spaces.`,
     );
   }
 

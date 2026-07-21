@@ -81,7 +81,7 @@ export function parseExploreQuery(params: RawSearchParams): ExploreQuery {
 
 export function buildExploreHref(
   query: ExploreQuery,
-  updates: Partial<Record<keyof ExploreQuery, string | number | null>>
+  updates: Partial<Record<keyof ExploreQuery, string | number | null>>,
 ) {
   const params = new URLSearchParams();
   const nextQuery = { ...query, ...updates };
@@ -100,10 +100,10 @@ export function buildExploreHref(
 export function hasActiveExploreFilters(query: ExploreQuery) {
   return Boolean(
     query.search ||
-      query.destination ||
-      query.duration ||
-      query.budget ||
-      query.style ||
-      query.tag
+    query.destination ||
+    query.duration ||
+    query.budget ||
+    query.style ||
+    query.tag,
   );
 }

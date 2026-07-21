@@ -115,7 +115,9 @@ export default async function MyTripsPage() {
             <p className="text-xs font-black uppercase text-muted-foreground">
               Travel library
             </p>
-            <h1 className="mt-1 text-3xl font-black text-foreground">My Trips</h1>
+            <h1 className="mt-1 text-3xl font-black text-foreground">
+              My Trips
+            </h1>
             <p className="mt-2 text-sm text-secondary-foreground">
               Revisit your plans, continue editing, or start somewhere new.
             </p>

@@ -156,9 +156,7 @@ export async function createTripDayAction(input: CreateTripDayInput) {
   }
 }
 
-export async function updateTripDayInfoAction(
-  input: UpdateTripDayInfoInput
-) {
+export async function updateTripDayInfoAction(input: UpdateTripDayInfoInput) {
   try {
     const session = await getServerSession(authOptions);
 

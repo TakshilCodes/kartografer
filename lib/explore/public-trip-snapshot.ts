@@ -309,7 +309,8 @@ export function createPublicTripSnapshot({
     sourceContentUpdatedAt: sourceContentUpdatedAt.toISOString(),
     costBreakdown: trip.costBreakdown
       ? {
-          totalEstimatedCost: toNumber(trip.costBreakdown.totalEstimatedCost) ?? 0,
+          totalEstimatedCost:
+            toNumber(trip.costBreakdown.totalEstimatedCost) ?? 0,
           transportCost: toNumber(trip.costBreakdown.transportCost) ?? 0,
           stayCost: toNumber(trip.costBreakdown.stayCost) ?? 0,
           foodCost: toNumber(trip.costBreakdown.foodCost) ?? 0,
@@ -390,7 +391,9 @@ export async function getTripForPublicSnapshot({
   });
 }
 
-export function readPublicTripSnapshot(value: unknown): PublicTripSnapshot | null {
+export function readPublicTripSnapshot(
+  value: unknown,
+): PublicTripSnapshot | null {
   if (!value || typeof value !== "object") return null;
 
   const snapshot = value as Partial<PublicTripSnapshot>;

@@ -8,7 +8,7 @@ import { z } from "zod";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 
-const UpdateUserSettingsSchema = z.object({
+const UserSettingsSchema = z.object({
   themePreference: z.nativeEnum(ThemePreference),
   defaultTripVisibility: z.nativeEnum(TripVisibility),
   enablePublicSharingByDefault: z.boolean(),
@@ -18,7 +18,13 @@ const UpdateUserSettingsSchema = z.object({
   exportIncludeKartograferBranding: z.boolean(),
 });
 
-export type UpdateUserSettingsInput = z.infer<typeof UpdateUserSettingsSchema>;
+const UpdateUserSettingsSchema = UserSettingsSchema.partial().refine(
+  (settings) => Object.keys(settings).length > 0,
+  "At least one setting is required.",
+);
+
+export type UpdateUserSettingsInput = z.infer<typeof UserSettingsSchema>;
+export type UpdateUserSettingsPatch = z.infer<typeof UpdateUserSettingsSchema>;
 
 export async function updateUserSettingsAction(input: unknown) {
   try {

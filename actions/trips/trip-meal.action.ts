@@ -1,12 +1,17 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 import { recalculateTripCost } from "@/lib/trips/recalculate-trip-cost";
+import {
+  cleanNullableText,
+  findOwnedTrip,
+  revalidateTripEditorPages,
+  tripDayBelongsToTrip,
+} from "@/actions/trips/trip-action-helpers";
 
 const mealTypeSchema = z.enum([
   "BREAKFAST",
@@ -86,44 +91,8 @@ type UpdateMealSuggestionInput = z.input<typeof updateMealSuggestionSchema>;
 type DeleteMealSuggestionInput = z.infer<typeof deleteMealSuggestionSchema>;
 type SelectMealSuggestionInput = z.infer<typeof selectMealSuggestionSchema>;
 
-function cleanText(value?: string | null) {
-  return value?.trim() ? value.trim() : null;
-}
-
-function revalidateTripPages(tripId: string) {
-  revalidatePath(`/dashboard/trips/${tripId}`);
-  revalidatePath(`/dashboard/trips/${tripId}/edit`);
-  revalidatePath("/dashboard/new");
-}
-
-async function verifyTripOwnership(tripId: string, userId: string) {
-  return prisma.trip.findFirst({
-    where: {
-      id: tripId,
-      userId,
-    },
-    select: {
-      id: true,
-    },
-  });
-}
-
-async function verifyTripDayBelongsToTrip(tripDayId: string, tripId: string) {
-  const tripDay = await prisma.tripDay.findFirst({
-    where: {
-      id: tripDayId,
-      tripId,
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  return Boolean(tripDay);
-}
-
 export async function createMealSuggestionAction(
-  input: CreateMealSuggestionInput
+  input: CreateMealSuggestionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -155,7 +124,7 @@ export async function createMealSuggestionAction(
       notes,
     } = parsedInput.data;
 
-    const trip = await verifyTripOwnership(tripId, session.user.id);
+    const trip = await findOwnedTrip(tripId, session.user.id);
 
     if (!trip) {
       return {
@@ -164,7 +133,7 @@ export async function createMealSuggestionAction(
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -179,10 +148,10 @@ export async function createMealSuggestionAction(
         tripDayId,
         mealType,
         title,
-        locationName: cleanText(locationName),
+        locationName: cleanNullableText(locationName),
         estimatedCost,
         source: "USER_ADDED",
-        notes: cleanText(notes),
+        notes: cleanNullableText(notes),
       },
       select: {
         id: true,
@@ -192,7 +161,7 @@ export async function createMealSuggestionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -210,7 +179,7 @@ export async function createMealSuggestionAction(
 }
 
 export async function updateMealSuggestionAction(
-  input: UpdateMealSuggestionInput
+  input: UpdateMealSuggestionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -263,7 +232,7 @@ export async function updateMealSuggestionAction(
       };
     }
 
-    const isValidTripDay = await verifyTripDayBelongsToTrip(tripDayId, tripId);
+    const isValidTripDay = await tripDayBelongsToTrip(tripDayId, tripId);
 
     if (!isValidTripDay) {
       return {
@@ -280,14 +249,14 @@ export async function updateMealSuggestionAction(
         tripDayId,
         mealType,
         title,
-        locationName: cleanText(locationName),
+        locationName: cleanNullableText(locationName),
         estimatedCost,
-        notes: cleanText(notes),
+        notes: cleanNullableText(notes),
       },
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -304,7 +273,7 @@ export async function updateMealSuggestionAction(
 }
 
 export async function deleteMealSuggestionAction(
-  input: DeleteMealSuggestionInput
+  input: DeleteMealSuggestionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -355,7 +324,7 @@ export async function deleteMealSuggestionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -372,7 +341,7 @@ export async function deleteMealSuggestionAction(
 }
 
 export async function selectMealSuggestionAction(
-  input: SelectMealSuggestionInput
+  input: SelectMealSuggestionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -426,7 +395,7 @@ export async function selectMealSuggestionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,
@@ -443,7 +412,7 @@ export async function selectMealSuggestionAction(
 }
 
 export async function unselectMealSuggestionAction(
-  input: SelectMealSuggestionInput
+  input: SelectMealSuggestionInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -497,7 +466,7 @@ export async function unselectMealSuggestionAction(
     });
 
     await recalculateTripCost(tripId);
-    revalidateTripPages(tripId);
+    revalidateTripEditorPages(tripId);
 
     return {
       success: true,

@@ -30,8 +30,8 @@ import {
   type ChatMessageDto,
 } from "@/actions/trips/send-trip-chat-message.action";
 
-const AI_PANEL_DEFAULT_WIDTH = 400;
-const AI_PANEL_MIN_WIDTH = 340;
+const AI_PANEL_DEFAULT_WIDTH = 440;
+const AI_PANEL_MIN_WIDTH = 360;
 const AI_PANEL_MAX_WIDTH = 1400;
 const AI_PANEL_COLLAPSE_WIDTH = 300;
 const AI_PANEL_COLLAPSED_WIDTH = 52;
@@ -114,7 +114,7 @@ function TypingIndicator() {
         <Bot className="h-3.5 w-3.5" />
       </div>
 
-      <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-border bg-card-secondary px-4 py-3 shadow-sm">
+      <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md border border-border bg-card-secondary px-3 py-2.5 shadow-sm">
         {[0, 1, 2].map((dot) => (
           <motion.span
             key={dot}
@@ -148,8 +148,9 @@ function MessageBubble({ message }: { message: ChatMessageDto }) {
       initial={{ opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className={`flex items-end gap-2 ${userMessage ? "justify-end" : "justify-start"
-        }`}
+      className={`flex items-end gap-2 ${
+        userMessage ? "justify-end" : "justify-start"
+      }`}
     >
       {!userMessage ? (
         <div className="mb-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-primary/20 bg-primary/10 text-primary">
@@ -158,14 +159,77 @@ function MessageBubble({ message }: { message: ChatMessageDto }) {
       ) : null}
 
       <div
-        className={`max-w-[86%] whitespace-pre-wrap rounded-2xl px-4 py-3 text-sm leading-6 shadow-sm ${userMessage
-          ? "rounded-br-md bg-primary text-primary-foreground"
-          : "rounded-bl-md border border-border bg-card-secondary text-foreground"
-          }`}
+        className={`max-w-[calc(100%-32px)] whitespace-pre-wrap rounded-2xl px-3 py-2.5 text-[13px] leading-5 shadow-sm ${
+          userMessage
+            ? "rounded-br-md bg-primary text-primary-foreground"
+            : "rounded-bl-md border border-border bg-card-secondary text-foreground"
+        }`}
       >
         {content}
       </div>
     </motion.div>
+  );
+}
+
+function IdeasConsidered({ message }: { message: ChatMessageDto }) {
+  const recommendations = message.recommendations ?? [];
+  if (isUserMessage(message) || recommendations.length === 0) return null;
+
+  return (
+    <details className="group ml-8 rounded-xl border border-border bg-card-secondary/45 text-[11px]">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 font-black text-secondary-foreground">
+        <span>Ideas considered</span>
+        <span className="rounded-full bg-card px-2 py-0.5 text-[10px]">
+          {recommendations.length}
+        </span>
+      </summary>
+
+      <div className="space-y-1.5 border-t border-border px-2.5 py-2.5">
+        {recommendations.map((recommendation, index) => {
+          const provenanceLabel =
+            recommendation.provenance === "EXISTING_OPTION"
+              ? "Saved option"
+              : recommendation.provenance === "EXISTING_SELECTED_ITEM"
+                ? "Already in your itinerary"
+                : recommendation.provenance === "LIVE_INFORMATION_REQUIRED"
+                  ? "Needs current verification"
+                  : "New planning idea";
+          const cost =
+            recommendation.costVerified && recommendation.storedCost !== null
+              ? `${message.currency ?? ""} ${recommendation.storedCost.toLocaleString("en-IN")}`.trim()
+              : null;
+
+          return (
+            <div
+              key={`${message.id}-idea-${index}`}
+              className="rounded-lg border border-border bg-card px-2.5 py-2"
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="font-black leading-4 text-foreground">
+                  {recommendation.resolvedTitle}
+                </p>
+                <span className="rounded-full bg-card-secondary px-2 py-0.5 text-[10px] font-bold text-secondary-foreground">
+                  {provenanceLabel}
+                </span>
+                {cost ? (
+                  <span className="text-[11px] font-bold text-secondary-foreground">
+                    {cost}
+                  </span>
+                ) : null}
+              </div>
+              <p className="mt-1 font-medium leading-4 text-secondary-foreground">
+                {recommendation.reason}
+              </p>
+              {!recommendation.costVerified ? (
+                <p className="mt-1 text-[11px] font-bold text-secondary-foreground">
+                  Cost and live availability are not verified.
+                </p>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </details>
   );
 }
 
@@ -183,23 +247,23 @@ function ProposalCard({
   if (!message.proposal) return null;
 
   const proposal = message.proposal;
-  const isPendingProposal = pendingProposalId === proposal.id;
+  const isSendingProposal = pendingProposalId === proposal.id;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.18, ease: "easeOut" }}
-      className="ml-9 rounded-2xl border border-primary/15 bg-primary/5 p-3 shadow-sm"
+      className="ml-8 rounded-2xl border border-primary/15 bg-primary/5 p-2.5 shadow-sm"
     >
-      <div className="mb-3 flex items-start gap-3">
-        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <Wand2 className="h-4 w-4" />
+      <div className="mb-2.5 flex items-start gap-2.5">
+        <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+          <Wand2 className="h-3.5 w-3.5" />
         </div>
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs font-black uppercase tracking-[0.14em] text-foreground">
+            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-foreground">
               Suggested changes
             </p>
 
@@ -209,18 +273,18 @@ function ProposalCard({
           </div>
 
           {proposal.summary ? (
-            <p className="mt-1.5 text-xs font-semibold leading-5 text-secondary-foreground">
+            <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-4 text-secondary-foreground">
               {proposal.summary}
             </p>
           ) : null}
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {proposal.changes.map((change, index) => (
           <div
             key={`${proposal.id}-${change.type}-${index}`}
-            className="rounded-xl border border-border bg-card px-3 py-2.5"
+            className="rounded-xl border border-border bg-card px-2.5 py-2"
           >
             <div className="mb-1 flex items-center gap-2">
               <span className="rounded-full bg-card-secondary px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.12em] text-secondary-foreground">
@@ -228,26 +292,97 @@ function ProposalCard({
               </span>
             </div>
 
-            <p className="text-xs font-black leading-5 text-foreground">
+            <p className="text-[11px] font-black leading-4 text-foreground">
               {change.label}
             </p>
 
-            <p className="mt-1 text-xs font-semibold leading-5 text-secondary-foreground">
+            <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-4 text-secondary-foreground">
               {change.reason}
             </p>
+
+            {change.cost ? (
+              <p className="mt-1 text-[10px] font-bold leading-4 text-secondary-foreground">
+                {change.cost.costVerified ? (
+                  <>
+                    Stored cost impact: {proposal.costPreview?.currency}{" "}
+                    {change.cost.delta?.toLocaleString("en-IN") ?? "0"}
+                  </>
+                ) : change.cost.isAiPriceEstimate ? (
+                  <>
+                    AI price estimate: ~{proposal.costPreview?.currency}{" "}
+                    {change.cost.afterCost?.toLocaleString("en-IN") ?? "0"} —
+                    saved only after Apply
+                  </>
+                ) : change.cost.aiEstimatedCost !== null &&
+                  change.cost.aiEstimatedCost !== undefined ? (
+                  <>
+                    AI planning estimate: ~{proposal.costPreview?.currency}{" "}
+                    {change.cost.aiEstimatedCost.toLocaleString("en-IN")} — not
+                    verified
+                  </>
+                ) : (
+                  "No AI cost estimate — excluded from confirmed totals"
+                )}
+              </p>
+            ) : null}
           </div>
         ))}
       </div>
 
+      {proposal.costPreview ? (
+        <div className="mt-2.5 space-y-0.5 rounded-xl border border-border bg-card px-2.5 py-2 text-[11px] font-bold leading-4 text-secondary-foreground">
+          <p>
+            Calculated total change: {proposal.costPreview.currency}{" "}
+            {proposal.costPreview.verifiedTotalDelta.toLocaleString("en-IN")}
+          </p>
+          <p>
+            Estimated trip total: {proposal.costPreview.currency}{" "}
+            {proposal.costPreview.resultingEstimatedTotal.toLocaleString(
+              "en-IN",
+            )}
+          </p>
+          {proposal.costPreview.resultingRemainingBudget !== null ? (
+            <p>
+              Remaining budget: {proposal.costPreview.currency}{" "}
+              {proposal.costPreview.resultingRemainingBudget.toLocaleString(
+                "en-IN",
+              )}
+            </p>
+          ) : null}
+          {proposal.costPreview.resultingExceededBy !== null ? (
+            <p>
+              Budget exceeded by: {proposal.costPreview.currency}{" "}
+              {proposal.costPreview.resultingExceededBy.toLocaleString("en-IN")}
+            </p>
+          ) : null}
+          {(proposal.costPreview.aiEstimatedChangeCount ?? 0) > 0 ? (
+            <p>
+              AI planning estimates: ~{proposal.costPreview.currency}{" "}
+              {(proposal.costPreview.aiEstimatedTotal ?? 0).toLocaleString(
+                "en-IN",
+              )}{" "}
+              for {proposal.costPreview.aiEstimatedChangeCount} item(s),
+              excluded from confirmed totals.
+            </p>
+          ) : null}
+          {proposal.costPreview.unknownCostChangeCount > 0 ? (
+            <p>
+              {proposal.costPreview.unknownCostChangeCount} change(s) have no
+              cost estimate and are excluded.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
       {proposal.status === "pending" ? (
-        <div className="mt-3 grid grid-cols-2 gap-2">
+        <div className="mt-2.5 grid grid-cols-2 gap-2">
           <button
             type="button"
             disabled={pendingProposalId !== null}
             onClick={() => onApply(proposal.id)}
-            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-xs font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-primary px-3 py-2 text-[11px] font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isPendingProposal ? (
+            {isSendingProposal ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <CheckCircle2 className="h-3.5 w-3.5" />
@@ -259,14 +394,14 @@ function ProposalCard({
             type="button"
             disabled={pendingProposalId !== null}
             onClick={() => onDismiss(proposal.id)}
-            className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2.5 text-xs font-black text-secondary-foreground transition hover:bg-card-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-border bg-card px-3 py-2 text-[11px] font-black text-secondary-foreground transition hover:bg-card-hover hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
           >
             <XCircle className="h-3.5 w-3.5" />
             Dismiss
           </button>
         </div>
       ) : (
-        <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-black text-secondary-foreground">
+        <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-2.5 py-1.5 text-[11px] font-black text-secondary-foreground">
           {proposal.status === "applied" ? (
             <>
               <CheckCircle2 className="h-3.5 w-3.5 text-success" />
@@ -284,15 +419,13 @@ function ProposalCard({
   );
 }
 
-export function AiChatContent({
-  tripId,
-  initialMessages,
-}: AiChatContentProps) {
+export function AiChatContent({ tripId, initialMessages }: AiChatContentProps) {
   const router = useRouter();
   const [messages, setMessages] = useState(initialMessages);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
+  const [isSending, setIsSending] = useState(false);
   const [pendingProposalId, setPendingProposalId] = useState<string | null>(
     null,
   );
@@ -328,7 +461,7 @@ export function AiChatContent({
     scrollRef.current?.scrollIntoView({
       block: "end",
     });
-  }, [messages, isPending, error]);
+  }, [messages, isSending, error]);
 
   useEffect(() => {
     handleScroll();
@@ -341,7 +474,7 @@ export function AiChatContent({
   function sendMessage(messageText: string) {
     const trimmedMessage = messageText.trim();
 
-    if (!trimmedMessage || isPending) return;
+    if (!trimmedMessage || isSending) return;
 
     const optimisticMessageId = `pending-user-${Date.now()}`;
     const optimisticUserMessage: ChatMessageDto = {
@@ -359,30 +492,45 @@ export function AiChatContent({
       optimisticUserMessage,
     ]);
 
-    startTransition(async () => {
-      const result = await sendTripChatMessageAction({
-        tripId,
-        message: trimmedMessage,
-      });
+    setIsSending(true);
+    void (async () => {
+      try {
+        const result = await sendTripChatMessageAction({
+          tripId,
+          message: trimmedMessage,
+        });
 
-      if (!result.ok) {
+        startTransition(() => {
+          if (!result.ok) {
+            setMessages((currentMessages) =>
+              currentMessages.filter(
+                (message) => message.id !== optimisticMessageId,
+              ),
+            );
+            setError(getActionErrorMessage(result.error));
+            setInput(trimmedMessage);
+            return;
+          }
+
+          setMessages((currentMessages) => [
+            ...currentMessages.map((message) =>
+              message.id === optimisticMessageId ? result.userMessage : message,
+            ),
+            result.assistantMessage,
+          ]);
+        });
+      } catch {
         setMessages((currentMessages) =>
           currentMessages.filter(
             (message) => message.id !== optimisticMessageId,
           ),
         );
-        setError(getActionErrorMessage(result.error));
+        setError("The AI chat request failed. Please try again.");
         setInput(trimmedMessage);
-        return;
+      } finally {
+        setIsSending(false);
       }
-
-      setMessages((currentMessages) => [
-        ...currentMessages.map((message) =>
-          message.id === optimisticMessageId ? result.userMessage : message,
-        ),
-        result.assistantMessage,
-      ]);
-    });
+    })();
   }
 
   function updateProposalStatus(
@@ -463,14 +611,15 @@ export function AiChatContent({
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="h-full overflow-y-auto px-3 py-4 scrollbar-none [&::-webkit-scrollbar]:hidden"
+          className="h-full overflow-y-auto px-2.5 py-3 scrollbar-none [&::-webkit-scrollbar]:hidden"
         >
-          <div className="space-y-4">
+          <div className="space-y-3">
             {messages.length === 0 ? <EmptyAssistantState /> : null}
 
             {messages.map((message) => (
               <div key={message.id} className="space-y-2">
                 <MessageBubble message={message} />
+                <IdeasConsidered message={message} />
 
                 <ProposalCard
                   message={message}
@@ -481,10 +630,10 @@ export function AiChatContent({
               </div>
             ))}
 
-            {isPending ? <TypingIndicator /> : null}
+            {isSending ? <TypingIndicator /> : null}
 
             {error ? (
-              <div className="rounded-2xl border border-danger/25 bg-danger/10 px-4 py-3 text-sm font-bold leading-6 text-danger">
+              <div className="rounded-2xl border border-danger/25 bg-danger/10 px-3 py-2.5 text-[13px] font-bold leading-5 text-danger">
                 {error}
               </div>
             ) : null}
@@ -503,7 +652,7 @@ export function AiChatContent({
                     <button
                       key={prompt}
                       type="button"
-                      disabled={isPending}
+                      disabled={isSending}
                       onClick={() => setInput(prompt)}
                       className="cursor-pointer rounded-full border border-border bg-card px-3 py-1.5 text-left text-xs font-bold text-secondary-foreground transition hover:-translate-y-0.5 hover:border-primary/30 hover:bg-card-hover hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
                     >
@@ -525,20 +674,20 @@ export function AiChatContent({
 
       <form
         onSubmit={handleSubmit}
-        className="shrink-0 border-t border-border bg-card/95 p-3"
+        className="shrink-0 border-t border-border bg-card/95 p-2.5"
       >
-        <div className="mb-2 flex items-center justify-between gap-2 px-1">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-primary">
+        <div className="mb-1.5 flex items-center justify-between gap-2 px-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.14em] text-primary">
             <CheckCircle2 className="h-3 w-3" />
             Safe apply
           </span>
 
-          <span className="text-[11px] font-semibold text-secondary-foreground">
+          <span className="text-[10px] font-semibold text-secondary-foreground">
             Review suggestions before applying
           </span>
         </div>
 
-        <div className="flex items-end gap-2 rounded-2xl border border-border bg-dashboard px-3 py-2.5 transition focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
+        <div className="flex items-end gap-2 rounded-2xl border border-border bg-dashboard px-3 py-2 transition focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/10">
           <textarea
             ref={inputRef}
             value={input}
@@ -548,18 +697,18 @@ export function AiChatContent({
             }}
             onKeyDown={handleInputKeyDown}
             rows={1}
-            disabled={isPending}
+            disabled={isSending}
             placeholder="Ask AI to improve this trip..."
-            className="max-h-30 min-h-9 min-w-0 flex-1 resize-none bg-transparent py-2 text-sm leading-5 text-foreground outline-none placeholder:text-secondary-foreground disabled:opacity-70"
+            className="max-h-28 min-h-8 min-w-0 flex-1 resize-none bg-transparent py-1.5 text-[13px] leading-5 text-foreground outline-none placeholder:text-secondary-foreground disabled:opacity-70"
           />
 
           <button
             type="submit"
-            disabled={isPending || !input.trim()}
+            disabled={isSending || !input.trim()}
             aria-label="Send AI message"
-            className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
+            className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm transition hover:-translate-y-0.5 hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0"
           >
-            {isPending ? (
+            {isSending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <Send className="h-4 w-4" />
@@ -592,9 +741,7 @@ export default function AiAssistantPanel({
     maxPanelWidth,
   );
 
-  function handleResizePointerDown(
-    event: React.PointerEvent<HTMLDivElement>,
-  ) {
+  function handleResizePointerDown(event: React.PointerEvent<HTMLDivElement>) {
     if (isCollapsed) return;
 
     event.preventDefault();
@@ -716,8 +863,9 @@ export default function AiAssistantPanel({
         flexBasis: clampedPanelWidth,
         maxWidth: "calc(100vw - 24px)",
       }}
-      className={`relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-[28px] border border-border bg-card shadow-sm transition-[border-color,box-shadow] duration-150 ${isResizing ? "border-primary/40 shadow-lg shadow-primary/10" : ""
-        }`}
+      className={`relative flex h-full min-h-0 shrink-0 flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-[border-color,box-shadow] duration-150 ${
+        isResizing ? "border-primary/40 shadow-lg shadow-primary/10" : ""
+      }`}
     >
       <div
         role="separator"
@@ -754,25 +902,25 @@ export default function AiAssistantPanel({
           <span className="h-1 w-1 rounded-full bg-secondary-foreground/70 transition-colors group-hover:bg-primary" />
         </motion.div>
       </div>
-      <div className="shrink-0 border-b border-border bg-card-secondary/45 px-4 py-4">
+      <div className="shrink-0 border-b border-border bg-card-secondary/45 px-3 py-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
-              <Bot className="h-5 w-5" />
+          <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 text-primary shadow-sm">
+              <Bot className="h-4 w-4" />
             </div>
 
             <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <h2 className="truncate text-sm font-black text-foreground">
+                <h2 className="truncate text-[13px] font-black text-foreground">
                   AI Travel Assistant
                 </h2>
 
-                <span className="hidden rounded-full bg-primary/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-[0.12em] text-primary sm:inline-flex">
+                <span className="hidden rounded-full bg-primary/10 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-[0.12em] text-primary sm:inline-flex">
                   Beta
                 </span>
               </div>
 
-              <p className="mt-0.5 line-clamp-2 text-xs font-semibold leading-5 text-secondary-foreground">
+              <p className="mt-0.5 line-clamp-2 text-[11px] font-semibold leading-4 text-secondary-foreground">
                 Ask for ideas, fixes, and small trip improvements.
               </p>
             </div>
@@ -783,9 +931,9 @@ export default function AiAssistantPanel({
               type="button"
               onClick={onToggleCollapsed}
               aria-label="Collapse AI Assistant"
-              className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-secondary-foreground transition hover:border-primary/30 hover:bg-card-hover hover:text-foreground"
+              className="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full border border-border bg-card text-secondary-foreground transition hover:border-primary/30 hover:bg-card-hover hover:text-foreground"
             >
-              <PanelRightClose className="h-4 w-4" />
+              <PanelRightClose className="h-3.5 w-3.5" />
             </button>
           ) : null}
         </div>

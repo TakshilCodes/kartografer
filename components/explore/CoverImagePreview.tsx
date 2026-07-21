@@ -1,5 +1,12 @@
- "use client"
- 
+"use client";
+
+/*
+ * These URLs are user-managed external cover images with no reliable intrinsic
+ * dimensions. Native images keep the lightbox layout predictable and avoid
+ * routing those URLs through Next''s image optimizer.
+ */
+/* eslint-disable @next/next/no-img-element */
+
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Compass, Eye, Maximize2, X } from "lucide-react";
@@ -10,7 +17,11 @@ type CoverImagePreviewProps = {
   destination?: string | null;
 };
 
-export default function CoverImagePreview({ imageUrl, title, destination }: CoverImagePreviewProps) {
+export default function CoverImagePreview({
+  imageUrl,
+  title,
+  destination,
+}: CoverImagePreviewProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
@@ -32,8 +43,12 @@ export default function CoverImagePreview({ imageUrl, title, destination }: Cove
             <Compass className="h-4 w-4" />
           </div>
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-primary">{destination || "Public trip"}</p>
-            <p className="mt-1 line-clamp-2 text-lg font-black leading-tight text-foreground">{title}</p>
+            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-primary">
+              {destination || "Public trip"}
+            </p>
+            <p className="mt-1 line-clamp-2 text-lg font-black leading-tight text-foreground">
+              {title}
+            </p>
           </div>
         </div>
       </div>
@@ -63,7 +78,11 @@ export default function CoverImagePreview({ imageUrl, title, destination }: Cove
           <X className="h-5 w-5" />
         </button>
         <div className="flex max-h-[88vh] max-w-[92vw] items-center justify-center overflow-hidden rounded-[28px] border border-white/15 bg-black shadow-2xl">
-          <img src={imageUrl} alt={`${title} cover`} className="max-h-[88vh] max-w-[92vw] object-contain" />
+          <img
+            src={imageUrl}
+            alt={`${title} cover`}
+            className="max-h-[88vh] max-w-[92vw] object-contain"
+          />
         </div>
       </div>
     </div>
@@ -77,7 +96,11 @@ export default function CoverImagePreview({ imageUrl, title, destination }: Cove
         aria-label={`View cover image for ${title}`}
         className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-[28px] border border-border bg-card-secondary text-left shadow-sm outline-none transition hover:-translate-y-0.5 hover:shadow-xl focus:ring-4 focus:ring-ring/20"
       >
-        <img src={imageUrl} alt={`${title} cover`} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+        <img
+          src={imageUrl}
+          alt={`${title} cover`}
+          className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+        />
         <div className="absolute inset-0 bg-black/0 transition duration-300 group-hover:bg-black/35" />
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-300 group-hover:opacity-100">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/90 px-4 py-2 text-xs font-black text-[#54371d] shadow-lg">

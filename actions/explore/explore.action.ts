@@ -26,7 +26,13 @@ const publishSchema = z.object({
   publicTitle: z.string().trim().min(2, "Public title is required.").max(120),
   publicDescription: z.string().trim().max(500).optional(),
   destination: z.string().trim().min(2, "Destination is required.").max(80),
-  coverImageUrl: z.string().trim().url().nullable().optional().or(z.literal("")),
+  coverImageUrl: z
+    .string()
+    .trim()
+    .url()
+    .nullable()
+    .optional()
+    .or(z.literal("")),
   budgetStyle: z.enum(["budget", "mid-range", "luxury", ""]).default(""),
   travelStyle: z
     .enum(["solo", "couple", "family", "friends", "adventure", "relaxing", ""])
@@ -37,7 +43,9 @@ const publishSchema = z.object({
 const tripIdSchema = z.string().trim().min(1, "Trip id is required.");
 
 function normalizeTags(tags: string[]) {
-  return Array.from(new Set(tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean))).slice(0, 15);
+  return Array.from(
+    new Set(tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean)),
+  ).slice(0, 15);
 }
 
 function revalidateTripExplorePaths(tripId: string) {
@@ -46,7 +54,9 @@ function revalidateTripExplorePaths(tripId: string) {
   revalidatePath(`/dashboard/trips/${tripId}`);
 }
 
-export async function publishTripToExploreAction(input: z.input<typeof publishSchema>) {
+export async function publishTripToExploreAction(
+  input: z.input<typeof publishSchema>,
+) {
   try {
     const session = await getServerSession(authOptions);
 

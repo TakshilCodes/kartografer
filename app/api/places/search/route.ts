@@ -107,11 +107,7 @@ const ALLOWED_RESULT_TYPES = new Set([
 
 function normalizePlaceKey(value: string | null | undefined) {
   return (
-    value
-      ?.trim()
-      .toLowerCase()
-      .replace(/\s+/g, " ")
-      .replace(/&/g, "and") ?? ""
+    value?.trim().toLowerCase().replace(/\s+/g, " ").replace(/&/g, "and") ?? ""
   );
 }
 
@@ -134,7 +130,7 @@ function searchIndianStatesFromLocalList(query: string): PlaceResult[] {
 }
 
 function getPlaceKey(
-  place: Pick<PlaceResult, "name" | "city" | "state" | "countryCode">
+  place: Pick<PlaceResult, "name" | "city" | "state" | "countryCode">,
 ) {
   const logicalName = normalizePlaceKey(place.city ?? place.name);
 
@@ -189,7 +185,7 @@ async function fetchGeoapifyPlaces({
   apiKey: string;
 }) {
   const geoapifyUrl = new URL(
-    `https://api.geoapify.com/v1/geocode/${endpoint}`
+    `https://api.geoapify.com/v1/geocode/${endpoint}`,
   );
 
   geoapifyUrl.searchParams.set("text", text);
@@ -251,14 +247,14 @@ function mapGeoapifyFeature(feature: GeoapifyFeature): PlaceResult | null {
     props.village ??
     props.suburb ??
     (props.result_type === "city" ||
-      props.result_type === "town" ||
-      props.result_type === "village" ||
-      props.result_type === "locality" ||
-      props.result_type === "suburb" ||
-      props.result_type === "state" ||
-      props.result_type === "county" ||
-      props.result_type === "district" ||
-      props.result_type === "administrative"
+    props.result_type === "town" ||
+    props.result_type === "village" ||
+    props.result_type === "locality" ||
+    props.result_type === "suburb" ||
+    props.result_type === "state" ||
+    props.result_type === "county" ||
+    props.result_type === "district" ||
+    props.result_type === "administrative"
       ? name
       : null);
 
@@ -337,7 +333,7 @@ async function saveGeoapifyPlacesToDb({
   existingDbPlaces: PlaceResult[];
 }) {
   const existingDbKeys = new Set(
-    existingDbPlaces.map((place) => getPlaceKey(place))
+    existingDbPlaces.map((place) => getPlaceKey(place)),
   );
 
   const newGeoapifyPlaces = places.filter((place) => {
@@ -385,8 +381,8 @@ async function saveGeoapifyPlacesToDb({
           lat: place.lat,
           lng: place.lng,
         },
-      })
-    )
+      }),
+    ),
   );
 }
 
@@ -397,7 +393,7 @@ export async function GET(req: Request) {
     if (!apiKey) {
       return NextResponse.json(
         { places: [], error: "Geoapify API key is missing." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -433,7 +429,7 @@ export async function GET(req: Request) {
     let geoapifyPlaces = removeDuplicatePlaces(
       autocompleteFeatures
         .map((feature: GeoapifyFeature) => mapGeoapifyFeature(feature))
-        .filter(isPlaceResult)
+        .filter(isPlaceResult),
     );
 
     let mergedPlaces = removeDuplicatePlaces([...dbPlaces, ...geoapifyPlaces]);
@@ -473,7 +469,7 @@ export async function GET(req: Request) {
 
     return NextResponse.json(
       { places: [], error: "Something went wrong while searching places." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

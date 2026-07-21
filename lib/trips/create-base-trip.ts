@@ -65,7 +65,7 @@ function normalizePlaceName(value: string) {
 
 async function findOrCreatePlace(
   tx: Prisma.TransactionClient,
-  placeInput: NonNullable<CreateTripInput["fromPlace"]>
+  placeInput: NonNullable<CreateTripInput["fromPlace"]>,
 ) {
   const existingPlace = await tx.place.findFirst({
     where: {

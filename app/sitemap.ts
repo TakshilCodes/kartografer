@@ -30,7 +30,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
     ...publicTrips.map((trip) => ({
       url: absoluteUrl(`/explore/${trip.id}`),
-      lastModified: trip.publicSnapshotUpdatedAt ?? trip.publishedAt ?? trip.updatedAt ?? new Date(),
+      lastModified:
+        trip.publicSnapshotUpdatedAt ??
+        trip.publishedAt ??
+        trip.updatedAt ??
+        new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.7,
     })),

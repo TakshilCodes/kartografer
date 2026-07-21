@@ -103,7 +103,8 @@ export async function sendSignupOtpAction(values: SendSignupOtpInput) {
     if (existingUser) {
       return {
         ok: false,
-        error: "An account already exists with this email. Please sign in instead.",
+        error:
+          "An account already exists with this email. Please sign in instead.",
         message: null,
       };
     }
@@ -122,7 +123,7 @@ export async function sendSignupOtpAction(values: SendSignupOtpInput) {
         createdAt: new Date().toISOString(),
       }),
       "EX",
-      10 * 60
+      10 * 60,
     );
 
     const { error } = await resend.emails.send({

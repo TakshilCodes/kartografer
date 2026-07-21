@@ -80,7 +80,9 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-5 border-b border-[#dfd1bd] pb-3">
-      <p className="text-[9px] font-black uppercase text-[#8b6b45]">{eyebrow}</p>
+      <p className="text-[9px] font-black uppercase text-[#8b6b45]">
+        {eyebrow}
+      </p>
       <h2 className="mt-1 text-[22px] font-black leading-tight text-[#2d1e11]">
         {title}
       </h2>
@@ -127,7 +129,9 @@ function ItemLine({
   return (
     <div className="pdf-break-inside-avoid grid grid-cols-[minmax(0,1fr)_auto] gap-3">
       <div className="min-w-0">
-        <p className="text-[11px] font-black leading-4 text-[#2d1e11]">{title}</p>
+        <p className="text-[11px] font-black leading-4 text-[#2d1e11]">
+          {title}
+        </p>
         {meta ? (
           <p className="mt-0.5 text-[9px] font-bold text-[#8b6b45]">{meta}</p>
         ) : null}
@@ -184,11 +188,15 @@ function StayLines({
       meta={[
         formatEnum(item.stayType),
         item.area ?? item.city,
-        item.nights ? `${item.nights} night${item.nights === 1 ? "" : "s"}` : null,
+        item.nights
+          ? `${item.nights} night${item.nights === 1 ? "" : "s"}`
+          : null,
       ]
         .filter(Boolean)
         .join(" | ")}
-      description={item.notes ?? (item.bestFor ? `Best for ${item.bestFor}` : null)}
+      description={
+        item.notes ?? (item.bestFor ? `Best for ${item.bestFor}` : null)
+      }
       cost={formatMoney(item.totalCost ?? item.pricePerNight, currency)}
     />
   ));
@@ -293,7 +301,10 @@ function DaySection({
       {hasDetails ? (
         <div className="ml-13">
           {day.transports.length > 0 ? (
-            <ItemGroup icon={<BusFront className="h-4 w-4" />} title="Transport">
+            <ItemGroup
+              icon={<BusFront className="h-4 w-4" />}
+              title="Transport"
+            >
               <TransportLines items={day.transports} currency={currency} />
             </ItemGroup>
           ) : null}
@@ -308,7 +319,10 @@ function DaySection({
             </ItemGroup>
           ) : null}
           {day.activities.length > 0 ? (
-            <ItemGroup icon={<Compass className="h-4 w-4" />} title="Activities">
+            <ItemGroup
+              icon={<Compass className="h-4 w-4" />}
+              title="Activities"
+            >
               <ActivityLines items={day.activities} currency={currency} />
             </ItemGroup>
           ) : null}
@@ -321,8 +335,12 @@ function DaySection({
 
       {includeTravelerNotes && day.notes ? (
         <div className="pdf-break-inside-avoid ml-13 mt-2 border-l-2 border-[#caa46e] bg-[#fbf6ed] px-3 py-2">
-          <p className="text-[8px] font-black uppercase text-[#8b6b45]">Day note</p>
-          <p className="mt-1 text-[9px] leading-4 text-[#5c4937]">{day.notes}</p>
+          <p className="text-[8px] font-black uppercase text-[#8b6b45]">
+            Day note
+          </p>
+          <p className="mt-1 text-[9px] leading-4 text-[#5c4937]">
+            {day.notes}
+          </p>
         </div>
       ) : null}
     </section>
@@ -382,7 +400,10 @@ function CostTable({ trip }: TripExportDocumentProps) {
                   Total estimated cost
                 </td>
                 <td className="px-4 py-3 text-right text-[13px] font-black text-[#65401f]">
-                  {formatMoney(costs?.totalEstimatedCost ?? null, trip.currency)}
+                  {formatMoney(
+                    costs?.totalEstimatedCost ?? null,
+                    trip.currency,
+                  )}
                 </td>
               </tr>
             </tfoot>
@@ -485,7 +506,9 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
                 <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-full border-2 border-[#65401f] bg-[#fffdf8] text-[#65401f] shadow-sm">
                   <MapPin className="h-4 w-4" />
                 </span>
-                <p className="text-[9px] font-black uppercase text-[#8b6b45]">From</p>
+                <p className="text-[9px] font-black uppercase text-[#8b6b45]">
+                  From
+                </p>
                 <p className="mt-1 wrap-break-word text-[17px] font-black leading-5">
                   {fromName}
                 </p>
@@ -504,7 +527,9 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
                 <span className="mb-3 ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-[#65401f] text-[#fff8ed] shadow-sm">
                   <MapPin className="h-4 w-4" />
                 </span>
-                <p className="text-[9px] font-black uppercase text-[#8b6b45]">To</p>
+                <p className="text-[9px] font-black uppercase text-[#8b6b45]">
+                  To
+                </p>
                 <p className="mt-1 wrap-break-word text-[17px] font-black leading-5">
                   {toName}
                 </p>
@@ -543,7 +568,10 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
           />
           <div className="grid grid-cols-2 gap-x-8 gap-y-5">
             <DetailPill label="Trip type" value={formatEnum(trip.tripType)} />
-            <DetailPill label="Travel pace" value={formatEnum(trip.travelPace)} />
+            <DetailPill
+              label="Travel pace"
+              value={formatEnum(trip.travelPace)}
+            />
             <DetailPill
               label="Food preference"
               value={formatEnum(trip.foodPreference)}
@@ -604,28 +632,33 @@ export default function TripExportDocument({ trip }: TripExportDocumentProps) {
                 This trip does not have itinerary details yet.
               </p>
               <p className="mx-auto mt-2 max-w-md text-[10px] leading-5 text-[#715c46]">
-                Add selected transport, stays, meals, or activities before sharing
-                the final proposal with a traveler.
+                Add selected transport, stays, meals, or activities before
+                sharing the final proposal with a traveler.
               </p>
             </div>
           )}
         </section>
 
         {trip.exportPreferences.includeKartograferBranding ? (
-<footer className="pdf-break-inside-avoid mt-10 border-t border-[#d7c5ab] pt-5">
-          <div className="flex items-start justify-between gap-8">
-            <div className="flex items-center gap-2">
-              <Image src={kartograferMark} alt="" className="h-5 w-5 object-contain" />
-              <p className="text-[10px] font-black text-[#2d1e11]">
-                Generated with Kartografer
+          <footer className="pdf-break-inside-avoid mt-10 border-t border-[#d7c5ab] pt-5">
+            <div className="flex items-start justify-between gap-8">
+              <div className="flex items-center gap-2">
+                <Image
+                  src={kartograferMark}
+                  alt=""
+                  className="h-5 w-5 object-contain"
+                />
+                <p className="text-[10px] font-black text-[#2d1e11]">
+                  Generated with Kartografer
+                </p>
+              </div>
+              <p className="max-w-md text-right text-[8px] leading-4 text-[#80684e]">
+                Prices, availability, travel times, and local conditions are
+                estimates and should be verified before making reservations or
+                payments.
               </p>
             </div>
-            <p className="max-w-md text-right text-[8px] leading-4 text-[#80684e]">
-              Prices, availability, travel times, and local conditions are estimates
-              and should be verified before making reservations or payments.
-            </p>
-          </div>
-        </footer>
+          </footer>
         ) : null}
       </div>
     </article>

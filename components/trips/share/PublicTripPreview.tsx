@@ -84,9 +84,7 @@ export default function PublicTripPreview({
   dayPanels,
   costSummary,
 }: PublicTripPreviewProps) {
-  const [selectedDayId, setSelectedDayId] = useState(
-    dayPanels[0]?.dayId ?? ""
-  );
+  const [selectedDayId, setSelectedDayId] = useState(dayPanels[0]?.dayId ?? "");
   const selectedDay =
     dayPanels.find((day) => day.dayId === selectedDayId) ?? dayPanels[0];
   const tabDays = dayPanels.map((day) => ({
@@ -274,12 +272,21 @@ export default function PublicTripPreview({
                     <CostRow label="Transport" value={costSummary.transport} />
                     <CostRow label="Stay" value={costSummary.stay} />
                     <CostRow label="Food" value={costSummary.food} />
-                    <CostRow label="Activities" value={costSummary.activities} />
+                    <CostRow
+                      label="Activities"
+                      value={costSummary.activities}
+                    />
                     <div className="border-t border-dashed border-border pt-3">
-                      <CostRow label="Estimated total" value={costSummary.total} />
+                      <CostRow
+                        label="Estimated total"
+                        value={costSummary.total}
+                      />
                     </div>
                     {costSummary.budget ? (
-                      <CostRow label="Planned budget" value={costSummary.budget} />
+                      <CostRow
+                        label="Planned budget"
+                        value={costSummary.budget}
+                      />
                     ) : null}
                     {costSummary.status ? (
                       <p className="rounded-full bg-card-secondary px-3 py-2 text-center text-xs font-black text-secondary-foreground">
@@ -367,7 +374,9 @@ export default function PublicTripPreview({
                 <div className="space-y-2 text-sm">
                   <p className="flex justify-between gap-3">
                     <span className="opacity-75">Transport</span>
-                    <span className="font-black">{trip.transportPreference}</span>
+                    <span className="font-black">
+                      {trip.transportPreference}
+                    </span>
                   </p>
                   <p className="flex justify-between gap-3">
                     <span className="opacity-75">Food</span>

@@ -141,35 +141,35 @@ export function buildPreviewDayPanels({
   getDisplayDayTitle,
 }: BuildPreviewDayPanelsInput): PreviewDayPanel[] {
   const selectedTransportOptions = transportOptions.filter(
-    (transport) => transport.isSelected
+    (transport) => transport.isSelected,
   );
   const selectedStayOptions = stayOptions.filter((stay) => stay.isSelected);
   const selectedMealSuggestions = mealSuggestions.filter(
-    (meal) => meal.isSelected
+    (meal) => meal.isSelected,
   );
   const selectedActivities = activities.filter(
-    (activity) => activity.isSelected
+    (activity) => activity.isSelected,
   );
 
   return days.map((day) => {
     const selectedDayTransport = selectedTransportOptions.filter(
-      (transport) => transport.tripDayId === day.id
+      (transport) => transport.tripDayId === day.id,
     );
     const selectedDayStays = selectedStayOptions.filter(
-      (stay) => stay.tripDayId === day.id
+      (stay) => stay.tripDayId === day.id,
     );
     const selectedDayMeals = selectedMealSuggestions.filter(
-      (meal) => meal.tripDayId === day.id
+      (meal) => meal.tripDayId === day.id,
     );
     const selectedDayActivities = selectedActivities.filter(
-      (activity) => activity.tripDayId === day.id
+      (activity) => activity.tripDayId === day.id,
     );
 
     const earlyMeals = selectedDayMeals.filter((meal) =>
-      ["BREAKFAST", "LUNCH"].includes(meal.mealType)
+      ["BREAKFAST", "LUNCH"].includes(meal.mealType),
     );
     const lateMeals = selectedDayMeals.filter((meal) =>
-      ["DINNER", "SNACK", "OTHER"].includes(meal.mealType)
+      ["DINNER", "SNACK", "OTHER"].includes(meal.mealType),
     );
 
     const rawRouteItems = [
@@ -266,7 +266,7 @@ export function buildPreviewDayPanels({
           itemKind: item.itemKind,
           activityCategory: item.activityCategory,
         };
-      }
+      },
     );
 
     const suggestedStayOption =
@@ -304,7 +304,7 @@ export function buildPreviewDayPanels({
             suggestedTransportOption.costType === "PER_PERSON"
               ? suggestedTransportOption.pricePerPerson
                 ? `${formatCurrency(
-                    suggestedTransportOption.pricePerPerson
+                    suggestedTransportOption.pricePerPerson,
                   )}/person`
                 : "Cost not set"
               : suggestedTransportOption.totalCost

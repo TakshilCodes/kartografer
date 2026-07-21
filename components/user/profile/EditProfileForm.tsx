@@ -64,7 +64,10 @@ export default function EditProfileForm({ initialName }: EditProfileFormProps) {
       <form onSubmit={handleSubmit} className="mt-5 space-y-4">
         <div>
           <div className="mb-2 flex items-center justify-between gap-3">
-            <label htmlFor="profile-name" className="text-sm font-black text-foreground">
+            <label
+              htmlFor="profile-name"
+              className="text-sm font-black text-foreground"
+            >
               Display name
             </label>
             <span className="text-xs font-semibold tabular-nums text-muted-foreground">

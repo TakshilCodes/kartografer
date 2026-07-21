@@ -19,7 +19,8 @@ function truncateAtWord(value: string, maxLength: number) {
 
   const trimmed = value.slice(0, maxLength).trimEnd();
   const lastSpaceIndex = trimmed.lastIndexOf(" ");
-  const safeText = lastSpaceIndex > 40 ? trimmed.slice(0, lastSpaceIndex) : trimmed;
+  const safeText =
+    lastSpaceIndex > 40 ? trimmed.slice(0, lastSpaceIndex) : trimmed;
 
   return safeText.replace(/[,.!?;:]$/, "") + "...";
 }
@@ -46,7 +47,7 @@ export default function ReadMoreText({
   const previewLength = Math.max(90, lines * 70);
   const previewText = useMemo(
     () => getFirstSentencePreview(cleanText, previewLength),
-    [cleanText, previewLength]
+    [cleanText, previewLength],
   );
   const contentKey = cleanText + "::" + lines;
   const [expandedState, setExpandedState] = useState({

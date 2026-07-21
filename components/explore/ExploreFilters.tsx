@@ -169,129 +169,129 @@ export default function ExploreFilters({ query }: { query: ExploreQuery }) {
             : "hidden"
         } rounded-[26px] border border-border bg-card p-4 shadow-[0_28px_90px_rgba(36,20,8,0.32)] lg:relative lg:inset-auto lg:z-40 lg:block lg:max-h-none lg:translate-y-0 lg:overflow-visible lg:rounded-[30px] lg:bg-card/92 lg:shadow-[0_18px_55px_rgba(81,49,23,0.08)] lg:backdrop-blur`}
       >
-      <div className="mb-3 flex min-h-9 items-center justify-between gap-3 px-1">
-        <div className="flex items-center gap-2">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-card-secondary text-primary">
-            <SlidersHorizontal className="h-4 w-4" />
-          </span>
-          <p className="text-sm font-black text-foreground">
-            Find an itinerary
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {hasFilters ? (
-            <Link
-              href="/explore"
-              onClick={triggerExploreGridLoading}
-              className="hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-black text-foreground transition hover:bg-card-secondary sm:inline-flex"
-            >
-              <X className="h-3.5 w-3.5" />
-              Clear
-            </Link>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={() => {
-              setOpenDropdown(null);
-              setFiltersOpen(false);
-            }}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:bg-card-secondary lg:hidden"
-            aria-label="Close filters"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.9fr)_150px_150px_150px_165px_auto] lg:items-end">
-        <label className="block">
-          <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.14em] text-secondary-foreground">
-            Search
-          </span>
-          <div className="relative">
-            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
-            <input
-              name="search"
-              defaultValue={query.search}
-              placeholder="Search Kashmir, Ladakh, family..."
-              className="h-12 w-full rounded-2xl border border-border bg-input pl-11 pr-4 text-sm font-semibold text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:bg-input-hover focus:border-ring focus:ring-4 focus:ring-ring/20"
-            />
+        <div className="mb-3 flex min-h-9 items-center justify-between gap-3 px-1">
+          <div className="flex items-center gap-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-card-secondary text-primary">
+              <SlidersHorizontal className="h-4 w-4" />
+            </span>
+            <p className="text-sm font-black text-foreground">
+              Find an itinerary
+            </p>
           </div>
-        </label>
 
-        <label className="block">
-          <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.14em] text-secondary-foreground">
-            Destination
-          </span>
-          <input
-            name="destination"
-            defaultValue={query.destination}
-            placeholder="Goa, Ladakh..."
-            className="h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm font-semibold text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:bg-input-hover focus:border-ring focus:ring-4 focus:ring-ring/20"
-          />
-        </label>
+          <div className="flex items-center gap-2">
+            {hasFilters ? (
+              <Link
+                href="/explore"
+                onClick={triggerExploreGridLoading}
+                className="hidden h-9 cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3 text-xs font-black text-foreground transition hover:bg-card-secondary sm:inline-flex"
+              >
+                <X className="h-3.5 w-3.5" />
+                Clear
+              </Link>
+            ) : null}
 
-        <ExploreDropdown
-          name="duration"
-          label="Duration"
-          value={duration}
-          onChange={setDuration}
-          options={durationFilterOptions}
-          isOpen={openDropdown === "duration"}
-          onOpenChange={(open) => setOpenDropdown(open ? "duration" : null)}
-        />
-
-        <ExploreDropdown
-          name="budget"
-          label="Budget"
-          value={budget}
-          onChange={setBudget}
-          options={budgetFilterOptions}
-          isOpen={openDropdown === "budget"}
-          onOpenChange={(open) => setOpenDropdown(open ? "budget" : null)}
-        />
-
-        <ExploreDropdown
-          name="style"
-          label="Style"
-          value={style}
-          onChange={setStyle}
-          options={styleFilterOptions}
-          isOpen={openDropdown === "style"}
-          onOpenChange={(open) => setOpenDropdown(open ? "style" : null)}
-        />
-
-        <ExploreDropdown
-          name="sort"
-          label="Sort"
-          value={sort}
-          onChange={setSort}
-          options={sortFilterOptions}
-          isOpen={openDropdown === "sort"}
-          onOpenChange={(open) => setOpenDropdown(open ? "sort" : null)}
-        />
-
-        <div className="flex gap-2">
-          <button
-            type="submit"
-            className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-full bg-primary px-6 text-sm font-black text-primary-foreground shadow-lg shadow-primary/15 transition hover:-translate-y-0.5 hover:bg-primary-hover lg:flex-none"
-          >
-            Search
-          </button>
-
-          {hasFilters ? (
-            <Link
-              href="/explore"
-              onClick={triggerExploreGridLoading}
-              className="inline-flex h-12 cursor-pointer items-center justify-center rounded-full border border-border bg-card px-4 text-sm font-black text-foreground transition hover:bg-card-secondary sm:hidden"
+            <button
+              type="button"
+              onClick={() => {
+                setOpenDropdown(null);
+                setFiltersOpen(false);
+              }}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-foreground transition hover:bg-card-secondary lg:hidden"
+              aria-label="Close filters"
             >
-              Clear
-            </Link>
-          ) : null}
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
-      </div>
+
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.45fr)_minmax(0,0.9fr)_150px_150px_150px_165px_auto] lg:items-end">
+          <label className="block">
+            <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.14em] text-secondary-foreground">
+              Search
+            </span>
+            <div className="relative">
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-primary" />
+              <input
+                name="search"
+                defaultValue={query.search}
+                placeholder="Search Kashmir, Ladakh, family..."
+                className="h-12 w-full rounded-2xl border border-border bg-input pl-11 pr-4 text-sm font-semibold text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:bg-input-hover focus:border-ring focus:ring-4 focus:ring-ring/20"
+              />
+            </div>
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-[11px] font-black uppercase tracking-[0.14em] text-secondary-foreground">
+              Destination
+            </span>
+            <input
+              name="destination"
+              defaultValue={query.destination}
+              placeholder="Goa, Ladakh..."
+              className="h-12 w-full rounded-2xl border border-border bg-input px-4 text-sm font-semibold text-foreground outline-none transition placeholder:text-muted-foreground/70 hover:bg-input-hover focus:border-ring focus:ring-4 focus:ring-ring/20"
+            />
+          </label>
+
+          <ExploreDropdown
+            name="duration"
+            label="Duration"
+            value={duration}
+            onChange={setDuration}
+            options={durationFilterOptions}
+            isOpen={openDropdown === "duration"}
+            onOpenChange={(open) => setOpenDropdown(open ? "duration" : null)}
+          />
+
+          <ExploreDropdown
+            name="budget"
+            label="Budget"
+            value={budget}
+            onChange={setBudget}
+            options={budgetFilterOptions}
+            isOpen={openDropdown === "budget"}
+            onOpenChange={(open) => setOpenDropdown(open ? "budget" : null)}
+          />
+
+          <ExploreDropdown
+            name="style"
+            label="Style"
+            value={style}
+            onChange={setStyle}
+            options={styleFilterOptions}
+            isOpen={openDropdown === "style"}
+            onOpenChange={(open) => setOpenDropdown(open ? "style" : null)}
+          />
+
+          <ExploreDropdown
+            name="sort"
+            label="Sort"
+            value={sort}
+            onChange={setSort}
+            options={sortFilterOptions}
+            isOpen={openDropdown === "sort"}
+            onOpenChange={(open) => setOpenDropdown(open ? "sort" : null)}
+          />
+
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-full bg-primary px-6 text-sm font-black text-primary-foreground shadow-lg shadow-primary/15 transition hover:-translate-y-0.5 hover:bg-primary-hover lg:flex-none"
+            >
+              Search
+            </button>
+
+            {hasFilters ? (
+              <Link
+                href="/explore"
+                onClick={triggerExploreGridLoading}
+                className="inline-flex h-12 cursor-pointer items-center justify-center rounded-full border border-border bg-card px-4 text-sm font-black text-foreground transition hover:bg-card-secondary sm:hidden"
+              >
+                Clear
+              </Link>
+            ) : null}
+          </div>
+        </div>
       </form>
     </>
   );

@@ -60,7 +60,8 @@ export async function clonePublicTripForUser({
         tripType: snapshot.tripType as TripType,
         travelPace: snapshot.travelPace as TravelPace,
         foodPreference: snapshot.foodPreference as FoodPreference,
-        transportPreference: snapshot.transportPreference as TransportPreference,
+        transportPreference:
+          snapshot.transportPreference as TransportPreference,
         specialNotes: snapshot.specialNotes,
         visibility: TripVisibility.PRIVATE,
         status: TripStatus.EDITING,
@@ -93,7 +94,8 @@ export async function clonePublicTripForUser({
                 miscCost: snapshot.costBreakdown.miscCost,
                 totalEstimatedCost: snapshot.costBreakdown.totalEstimatedCost,
                 userBudget: snapshot.costBreakdown.userBudget,
-                budgetStatus: snapshot.costBreakdown.budgetStatus as BudgetStatus,
+                budgetStatus: snapshot.costBreakdown
+                  .budgetStatus as BudgetStatus,
               },
             }
           : undefined,
@@ -201,8 +203,10 @@ export async function clonePublicTripForUser({
       });
     }
 
-    if (activities.length > 0) await tx.tripActivity.createMany({ data: activities });
-    if (transports.length > 0) await tx.transportOption.createMany({ data: transports });
+    if (activities.length > 0)
+      await tx.tripActivity.createMany({ data: activities });
+    if (transports.length > 0)
+      await tx.transportOption.createMany({ data: transports });
     if (stays.length > 0) await tx.stayOption.createMany({ data: stays });
     if (meals.length > 0) await tx.mealSuggestion.createMany({ data: meals });
 

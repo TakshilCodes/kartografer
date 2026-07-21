@@ -22,7 +22,9 @@ export default function LatestTripsPanel({ trips }: LatestTripsPanelProps) {
           <p className="text-xs font-black uppercase text-muted-foreground">
             Recent activity
           </p>
-          <h2 className="mt-1 text-xl font-black text-foreground">Latest trips</h2>
+          <h2 className="mt-1 text-xl font-black text-foreground">
+            Latest trips
+          </h2>
         </div>
         {trips.length > 0 ? (
           <Link
@@ -48,9 +50,13 @@ export default function LatestTripsPanel({ trips }: LatestTripsPanelProps) {
                 </p>
                 <p className="mt-1 flex min-w-0 items-center gap-1.5 text-xs font-semibold text-secondary-foreground">
                   <MapPin className="h-3.5 w-3.5 shrink-0 text-primary" />
-                  <span className="truncate">{trip.fromPlace ?? "Starting point"}</span>
+                  <span className="truncate">
+                    {trip.fromPlace ?? "Starting point"}
+                  </span>
                   <ArrowRight className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{trip.toPlace ?? "Destination"}</span>
+                  <span className="truncate">
+                    {trip.toPlace ?? "Destination"}
+                  </span>
                 </p>
               </div>
 

@@ -3,27 +3,44 @@
 import { useRef, useState } from "react";
 import NextImage from "next/image";
 import Cropper, { type Area, type Point } from "react-easy-crop";
-import { ImagePlus, Loader2, RotateCcw, Trash2, UploadCloud, X } from "lucide-react";
+import {
+  ImagePlus,
+  Loader2,
+  RotateCcw,
+  Trash2,
+  UploadCloud,
+  X,
+} from "lucide-react";
 
 const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
-const ACCEPTED_TYPES = new Set(["image/jpeg", "image/jpg", "image/png", "image/webp"]);
+const ACCEPTED_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+]);
 const COVER_ASPECT = 16 / 9;
 
 type CloudinaryUploadResponse =
-  | { ok: true; url: string; publicId: string }
-  | { ok: false; error: string };
+  { ok: true; url: string; publicId: string } | { ok: false; error: string };
 
 type CoverImageUploaderProps = {
   value: string | null;
   onChange: (url: string | null) => void;
 };
 
-export default function CoverImageUploader({ value, onChange }: CoverImageUploaderProps) {
+export default function CoverImageUploader({
+  value,
+  onChange,
+}: CoverImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-  const [selectedPhoto, setSelectedPhoto] = useState<{ url: string; file: File } | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<{
+    url: string;
+    file: File;
+  } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState("");
@@ -55,7 +72,11 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
     setError("");
 
     try {
-      const croppedBlob = await getCroppedImg(selectedPhoto.url, croppedAreaPixels, selectedPhoto.file.type);
+      const croppedBlob = await getCroppedImg(
+        selectedPhoto.url,
+        croppedAreaPixels,
+        selectedPhoto.file.type,
+      );
 
       if (!croppedBlob) {
         throw new Error("Failed to crop image.");
@@ -71,20 +92,28 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
         method: "POST",
         body: formData,
       });
-      const result = (await response.json().catch(() => null)) as CloudinaryUploadResponse | null;
+      const result = (await response
+        .json()
+        .catch(() => null)) as CloudinaryUploadResponse | null;
 
       if (!result) {
         throw new Error("Failed to upload image.");
       }
 
       if (!response.ok || result.ok === false) {
-        throw new Error(result.ok === false ? result.error : "Failed to upload image.");
+        throw new Error(
+          result.ok === false ? result.error : "Failed to upload image.",
+        );
       }
 
       onChange(result.url);
       closeCropper();
     } catch (uploadError) {
-      setError(uploadError instanceof Error ? uploadError.message : "Failed to upload image.");
+      setError(
+        uploadError instanceof Error
+          ? uploadError.message
+          : "Failed to upload image.",
+      );
     } finally {
       setIsUploading(false);
     }
@@ -181,17 +210,15 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`relative rounded-[28px] transition ${isDragging
-          ? "ring-4 ring-ring/25"
-          : ""
-          }`}
+        className={`relative rounded-[28px] transition ${
+          isDragging ? "ring-4 ring-ring/25" : ""
+        }`}
       >
         {value ? (
           <div
-            className={`group relative aspect-video overflow-hidden rounded-[26px] border bg-card-secondary shadow-sm transition ${isDragging
-              ? "border-primary bg-card-secondary"
-              : "border-border"
-              }`}
+            className={`group relative aspect-video overflow-hidden rounded-[26px] border bg-card-secondary shadow-sm transition ${
+              isDragging ? "border-primary bg-card-secondary" : "border-border"
+            }`}
           >
             <NextImage
               src={value}
@@ -243,10 +270,11 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
           <button
             type="button"
             onClick={openFilePicker}
-            className={`group flex aspect-video w-full cursor-pointer flex-col items-center justify-center rounded-[26px] border border-dashed px-4 text-center transition focus:outline-none focus:ring-4 focus:ring-ring/20 ${isDragging
-              ? "border-primary bg-card-secondary ring-4 ring-ring/20"
-              : "border-border bg-card-secondary/60 hover:border-primary/60 hover:bg-card-secondary"
-              }`}
+            className={`group flex aspect-video w-full cursor-pointer flex-col items-center justify-center rounded-[26px] border border-dashed px-4 text-center transition focus:outline-none focus:ring-4 focus:ring-ring/20 ${
+              isDragging
+                ? "border-primary bg-card-secondary ring-4 ring-ring/20"
+                : "border-border bg-card-secondary/60 hover:border-primary/60 hover:bg-card-secondary"
+            }`}
           >
             <span className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition group-hover:scale-105">
               {isDragging ? (
@@ -282,8 +310,12 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
           <div className="w-full max-w-3xl overflow-hidden rounded-[30px] border border-border bg-card shadow-2xl">
             <div className="flex items-start justify-between gap-4 border-b border-border bg-card-secondary/70 px-5 py-4">
               <div>
-                <h3 className="text-lg font-black text-foreground">Crop cover image</h3>
-                <p className="mt-1 text-sm text-secondary-foreground">Frame the image in a wide 16:9 crop for Explore.</p>
+                <h3 className="text-lg font-black text-foreground">
+                  Crop cover image
+                </h3>
+                <p className="mt-1 text-sm text-secondary-foreground">
+                  Frame the image in a wide 16:9 crop for Explore.
+                </p>
               </div>
               <button
                 type="button"
@@ -303,13 +335,21 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
                   aspect={COVER_ASPECT}
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
-                  onCropComplete={(_, areaPixels) => setCroppedAreaPixels(areaPixels)}
-                  classes={{ containerClassName: isUploading ? "opacity-70 pointer-events-none" : "" }}
+                  onCropComplete={(_, areaPixels) =>
+                    setCroppedAreaPixels(areaPixels)
+                  }
+                  classes={{
+                    containerClassName: isUploading
+                      ? "opacity-70 pointer-events-none"
+                      : "",
+                  }}
                 />
               </div>
 
               <label className="block">
-                <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-secondary-foreground">Zoom</span>
+                <span className="mb-2 block text-xs font-black uppercase tracking-[0.14em] text-secondary-foreground">
+                  Zoom
+                </span>
                 <input
                   type="range"
                   min={1}
@@ -344,7 +384,11 @@ export default function CoverImageUploader({ value, onChange }: CoverImageUpload
                 disabled={isUploading}
                 className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-black text-primary-foreground transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
+                {isUploading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <UploadCloud className="h-4 w-4" />
+                )}
                 {isUploading ? "Uploading..." : "Upload cover"}
               </button>
             </div>
@@ -359,13 +403,19 @@ function createImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const image = new Image();
     image.addEventListener("load", () => resolve(image));
-    image.addEventListener("error", () => reject(new Error("Failed to load image.")));
+    image.addEventListener("error", () =>
+      reject(new Error("Failed to load image.")),
+    );
     image.setAttribute("crossOrigin", "anonymous");
     image.src = url;
   });
 }
 
-async function getCroppedImg(imageSrc: string, pixelCrop: Area, mimeType: string): Promise<Blob | null> {
+async function getCroppedImg(
+  imageSrc: string,
+  pixelCrop: Area,
+  mimeType: string,
+): Promise<Blob | null> {
   const image = await createImage(imageSrc);
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -386,7 +436,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area, mimeType: string
     0,
     0,
     canvas.width,
-    canvas.height
+    canvas.height,
   );
 
   return new Promise((resolve, reject) => {
@@ -400,7 +450,7 @@ async function getCroppedImg(imageSrc: string, pixelCrop: Area, mimeType: string
         resolve(blob);
       },
       mimeType || "image/jpeg",
-      0.92
+      0.92,
     );
   });
 }

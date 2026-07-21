@@ -114,7 +114,7 @@ export type TripExportData = {
 
 export async function getTripExportData(
   tripId: string,
-  userId: string
+  userId: string,
 ): Promise<TripExportData | null> {
   const trip = await prisma.trip.findFirst({
     where: {
@@ -311,7 +311,7 @@ export async function getTripExportData(
       day.transports.length > 0 ||
       day.stays.length > 0 ||
       day.meals.length > 0 ||
-      day.activities.length > 0
+      day.activities.length > 0,
   );
 
   return {
@@ -338,8 +338,7 @@ export async function getTripExportData(
           foodCost: trip.costBreakdown.foodCost.toString(),
           activityCost: trip.costBreakdown.activityCost.toString(),
           miscCost: trip.costBreakdown.miscCost.toString(),
-          totalEstimatedCost:
-            trip.costBreakdown.totalEstimatedCost.toString(),
+          totalEstimatedCost: trip.costBreakdown.totalEstimatedCost.toString(),
           userBudget: serializeMoney(trip.costBreakdown.userBudget),
           budgetStatus: trip.costBreakdown.budgetStatus.toString(),
         }

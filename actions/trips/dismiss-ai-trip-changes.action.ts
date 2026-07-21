@@ -14,7 +14,7 @@ const dismissAiTripChangesSchema = z.object({
 type DismissAiTripChangesInput = z.infer<typeof dismissAiTripChangesSchema>;
 
 export async function dismissAiTripChangesAction(
-  input: DismissAiTripChangesInput
+  input: DismissAiTripChangesInput,
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -64,14 +64,22 @@ export async function dismissAiTripChangesAction(
       };
     }
 
-    await prisma.tripChatMessage.update({
+    const dismissed = await prisma.tripChatMessage.updateMany({
       where: {
         id: proposal.id,
+        status: "PENDING",
       },
       data: {
         status: "DISCARDED",
       },
     });
+
+    if (dismissed.count !== 1) {
+      return {
+        ok: false,
+        error: "This proposal is no longer pending.",
+      };
+    }
 
     revalidatePath(`/dashboard/trips/${proposal.tripId}/edit`);
 

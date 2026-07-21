@@ -44,11 +44,14 @@ function getBudgetStatus(totalCost: number, userBudget: number | null) {
   return BudgetStatus.OVER_BUDGET;
 }
 
-function getTransportCost(transport: {
-  costType: string;
-  pricePerPerson: unknown;
-  totalCost: unknown;
-}, peopleCount: number) {
+function getTransportCost(
+  transport: {
+    costType: string;
+    pricePerPerson: unknown;
+    totalCost: unknown;
+  },
+  peopleCount: number,
+) {
   if (transport.costType === "PER_PERSON") {
     return roundMoney(getNumberValue(transport.pricePerPerson) * peopleCount);
   }
@@ -133,9 +136,7 @@ export async function recalculateTripCost(tripId: string) {
     throw new Error("Trip not found while recalculating cost.");
   }
 
-  const dayCosts: DayCostMap = new Map(
-    trip.days.map((day) => [day.id, 0])
-  );
+  const dayCosts: DayCostMap = new Map(trip.days.map((day) => [day.id, 0]));
 
   let transportCost = 0;
   let stayCost = 0;
@@ -172,9 +173,10 @@ export async function recalculateTripCost(tripId: string) {
   }
 
   const totalEstimatedCost = roundMoney(
-    transportCost + stayCost + foodCost + activityCost + miscCost
+    transportCost + stayCost + foodCost + activityCost + miscCost,
   );
-  const userBudget = trip.budgetAmount === null ? null : getNumberValue(trip.budgetAmount);
+  const userBudget =
+    trip.budgetAmount === null ? null : getNumberValue(trip.budgetAmount);
   const budgetStatus = getBudgetStatus(totalEstimatedCost, userBudget);
 
   await prisma.$transaction([
@@ -186,7 +188,7 @@ export async function recalculateTripCost(tripId: string) {
         data: {
           estimatedCost: dayCosts.get(day.id) ?? 0,
         },
-      })
+      }),
     ),
     prisma.tripCostBreakdown.upsert({
       where: {

@@ -1,7 +1,6 @@
 "use client";
 
 import { useTransition, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import { publicTripAsTemplateAction } from "@/actions/explore/use-template.action";
 
@@ -9,8 +8,9 @@ type UseItineraryButtonProps = {
   publicTripId: string;
 };
 
-export default function UseItineraryButton({ publicTripId }: UseItineraryButtonProps) {
-  const router = useRouter();
+export default function UseItineraryButton({
+  publicTripId,
+}: UseItineraryButtonProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState("");
 

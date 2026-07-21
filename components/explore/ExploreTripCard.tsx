@@ -44,7 +44,10 @@ type ExploreTripCardProps = {
 export default function ExploreTripCard({ trip }: ExploreTripCardProps) {
   const title = trip.publicTitle || trip.title;
   const destination = trip.destination || trip.toPlace?.name || "Open route";
-  const description = trip.publicDescription || trip.summary || "A public itinerary you can use as a starting point.";
+  const description =
+    trip.publicDescription ||
+    trip.summary ||
+    "A public itinerary you can use as a starting point.";
   const duration = trip.durationDays || trip.daysCount;
 
   return (
@@ -53,7 +56,11 @@ export default function ExploreTripCard({ trip }: ExploreTripCardProps) {
         <div className="relative h-44 overflow-hidden border-b border-border bg-card-secondary">
           {trip.coverImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={trip.coverImageUrl} alt="" className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <img
+              src={trip.coverImageUrl}
+              alt=""
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
           ) : (
             <div className="relative h-full bg-[#f5e8d5]">
               <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(84,55,29,0.10)_1px,transparent_1px),linear-gradient(to_bottom,rgba(84,55,29,0.10)_1px,transparent_1px)] bg-size-[28px_28px]" />
@@ -89,13 +96,24 @@ export default function ExploreTripCard({ trip }: ExploreTripCardProps) {
           </p>
 
           <div className="mt-4 grid grid-cols-3 gap-2">
-            <MiniStat icon={<CalendarDays className="h-3.5 w-3.5" />} label={`${duration} days`} />
-            <MiniStat icon={<Users className="h-3.5 w-3.5" />} label={`${trip.peopleCount} people`} />
-            <MiniStat icon={<Copy className="h-3.5 w-3.5" />} label={`${trip.copiedCount} used`} />
+            <MiniStat
+              icon={<CalendarDays className="h-3.5 w-3.5" />}
+              label={`${duration} days`}
+            />
+            <MiniStat
+              icon={<Users className="h-3.5 w-3.5" />}
+              label={`${trip.peopleCount} people`}
+            />
+            <MiniStat
+              icon={<Copy className="h-3.5 w-3.5" />}
+              label={`${trip.copiedCount} used`}
+            />
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {trip.budgetStyle ? <Chip>{labelize(trip.budgetStyle)}</Chip> : null}
+            {trip.budgetStyle ? (
+              <Chip>{labelize(trip.budgetStyle)}</Chip>
+            ) : null}
             {trip.tags.slice(0, 3).map((tag) => (
               <Chip key={tag}>#{tag}</Chip>
             ))}

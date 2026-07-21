@@ -4,8 +4,7 @@ export const MANUAL_TRIP_CREATION_DAILY_LIMIT = 20;
 export const DAILY_WINDOW_SECONDS = 24 * 60 * 60;
 
 export type ManualTripCreationRateLimitReason =
-  | "MANUAL_TRIP_CREATION_DAILY_LIMIT"
-  | "TRIP_RATE_LIMIT_UNAVAILABLE";
+  "MANUAL_TRIP_CREATION_DAILY_LIMIT" | "TRIP_RATE_LIMIT_UNAVAILABLE";
 
 export type ManualTripCreationRateLimitResult = {
   allowed: boolean;
@@ -35,15 +34,14 @@ export async function consumeManualTripCreationLimit({
   userId: string;
 }): Promise<ManualTripCreationRateLimitResult> {
   try {
-    const key =
-      "rate-limit:trip:create:manual:user:" + userId + ":daily";
+    const key = "rate-limit:trip:create:manual:user:" + userId + ":daily";
 
     const result = (await redis.eval(
       consumeScript,
       1,
       key,
       MANUAL_TRIP_CREATION_DAILY_LIMIT,
-      DAILY_WINDOW_SECONDS
+      DAILY_WINDOW_SECONDS,
     )) as Array<number | string>;
 
     const allowed = Number(result[0]) === 1;
@@ -68,7 +66,7 @@ export async function consumeManualTripCreationLimit({
 }
 
 export function getManualTripCreationRateLimitMessage(
-  result: ManualTripCreationRateLimitResult
+  result: ManualTripCreationRateLimitResult,
 ) {
   if (result.reason === "MANUAL_TRIP_CREATION_DAILY_LIMIT") {
     return "You have reached today's manual trip creation limit. Please try again tomorrow.";

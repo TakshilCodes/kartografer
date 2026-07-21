@@ -1,0 +1,11 @@
+# Dependency directories
+node_modules/
+
+# Build outputs
+dist/
+build/
+.next/
+
+# Lockfiles and system files
+package-lock.json
+.DS_Store

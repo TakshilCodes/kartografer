@@ -52,9 +52,7 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!rateLimit.allowed) {
-          throw new Error(
-            "LOGIN_RATE_LIMITED:" + rateLimit.retryAfterSeconds
-          );
+          throw new Error("LOGIN_RATE_LIMITED:" + rateLimit.retryAfterSeconds);
         }
 
         const parsed = LoginSchema.safeParse(credentials);
@@ -73,7 +71,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!user.hashedPassword) {
           throw new Error(
-            "This account was created with Google. Please continue with Google."
+            "This account was created with Google. Please continue with Google.",
           );
         }
 
@@ -83,7 +81,7 @@ export const authOptions: NextAuthOptions = {
 
         const isPasswordValid = await bcrypt.compare(
           parsed.data.password,
-          user.hashedPassword
+          user.hashedPassword,
         );
 
         if (!isPasswordValid) return null;
@@ -139,7 +137,8 @@ export const authOptions: NextAuthOptions = {
       }
 
       return true;
-    },    async jwt({ token, user }) {
+    },
+    async jwt({ token, user }) {
       if (user?.id) {
         token.id = user.id;
       }

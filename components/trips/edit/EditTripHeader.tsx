@@ -38,7 +38,6 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
-
   function openEditModal() {
     setTitle(trip.title);
     setSummary(trip.summary ?? "");
@@ -166,7 +165,8 @@ export default function EditTripHeader({ trip }: EditTripHeaderProps) {
                   placeholder="Short overview of this trip..."
                 />
                 <p className="mt-1 text-xs font-semibold text-secondary-foreground">
-                  This summary is shown in the trip preview, share page, and export.
+                  This summary is shown in the trip preview, share page, and
+                  export.
                 </p>
               </div>
 

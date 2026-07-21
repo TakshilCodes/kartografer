@@ -47,7 +47,8 @@ async function getPublicTripMetadata(tripId: string) {
 
   return {
     id: trip.id,
-    title: snapshot.publicTitle || trip.publicTitle || snapshot.title || trip.title,
+    title:
+      snapshot.publicTitle || trip.publicTitle || snapshot.title || trip.title,
     description:
       snapshot.publicDescription ||
       trip.publicDescription ||
@@ -176,9 +177,7 @@ export default async function ExploreTripDetailPage({
           ],
         }}
       />
-      <PublicTripDetail
-        trip={publicTrip}
-      />
+      <PublicTripDetail trip={publicTrip} />
     </>
   );
 }

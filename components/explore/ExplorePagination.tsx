@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-import { buildExploreHref, type ExploreQuery } from "@/lib/explore/explore-query";
+import {
+  buildExploreHref,
+  type ExploreQuery,
+} from "@/lib/explore/explore-query";
 
 export default function ExplorePagination({
   query,
@@ -14,13 +17,20 @@ export default function ExplorePagination({
 }) {
   if (totalPages <= 1) return null;
 
-  const pages = Array.from({ length: totalPages }, (_, index) => index + 1).filter(
-    (page) => page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1
+  const pages = Array.from(
+    { length: totalPages },
+    (_, index) => index + 1,
+  ).filter(
+    (page) =>
+      page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1,
   );
 
   return (
     <nav className="flex flex-wrap items-center justify-center gap-2 rounded-[28px] border border-border bg-card p-3 shadow-sm">
-      <PageLink disabled={currentPage <= 1} href={buildExploreHref(query, { page: currentPage - 1 })}>
+      <PageLink
+        disabled={currentPage <= 1}
+        href={buildExploreHref(query, { page: currentPage - 1 })}
+      >
         <ChevronLeft className="h-4 w-4" />
         Previous
       </PageLink>
@@ -31,7 +41,11 @@ export default function ExplorePagination({
 
         return (
           <span key={page} className="flex items-center gap-2">
-            {showGap ? <span className="px-1 text-sm font-black text-secondary-foreground">...</span> : null}
+            {showGap ? (
+              <span className="px-1 text-sm font-black text-secondary-foreground">
+                ...
+              </span>
+            ) : null}
             <Link
               href={buildExploreHref(query, { page })}
               className={`flex h-10 min-w-10 items-center justify-center rounded-full px-3 text-sm font-black transition ${
@@ -46,7 +60,10 @@ export default function ExplorePagination({
         );
       })}
 
-      <PageLink disabled={currentPage >= totalPages} href={buildExploreHref(query, { page: currentPage + 1 })}>
+      <PageLink
+        disabled={currentPage >= totalPages}
+        href={buildExploreHref(query, { page: currentPage + 1 })}
+      >
         Next
         <ChevronRight className="h-4 w-4" />
       </PageLink>

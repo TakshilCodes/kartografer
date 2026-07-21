@@ -1,24 +1,41 @@
 "use server";
 
+import type { GenerateContentConfig } from "@google/genai";
 import { revalidatePath } from "next/cache";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
 
-import { authOptions } from "@/lib/auth";
-import { extractJsonFromAiText } from "@/lib/ai/ai-client";
 import { getRetryAiErrorMessage } from "@/lib/ai/ai-error-details";
 import { generateTextWithGemini } from "@/lib/ai/gemini.provider";
-import { buildTripChatPrompt } from "@/lib/ai/prompts/trip-chat.prompt";
 import {
-  tripAiChangeResponseSchema,
-  type TripAiChange,
-} from "@/lib/ai/schemas/trip-ai-change.schema";
+  buildTripChatPrompt,
+  TRIP_CHAT_SYSTEM_INSTRUCTION,
+  TRIP_CHAT_TEMPERATURE,
+} from "@/lib/ai/prompts/trip-chat.prompt";
+import type { TripAiChange } from "@/lib/ai/schemas/trip-ai-change.schema";
+import { buildTripChatContext } from "@/lib/ai/trip-chat/context";
+import {
+  buildTruthfulAssistantMessage,
+  processSemanticTripProposalAttempt,
+  createStoredTripChatPayload,
+  parseStoredTripChatPayload,
+  validateAiTripResponse,
+  type ProposalChangeCostPreview,
+  type ProposalCostPreview,
+  type ProposalResultMetadata,
+  type ValidatedRecommendation,
+} from "@/lib/ai/trip-chat/proposal";
+import {
+  addTripChatEditCapabilities,
+  buildSemanticProposalRepairPrompt,
+  type ParsedTripChatProposal,
+} from "@/lib/ai/trip-chat/semantic";
+import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import {
   consumeAiChatLimit,
   getAiRateLimitErrorMessage,
 } from "@/lib/rate-limit/ai-rate-limit";
-import type { TripChatPromptItem } from "@/lib/ai/prompts/trip-chat.prompt";
 
 const sendTripChatMessageSchema = z.object({
   tripId: z.string().trim().min(1, "Trip id is required."),
@@ -31,14 +48,6 @@ const sendTripChatMessageSchema = z.object({
 
 type SendTripChatMessageInput = z.infer<typeof sendTripChatMessageSchema>;
 
-export type ChatMessageDto = {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  createdAt: string;
-  proposal: AiChangeProposalDto | null;
-};
-
 export type AiChangeProposalDto = {
   id: string;
   status: "pending" | "applied" | "dismissed";
@@ -47,7 +56,20 @@ export type AiChangeProposalDto = {
     type: TripAiChange["type"];
     label: string;
     reason: string;
+    cost: ProposalChangeCostPreview | null;
   }>;
+  costPreview: ProposalCostPreview | null;
+};
+
+export type ChatMessageDto = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+  proposal: AiChangeProposalDto | null;
+  result?: ProposalResultMetadata | null;
+  recommendations?: ValidatedRecommendation[];
+  currency?: string | null;
 };
 
 type SendTripChatMessageResult =
@@ -57,12 +79,7 @@ type SendTripChatMessageResult =
       assistantMessage: ChatMessageDto;
       error: null;
     }
-  | {
-      ok: false;
-      error: string;
-    };
-
-type SelectedItemByDay = Record<string, TripChatPromptItem[]>;
+  | { ok: false; error: string };
 
 function toMessageDto(message: {
   id: string;
@@ -73,18 +90,17 @@ function toMessageDto(message: {
   changeSummary?: string | null;
   status?: "NONE" | "PENDING" | "APPLIED" | "DISCARDED";
 }): ChatMessageDto {
-  const parsedProposal =
-    tripAiChangeResponseSchema.shape.proposedChanges.safeParse(
-      message.proposedChangesJson,
-    );
-  const changes = parsedProposal.success ? parsedProposal.data : [];
+  const payload = parseStoredTripChatPayload(message.proposedChangesJson);
+  const changes = payload?.changes ?? [];
   const status = message.status ?? "NONE";
-
   return {
     id: message.id,
     role: message.role === "USER" ? "user" : "assistant",
     content: message.content,
     createdAt: message.createdAt.toISOString(),
+    result: payload?.result ?? null,
+    recommendations: payload?.recommendations ?? [],
+    currency: payload?.costPreview?.currency ?? null,
     proposal:
       message.role === "ASSISTANT" && changes.length > 0 && status !== "NONE"
         ? {
@@ -96,115 +112,103 @@ function toMessageDto(message: {
                   ? "dismissed"
                   : "pending",
             summary: message.changeSummary ?? null,
-            changes: changes.map((change) => ({
+            changes: changes.map((change, index) => ({
               type: change.type,
               label: change.label,
               reason: change.reason,
+              cost: payload?.costPreview?.changes[index] ?? null,
             })),
+            costPreview: payload?.costPreview ?? null,
           }
         : null,
   };
 }
 
-function getNumberText(value: unknown) {
-  if (value === null || value === undefined || value === "") return null;
+const TRIP_CHAT_REQUEST_TIMEOUT_MS = 30_000;
 
-  const numberValue = Number(value);
-
-  return Number.isNaN(numberValue) ? null : numberValue.toString();
-}
-
-function addItem(
-  map: SelectedItemByDay,
-  tripDayId: string | null,
-  item: TripChatPromptItem,
-) {
-  if (!tripDayId) return;
-
-  map[tripDayId] = [...(map[tripDayId] ?? []), item];
-}
-
-function formatCost(label: string, value: unknown) {
-  const cost = getNumberText(value);
-
-  return cost ? `${label}: ${cost}` : null;
-}
-
-function parseAiChatResponse(text: string) {
-  try {
-    const json = extractJsonFromAiText(text);
-    const parsed = tripAiChangeResponseSchema.safeParse(json);
-
-    if (parsed.success) {
-      return parsed.data;
-    }
-
-    console.error(
-      "TRIP_CHAT_PROPOSAL_VALIDATION_ERROR",
-      parsed.error.flatten(),
-    );
-
-    if (
-      typeof json === "object" &&
-      json !== null &&
-      "assistantMessage" in json &&
-      typeof json.assistantMessage === "string" &&
-      json.assistantMessage.trim()
-    ) {
-      return {
-        assistantMessage: json.assistantMessage.trim(),
-        proposedChanges: [],
-      };
-    }
-  } catch (error) {
-    console.error("TRIP_CHAT_JSON_PARSE_ERROR", error);
-  }
-
+function createTripChatGeminiConfig(
+  responseJsonSchema?: Record<string, unknown>,
+): GenerateContentConfig {
   return {
-    assistantMessage: text.trim(),
-    proposedChanges: [],
+    temperature: TRIP_CHAT_TEMPERATURE,
+    responseMimeType: "application/json",
+    ...(responseJsonSchema
+      ? {
+          responseJsonSchema:
+            responseJsonSchema as GenerateContentConfig["responseJsonSchema"],
+        }
+      : {}),
+    httpOptions: { timeout: TRIP_CHAT_REQUEST_TIMEOUT_MS },
+    systemInstruction: TRIP_CHAT_SYSTEM_INSTRUCTION,
   };
 }
 
-function isLikelyChangeRequest(message: string) {
-  const normalizedMessage = message.trim().toLowerCase();
+type GeminiGenerationMetadata = {
+  modelUsed?: unknown;
+  finishReason?: unknown;
+  usage?: unknown;
+};
 
-  const isAdviceQuestion =
-    /^(can|could|should|would)\s+i\b/.test(normalizedMessage) ||
-    /^(how|what)\s+(can|could|should|would)\s+i\b/.test(normalizedMessage);
+function logProposalAttempt({
+  tripId,
+  phase,
+  responseMode,
+  parsed,
+  compiledCount,
+  validation,
+  generation,
+}: {
+  tripId: string;
+  phase: "initial" | "repair";
+  responseMode: string;
+  parsed: ParsedTripChatProposal;
+  compiledCount: number;
+  validation: ReturnType<typeof validateAiTripResponse>;
+  generation: GeminiGenerationMetadata;
+}) {
+  if (
+    parsed.issues.length === 0 &&
+    validation.result.rejectedChangeCount === 0
+  ) {
+    return;
+  }
+  console.warn("TRIP_CHAT_PROPOSAL_OUTPUT", {
+    tripId,
+    phase,
+    responseMode,
+    modelUsed:
+      typeof generation.modelUsed === "string"
+        ? generation.modelUsed
+        : "unknown",
+    finishReason:
+      typeof generation.finishReason === "string"
+        ? generation.finishReason
+        : null,
+    outputLength: parsed.outputLength,
+    parseIssues: parsed.issues.slice(0, 12),
+    semanticEditTypes: parsed.proposal.plan.edits.map((edit) => edit.type),
+    compiledCount,
+    validChangeCount: validation.result.validChangeCount,
+    rejectedChangeCount: validation.result.rejectedChangeCount,
+    rejectionReasons: validation.result.rejectionReasons.slice(0, 12),
+  });
+}
 
-  if (isAdviceQuestion) return false;
-
-  return /\b(add|apply|change|cheaper|delete|include|improve|make|move|reduce|remove|replace|switch|update)\b/i.test(
-    message,
+function proposalAttemptScore(
+  validation: ReturnType<typeof validateAiTripResponse>,
+) {
+  return (
+    validation.changes.length * 100 +
+    validation.recommendations.length * 10 -
+    validation.result.rejectionReasons.length
   );
 }
 
-function buildProposalRepairPrompt({
-  originalPrompt,
-  previousResponse,
-  userMessage,
-}: {
-  originalPrompt: string;
-  previousResponse: string;
-  userMessage: string;
-}) {
-  return `
-${originalPrompt}
-
-The previous AI response did not include a valid proposedChanges array for an itinerary change request.
-
-User change request:
-${userMessage}
-
-Previous invalid response:
-${previousResponse}
-
-Return corrected JSON only.
-Because the user is asking to change the itinerary, proposedChanges must contain at least one safe valid change if a matching day or item exists in the context.
-If the user is modifying an existing activity, use UPDATE_ACTIVITY with the exact activityId from the context.
-Do not return plain text outside JSON.
-`;
+function isExtensionOnlyProposal(changes: TripAiChange[]) {
+  return (
+    changes.length === 1 &&
+    (changes[0]?.type === "ADD_DAY" || changes[0]?.type === "UPDATE_DAY")
+  );
 }
 
 export async function sendTripChatMessageAction(
@@ -212,30 +216,23 @@ export async function sendTripChatMessageAction(
 ): Promise<SendTripChatMessageResult> {
   try {
     const session = await getServerSession(authOptions);
-
     if (!session?.user?.id) {
       return {
         ok: false,
         error: "You must be logged in to chat with Kartografer AI.",
       };
     }
-
     const parsed = sendTripChatMessageSchema.safeParse(input);
-
     if (!parsed.success) {
       return {
         ok: false,
         error: parsed.error.issues[0]?.message ?? "Invalid chat message.",
       };
     }
-
     const { tripId, message } = parsed.data;
 
     const trip = await prisma.trip.findFirst({
-      where: {
-        id: tripId,
-        userId: session.user.id,
-      },
+      where: { id: tripId, userId: session.user.id },
       select: {
         id: true,
         title: true,
@@ -249,43 +246,21 @@ export async function sendTripChatMessageAction(
         foodPreference: true,
         transportPreference: true,
         specialNotes: true,
-        fromPlace: {
-          select: {
-            formattedName: true,
-            name: true,
-          },
-        },
-        toPlace: {
-          select: {
-            formattedName: true,
-            name: true,
-          },
-        },
-        costBreakdown: {
-          select: {
-            totalEstimatedCost: true,
-            budgetStatus: true,
-          },
-        },
+        fromPlace: { select: { formattedName: true, name: true } },
+        toPlace: { select: { formattedName: true, name: true } },
         days: {
-          orderBy: {
-            dayNumber: "asc",
-          },
+          orderBy: { dayNumber: "asc" },
           select: {
             id: true,
             dayNumber: true,
             title: true,
             description: true,
+            notes: true,
             estimatedCost: true,
           },
         },
         transportOptions: {
-          where: {
-            isSelected: true,
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
           select: {
             id: true,
             tripDayId: true,
@@ -293,33 +268,34 @@ export async function sendTripChatMessageAction(
             mode: true,
             fromText: true,
             toText: true,
+            description: true,
+            costType: true,
+            pricePerPerson: true,
             totalCost: true,
+            isSelected: true,
+            notes: true,
           },
         },
         stayOptions: {
-          where: {
-            isSelected: true,
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
           select: {
             id: true,
             tripDayId: true,
             name: true,
-            area: true,
             city: true,
+            area: true,
             stayType: true,
+            budgetLevel: true,
+            pricePerNight: true,
+            nights: true,
             totalCost: true,
+            isSelected: true,
+            bestFor: true,
+            notes: true,
           },
         },
         mealSuggestions: {
-          where: {
-            isSelected: true,
-          },
-          orderBy: {
-            createdAt: "asc",
-          },
+          orderBy: { createdAt: "asc" },
           select: {
             id: true,
             tripDayId: true,
@@ -327,45 +303,39 @@ export async function sendTripChatMessageAction(
             title: true,
             locationName: true,
             estimatedCost: true,
+            isSelected: true,
+            notes: true,
           },
         },
         activities: {
-          where: {
-            isSelected: true,
-          },
-          orderBy: {
-            position: "asc",
-          },
+          orderBy: { position: "asc" },
           select: {
             id: true,
             tripDayId: true,
             title: true,
-            category: true,
+            description: true,
+            locationName: true,
+            address: true,
             startTime: true,
             endTime: true,
+            durationMinutes: true,
+            category: true,
             estimatedCost: true,
+            isSelected: true,
+            notes: true,
+            position: true,
           },
         },
       },
     });
-
-    if (!trip) {
-      return {
-        ok: false,
-        error: "Trip not found.",
-      };
-    }
+    if (!trip) return { ok: false, error: "Trip not found." };
 
     const aiRateLimit = await consumeAiChatLimit({
       userId: session.user.id,
       tripId,
     });
-
     if (!aiRateLimit.allowed) {
-      return {
-        ok: false,
-        error: getAiRateLimitErrorMessage(aiRateLimit),
-      };
+      return { ok: false, error: getAiRateLimitErrorMessage(aiRateLimit) };
     }
 
     const userMessage = await prisma.tripChatMessage.create({
@@ -385,162 +355,155 @@ export async function sendTripChatMessageAction(
         status: true,
       },
     });
-
     const recentMessages = await prisma.tripChatMessage.findMany({
       where: {
         tripId,
         userId: session.user.id,
-        id: {
-          not: userMessage.id,
-        },
+        id: { not: userMessage.id },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy: { createdAt: "desc" },
       take: 8,
       select: {
         role: true,
         content: true,
+        status: true,
+        changeSummary: true,
+        proposedChangesJson: true,
       },
     });
+    const chronological = recentMessages.reverse();
+    const assistantHistory = [...chronological]
+      .reverse()
+      .filter((item) => item.role === "ASSISTANT");
+    const previousAssistant = assistantHistory[0];
+    const previousPayload = previousAssistant
+      ? parseStoredTripChatPayload(previousAssistant.proposedChangesJson)
+      : null;
 
-    const transportsByDay: SelectedItemByDay = {};
-    const staysByDay: SelectedItemByDay = {};
-    const mealsByDay: SelectedItemByDay = {};
-    const activitiesByDay: SelectedItemByDay = {};
-
-    for (const transport of trip.transportOptions) {
-      addItem(transportsByDay, transport.tripDayId, {
-        id: transport.id,
-        title: [
-          transport.title,
-          transport.mode,
-          transport.fromText && transport.toText
-            ? `${transport.fromText} to ${transport.toText}`
-            : null,
-          formatCost("cost", transport.totalCost),
-        ]
-          .filter(Boolean)
-          .join(" | "),
-      });
-    }
-
-    for (const stay of trip.stayOptions) {
-      addItem(staysByDay, stay.tripDayId, {
-        id: stay.id,
-        title: [
-          stay.name,
-          stay.area ?? stay.city,
-          stay.stayType,
-          formatCost("cost", stay.totalCost),
-        ]
-          .filter(Boolean)
-          .join(" | "),
-      });
-    }
-
-    for (const meal of trip.mealSuggestions) {
-      addItem(mealsByDay, meal.tripDayId, {
-        id: meal.id,
-        title: [
-          meal.mealType,
-          meal.title,
-          meal.locationName,
-          formatCost("cost", meal.estimatedCost),
-        ]
-          .filter(Boolean)
-          .join(" | "),
-      });
-    }
-
-    for (const activity of trip.activities) {
-      addItem(activitiesByDay, activity.tripDayId, {
-        id: activity.id,
-        title: [
-          activity.startTime && activity.endTime
-            ? `${activity.startTime}-${activity.endTime}`
-            : null,
-          activity.title,
-          activity.category,
-          formatCost("cost", activity.estimatedCost),
-        ]
-          .filter(Boolean)
-          .join(" | "),
-      });
-    }
-
-    const prompt = buildTripChatPrompt({
-      trip: {
-        title: trip.title,
-        summary: trip.summary,
-        daysCount: trip.daysCount,
-        peopleCount: trip.peopleCount,
-        budgetAmount: getNumberText(trip.budgetAmount),
-        currency: trip.currency,
-        tripType: trip.tripType,
-        travelPace: trip.travelPace,
-        foodPreference: trip.foodPreference,
-        transportPreference: trip.transportPreference,
-        specialNotes: trip.specialNotes,
-        fromPlace:
-          trip.fromPlace?.formattedName ?? trip.fromPlace?.name ?? "Not set",
-        toPlace: trip.toPlace?.formattedName ?? trip.toPlace?.name ?? "Not set",
-        totalEstimatedCost: getNumberText(
-          trip.costBreakdown?.totalEstimatedCost,
-        ),
-        budgetStatus: trip.costBreakdown?.budgetStatus ?? null,
-        days: trip.days.map((day) => ({
-          id: day.id,
-          dayNumber: day.dayNumber,
-          title: day.title,
-          description: day.description,
-          estimatedCost: getNumberText(day.estimatedCost),
-          transports: transportsByDay[day.id] ?? [],
-          stays: staysByDay[day.id] ?? [],
-          meals: mealsByDay[day.id] ?? [],
-          activities: activitiesByDay[day.id] ?? [],
+    const context = addTripChatEditCapabilities(
+      buildTripChatContext({
+        trip,
+        recentConversation: chronological.map((item) => ({
+          role: item.role,
+          content: item.content,
+          proposalStatus: item.status,
+          proposalSummary: item.changeSummary,
         })),
-      },
-      recentMessages: recentMessages.reverse(),
+      }),
+    );
+
+    const previousRecommendations = previousPayload?.recommendations ?? [];
+    const prompt = buildTripChatPrompt({
+      context,
       userMessage: message,
+      previousAssistantState: previousAssistant
+        ? {
+            content: previousAssistant.content,
+            status: previousAssistant.status,
+            recommendations: previousRecommendations,
+            proposalState: previousPayload
+              ? {
+                  responseMode: previousPayload.result.responseMode,
+                  proposalCreated: previousPayload.result.proposalCreated,
+                  validChangeCount: previousPayload.result.validChangeCount,
+                  rejectedChangeCount: previousPayload.result.rejectedChangeCount,
+                }
+              : null,
+          }
+        : null,
     });
-
-    let assistantContent = "";
-    let proposedChanges: TripAiChange[] = [];
-    const shouldRequireProposal = isLikelyChangeRequest(message);
-
+    // Gemini's JSON-schema decoder cannot safely serve the full semantic edit
+    // contract. The prompt supplies the contract; TypeScript parses and validates
+    // every response afterward, including answer-only responses with empty edits.
+    const config = createTripChatGeminiConfig();
+    let generation: Awaited<ReturnType<typeof generateTextWithGemini>>;
     try {
-      const aiResult = await generateTextWithGemini({
+      generation = await generateTextWithGemini({
         prompt,
+        config,
+        maxAttemptsPerModel: 1,
+        maxRequests: 2,
       });
-
-      const parsedAiResponse = parseAiChatResponse(aiResult.text);
-
-      assistantContent = parsedAiResponse.assistantMessage.trim();
-      proposedChanges = parsedAiResponse.proposedChanges;
-
-      if (shouldRequireProposal && proposedChanges.length === 0) {
-        const repairResult = await generateTextWithGemini({
-          prompt: buildProposalRepairPrompt({
-            originalPrompt: prompt,
-            previousResponse: aiResult.text,
-            userMessage: message,
-          }),
-        });
-        const repairedResponse = parseAiChatResponse(repairResult.text);
-
-        assistantContent = repairedResponse.assistantMessage.trim();
-        proposedChanges = repairedResponse.proposedChanges;
-      }
     } catch (aiError) {
       console.error("TRIP_CHAT_AI_ERROR", aiError);
-
-      return {
-        ok: false,
-        error: getRetryAiErrorMessage(aiError),
-      };
+      return { ok: false, error: getRetryAiErrorMessage(aiError) };
     }
 
+    const processAttempt = (text: string) =>
+      processSemanticTripProposalAttempt({
+        text,
+        context,
+        previousRecommendations,
+      });
+
+    let attempt = processAttempt(generation.text);
+    logProposalAttempt({
+      tripId,
+      phase: "initial",
+      responseMode: "GEMINI_DECIDES",
+      parsed: attempt.parsedProposal,
+      compiledCount: attempt.compiled.rawChanges.length,
+      validation: attempt.validation,
+      generation: generation as GeminiGenerationMetadata,
+    });
+
+    const modelTriedToPlan =
+      attempt.parsedProposal.proposal.plan.extendTrip !== null ||
+      attempt.parsedProposal.proposal.plan.edits.length > 0 ||
+      attempt.parsedProposal.rejectedEditReasons.length > 0;
+    const extensionOnly = isExtensionOnlyProposal(attempt.validation.changes);
+
+    if (
+      modelTriedToPlan &&
+      (attempt.validation.changes.length === 0 || extensionOnly)
+    ) {
+      try {
+        const repairGeneration = await generateTextWithGemini({
+          prompt: buildSemanticProposalRepairPrompt({
+            originalPrompt: prompt,
+            rejectionReasons: [
+              ...attempt.parsedProposal.issues,
+              ...attempt.validation.result.rejectionReasons,
+              ...(extensionOnly
+                ? [
+                    "The proposal only prepared the day extension. Add concrete itinerary edits for that day as well.",
+                  ]
+                : []),
+            ],
+            previousPlan: attempt.parsedProposal.proposal.plan,
+          }),
+          config,
+          maxAttemptsPerModel: 1,
+          maxRequests: 1,
+        });
+        const repairedAttempt = processAttempt(repairGeneration.text);
+        logProposalAttempt({
+          tripId,
+          phase: "repair",
+          responseMode: "GEMINI_DECIDES",
+          parsed: repairedAttempt.parsedProposal,
+          compiledCount: repairedAttempt.compiled.rawChanges.length,
+          validation: repairedAttempt.validation,
+          generation: repairGeneration as GeminiGenerationMetadata,
+        });
+        if (
+          proposalAttemptScore(repairedAttempt.validation) >
+          proposalAttemptScore(attempt.validation)
+        ) {
+          attempt = repairedAttempt;
+        }
+      } catch (repairError) {
+        console.error("TRIP_CHAT_REPAIR_ERROR", repairError);
+      }
+    }
+
+    const modelMessage = attempt.compiled.modelMessage;
+    const validation = attempt.validation;
+    const assistantContent = buildTruthfulAssistantMessage({
+      modelMessage,
+      validation,
+      context,
+    });
     if (!assistantContent) {
       return {
         ok: false,
@@ -548,19 +511,19 @@ export async function sendTripChatMessageAction(
       };
     }
 
+    const payload = createStoredTripChatPayload(validation);
     const assistantMessage = await prisma.tripChatMessage.create({
       data: {
         tripId,
         userId: session.user.id,
         role: "ASSISTANT",
         content: assistantContent,
-        proposedChangesJson:
-          proposedChanges.length > 0 ? proposedChanges : undefined,
+        proposedChangesJson: payload,
         changeSummary:
-          proposedChanges.length > 0
-            ? proposedChanges.map((change) => change.label).join("\n")
+          validation.changes.length > 0
+            ? validation.changes.map((change) => change.label).join("\n")
             : undefined,
-        status: proposedChanges.length > 0 ? "PENDING" : "NONE",
+        status: validation.changes.length > 0 ? "PENDING" : "NONE",
       },
       select: {
         id: true,
@@ -575,7 +538,6 @@ export async function sendTripChatMessageAction(
 
     revalidatePath("/dashboard/profile");
     revalidatePath("/dashboard/settings");
-
     return {
       ok: true,
       userMessage: toMessageDto(userMessage),
@@ -584,7 +546,6 @@ export async function sendTripChatMessageAction(
     };
   } catch (error) {
     console.error("SEND_TRIP_CHAT_MESSAGE_ERROR", error);
-
     return {
       ok: false,
       error: "Something went wrong while sending your message.",

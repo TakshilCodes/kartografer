@@ -11,27 +11,19 @@ const optionalNotes = z
   .string()
   .trim()
   .refine(
-    (value) =>
-      countNonWhitespaceCharacters(value) <= MAX_SPECIAL_NOTES_LENGTH,
-    `Special notes cannot be more than ${MAX_SPECIAL_NOTES_LENGTH} characters, excluding spaces.`
+    (value) => countNonWhitespaceCharacters(value) <= MAX_SPECIAL_NOTES_LENGTH,
+    `Special notes cannot be more than ${MAX_SPECIAL_NOTES_LENGTH} characters, excluding spaces.`,
   )
   .optional()
   .or(z.literal(""));
 
-const budgetSchema = z.preprocess(
-  (value) => {
-    if (value === "" || value === null || value === undefined) {
-      return undefined;
-    }
+const budgetSchema = z.preprocess((value) => {
+  if (value === "" || value === null || value === undefined) {
+    return undefined;
+  }
 
-    return value;
-  },
-  z.coerce
-    .number()
-    .min(0, "Budget cannot be negative.")
-    .max(5_000_000, "Budget is too high.")
-    .optional()
-);
+  return value;
+}, z.coerce.number().min(0, "Budget cannot be negative.").max(5_000_000, "Budget is too high.").optional());
 
 const placeOptionSchema = z.object({
   provider: z.enum(["MANUAL", "GEOAPIFY", "MAPBOX", "GOOGLE", "NOMINATIM"]),
@@ -40,10 +32,7 @@ const placeOptionSchema = z.object({
 
   name: z.string().trim().min(1, "Place name is required."),
 
-  formattedName: z
-    .string()
-    .trim()
-    .min(1, "Formatted place name is required."),
+  formattedName: z.string().trim().min(1, "Formatted place name is required."),
 
   city: z.string().trim().nullable().optional(),
 
@@ -64,20 +53,17 @@ const placeOptionSchema = z.object({
   lng: z.number().nullable().optional(),
 });
 
-const placeJsonSchema = z.preprocess(
-  (value) => {
-    if (typeof value !== "string" || !value.trim()) {
-      return null;
-    }
+const placeJsonSchema = z.preprocess((value) => {
+  if (typeof value !== "string" || !value.trim()) {
+    return null;
+  }
 
-    try {
-      return JSON.parse(value);
-    } catch {
-      return null;
-    }
-  },
-  placeOptionSchema.nullable()
-);
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}, placeOptionSchema.nullable());
 
 export const createTripSchema = z.object({
   fromPlace: placeJsonSchema.refine((value) => value !== null, {
@@ -92,10 +78,7 @@ export const createTripSchema = z.object({
     .number()
     .int("Number of days must be a whole number.")
     .min(1, "Trip must be at least 1 day.")
-    .max(
-      MAX_TRIP_DAYS,
-      `Trips cannot be more than ${MAX_TRIP_DAYS} days.`
-    ),
+    .max(MAX_TRIP_DAYS, `Trips cannot be more than ${MAX_TRIP_DAYS} days.`),
 
   people: z.coerce
     .number()
@@ -103,7 +86,7 @@ export const createTripSchema = z.object({
     .min(1, "At least 1 person is required.")
     .max(
       MAX_TRIP_PEOPLE,
-      `A trip cannot have more than ${MAX_TRIP_PEOPLE} people.`
+      `A trip cannot have more than ${MAX_TRIP_PEOPLE} people.`,
     ),
 
   budget: budgetSchema,
@@ -130,10 +113,7 @@ export const createTripSchema = z.object({
     .optional()
     .default("Any"),
 
-  pace: z
-    .enum(["Relaxed", "Balanced", "Fast"])
-    .optional()
-    .default("Balanced"),
+  pace: z.enum(["Relaxed", "Balanced", "Fast"]).optional().default("Balanced"),
 
   notes: optionalNotes,
 });

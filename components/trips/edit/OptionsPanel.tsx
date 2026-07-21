@@ -237,8 +237,9 @@ function OptionCard({
   return (
     <div className="relative overflow-visible rounded-2xl border border-border/70 bg-card-secondary/35 p-2.5 transition hover:bg-card">
       <div
-        className={`flex items-start justify-between gap-3 transition ${isPending ? "scale-[0.985] opacity-45 blur-[1px]" : ""
-          }`}
+        className={`flex items-start justify-between gap-3 transition ${
+          isPending ? "scale-[0.985] opacity-45 blur-[1px]" : ""
+        }`}
       >
         <div className="min-w-0">
           <p className="wrap-break-word text-[13px] font-black text-foreground">
@@ -566,7 +567,8 @@ function OptionsPanelContent({
   async function deleteMeal(meal: SelectableMealSuggestion) {
     const confirmed = await confirm({
       title: "Delete meal option?",
-      description: "This meal option will be permanently removed from the trip.",
+      description:
+        "This meal option will be permanently removed from the trip.",
       confirmText: "Delete meal",
       cancelText: "Keep option",
       variant: "danger",
@@ -589,7 +591,8 @@ function OptionsPanelContent({
   async function deleteActivity(activity: SelectableTripActivity) {
     const confirmed = await confirm({
       title: "Delete activity option?",
-      description: "This activity option will be permanently removed from the trip.",
+      description:
+        "This activity option will be permanently removed from the trip.",
       confirmText: "Delete activity",
       cancelText: "Keep option",
       variant: "danger",
@@ -679,10 +682,7 @@ function OptionsPanelContent({
           | "GUEST_HOUSE"
           | "OTHER",
         budgetLevel: values.budgetLevel as
-          | "BUDGET"
-          | "MID_RANGE"
-          | "PREMIUM"
-          | "LUXURY",
+          "BUDGET" | "MID_RANGE" | "PREMIUM" | "LUXURY",
         pricePerNight: values.pricePerNight,
         nights: values.nights,
         totalCost: values.totalCost,
@@ -714,11 +714,7 @@ function OptionsPanelContent({
         mealSuggestionId: editingMeal.id,
         tripDayId: editingMeal.tripDayId,
         mealType: values.mealType as
-          | "BREAKFAST"
-          | "LUNCH"
-          | "DINNER"
-          | "SNACK"
-          | "OTHER",
+          "BREAKFAST" | "LUNCH" | "DINNER" | "SNACK" | "OTHER",
         title: values.title,
         locationName: values.locationName,
         estimatedCost: values.estimatedCost,
@@ -891,8 +887,9 @@ function OptionsPanelContent({
                     >
                       <OptionCard
                         title={option.name}
-                        subtitle={`${option.stayType.replace("_", " ")} - ${option.city ?? getDayLabel(days, option.tripDayId)
-                          }`}
+                        subtitle={`${option.stayType.replace("_", " ")} - ${
+                          option.city ?? getDayLabel(days, option.tripDayId)
+                        }`}
                         price={formatMoney(
                           option.totalCost ?? option.pricePerNight,
                         )}
@@ -965,9 +962,9 @@ function OptionsPanelContent({
                     >
                       <OptionCard
                         title={meal.title}
-                        subtitle={`${meal.mealType.replace("_", " ")} - ${meal.locationName ??
-                          getDayLabel(days, meal.tripDayId)
-                          }`}
+                        subtitle={`${meal.mealType.replace("_", " ")} - ${
+                          meal.locationName ?? getDayLabel(days, meal.tripDayId)
+                        }`}
                         price={formatMoney(meal.estimatedCost)}
                         isPending={isCardPending}
                         pendingAction={pendingAction}
@@ -1038,9 +1035,10 @@ function OptionsPanelContent({
                     >
                       <OptionCard
                         title={activity.title}
-                        subtitle={`${activity.category.replace("_", " ")} - ${activity.locationName ??
+                        subtitle={`${activity.category.replace("_", " ")} - ${
+                          activity.locationName ??
                           getDayLabel(days, activity.tripDayId)
-                          }`}
+                        }`}
                         price={formatMoney(activity.estimatedCost)}
                         isPending={isCardPending}
                         pendingAction={pendingAction}

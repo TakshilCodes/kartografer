@@ -230,17 +230,11 @@ export default async function PublicSharedTripPage({
       costSummary={
         trip.costBreakdown || trip.budgetAmount
           ? {
-              transport: formatTripCurrency(
-                trip.costBreakdown?.transportCost
-              ),
+              transport: formatTripCurrency(trip.costBreakdown?.transportCost),
               stay: formatTripCurrency(trip.costBreakdown?.stayCost),
               food: formatTripCurrency(trip.costBreakdown?.foodCost),
-              activities: formatTripCurrency(
-                trip.costBreakdown?.activityCost
-              ),
-              total: formatTripCurrency(
-                trip.costBreakdown?.totalEstimatedCost
-              ),
+              activities: formatTripCurrency(trip.costBreakdown?.activityCost),
+              total: formatTripCurrency(trip.costBreakdown?.totalEstimatedCost),
               budget: trip.budgetAmount
                 ? formatTripCurrency(trip.budgetAmount)
                 : null,

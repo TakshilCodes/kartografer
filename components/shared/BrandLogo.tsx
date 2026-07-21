@@ -22,7 +22,9 @@ export default function BrandLogo({
   themeAware = false,
 }: BrandLogoProps) {
   const compactVisibility = compactOnSmallScreens ? "sm:hidden" : "";
-  const baseWordmarkVisibility = compactOnSmallScreens ? "hidden sm:block" : "block";
+  const baseWordmarkVisibility = compactOnSmallScreens
+    ? "hidden sm:block"
+    : "block";
   const lightWordmarkVisibility = themeAware
     ? `${baseWordmarkVisibility} dark:hidden`
     : baseWordmarkVisibility;

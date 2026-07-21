@@ -17,17 +17,19 @@ const updateProfileSchema = z.object({
 });
 
 type UpdateProfileResult =
-  | { ok: true; error: null }
-  | { ok: false; error: string };
+  { ok: true; error: null } | { ok: false; error: string };
 
 export async function updateProfileAction(
-  input: unknown
+  input: unknown,
 ): Promise<UpdateProfileResult> {
   try {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return { ok: false, error: "You must be logged in to update your profile." };
+      return {
+        ok: false,
+        error: "You must be logged in to update your profile.",
+      };
     }
 
     const parsed = updateProfileSchema.safeParse(input);
@@ -35,7 +37,8 @@ export async function updateProfileAction(
     if (!parsed.success) {
       return {
         ok: false,
-        error: parsed.error.issues[0]?.message ?? "Invalid profile information.",
+        error:
+          parsed.error.issues[0]?.message ?? "Invalid profile information.",
       };
     }
 
