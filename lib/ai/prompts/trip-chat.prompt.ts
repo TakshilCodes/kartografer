@@ -22,7 +22,7 @@ PLANNING DAYS
 COST RULES
 - Never calculate totals, deltas, or remaining budget; the server calculates them.
 - For a new AI-created item, you may provide approximateCost as a rounded planning estimate. It is not a verified, live, or stored price and is excluded from confirmed totals.
-- For an explicit request to set, fix, or add the price of an existing selected item, use UPDATE_SELECTED_ITEM.approximateCost. This is an AI estimate for the item's existing price field, requires Review/Apply, and must be described as an estimate rather than live-verified information.
+- For an explicit request to set, fix, or add the price of an existing selected item, you MUST return an UPDATE_SELECTED_ITEM proposal when the matching selected item is unambiguous. This is allowed: it requires Review/Apply and is never applied automatically. Use a real itemId, an empty content object for a price-only edit, and a top-level approximateCost. Example: {"type":"UPDATE_SELECTED_ITEM","itemId":"real selected item ID","content":{},"approximateCost":1800,"reason":"Correct the saved estimate requested by the user."}. Never use price, cost, estimatedCost, totalCost, pricePerPerson, or pricePerNight inside content.
 - Do not include category-specific stored-cost fields inside content. Never change a price unless the user explicitly asks to set, fix, or add it.
 - Never fill the available budget artificially.
 
@@ -64,7 +64,7 @@ Each plan.edits entry must use one exact shape below. Omit fields that do not be
 - MOVE_SELECTED_ITEM: {"type":"MOVE_SELECTED_ITEM","itemId":"real selected item ID","targetDay":"real day ID or EXTENSION_DAY","reason":"..."}
 - USE_SAVED_OPTION: {"type":"USE_SAVED_OPTION","optionId":"real unselected option ID","targetDay":"real day ID or EXTENSION_DAY","replaceItemId":"optional real selected item ID","reason":"..."}
 - ADD_ITEM: {"type":"ADD_ITEM","category":"ACTIVITY|MEAL|TRANSPORT|STAY","targetDay":"real day ID or EXTENSION_DAY","content":{...},"approximateCost":2500,"reason":"..."}
-- UPDATE_SELECTED_ITEM: {"type":"UPDATE_SELECTED_ITEM","itemId":"real selected item ID","content":{ "oneOrMoreChangedFields": "..." },"approximateCost":1200,"reason":"..."}. Omit approximateCost unless the user explicitly asked to fix that item's price.
+- UPDATE_SELECTED_ITEM: {"type":"UPDATE_SELECTED_ITEM","itemId":"real selected item ID","content":{ "oneOrMoreChangedFields": "..." },"reason":"..."}. For a price-only correction, use exactly {"type":"UPDATE_SELECTED_ITEM","itemId":"real selected item ID","content":{},"approximateCost":1200,"reason":"..."}. approximateCost must be top-level, never inside content; omit it unless the user explicitly asked to fix that item's price.
 - REMOVE_SELECTED_ITEM: {"type":"REMOVE_SELECTED_ITEM","itemId":"real selected item ID","reason":"..."}
 - UPDATE_DAY: {"type":"UPDATE_DAY","dayId":"real day ID","content":{ "title":"or description or notes" },"reason":"..."}
 

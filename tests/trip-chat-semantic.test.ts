@@ -840,6 +840,66 @@ test("an explicit selected-item price correction compiles into an applyable pric
   );
 });
 
+test("a Gemini price alias inside content still creates a reviewable price proposal", () => {
+  const result = processProposal(
+    JSON.stringify({
+      assistantMessage: "I can correct that saved transport estimate for review.",
+      plan: {
+        extendTrip: null,
+        edits: [
+          {
+            type: "UPDATE_SELECTED_ITEM",
+            itemId: departureId,
+            content: { price: "18" },
+            reason: "Correct the amount entered by mistake.",
+          },
+        ],
+      },
+    }),
+    createContext(),
+  );
+
+  assert.equal(result.parsed.rejectedEditReasons.length, 0);
+  assert.equal(result.validation.result.responseMode, "PROPOSAL");
+  assert.equal(result.validation.result.validChangeCount, 1);
+  const change = result.validation.changes[0];
+  assert.equal(change?.type, "UPDATE_TRANSPORT");
+  if (change?.type === "UPDATE_TRANSPORT") {
+    assert.equal(change.data.totalCost, 18);
+    assert.equal(change.data.costType, "TOTAL");
+  }
+});
+
+test("a price-only update accepts null content when Gemini supplies a top-level price", () => {
+  const result = processProposal(
+    JSON.stringify({
+      assistantMessage: "I can correct that saved transport estimate for review.",
+      plan: {
+        extendTrip: null,
+        edits: [
+          {
+            type: "UPDATE_SELECTED_ITEM",
+            itemId: departureId,
+            content: null,
+            totalCost: "₹1,800",
+            reason: "Correct the amount entered by mistake.",
+          },
+        ],
+      },
+    }),
+    createContext(),
+  );
+
+  assert.equal(result.parsed.rejectedEditReasons.length, 0);
+  assert.equal(result.validation.result.responseMode, "PROPOSAL");
+  assert.equal(result.validation.result.validChangeCount, 1);
+  const change = result.validation.changes[0];
+  assert.equal(change?.type, "UPDATE_TRANSPORT");
+  if (change?.type === "UPDATE_TRANSPORT") {
+    assert.equal(change.data.totalCost, 1800);
+  }
+});
+
 test("an empty semantic plan is a normal Gemini-selected answer, not a proposal failure", () => {
   const result = processProposal(
     JSON.stringify({

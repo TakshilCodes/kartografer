@@ -338,6 +338,69 @@ function parseAssistantMessage(value: unknown) {
     : { value: "", issues: zodIssuePaths("assistantMessage", parsed.error) };
 }
 
+const priceAliasFields = [
+  "price",
+  "cost",
+  "estimatedCost",
+  "totalCost",
+  "pricePerPerson",
+  "pricePerNight",
+] as const;
+
+function isJsonRecord(value: unknown): value is JsonRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseModelPrice(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value !== "string") return undefined;
+
+  const normalized = value
+    .trim()
+    .replace(/^(?:₹|INR|Rs\.?)\s*/i, "")
+    .replace(/\s*(?:₹|INR|Rs\.?)$/i, "")
+    .replace(/,/g, "");
+  if (!/^\d+(?:\.\d+)?$/.test(normalized)) return undefined;
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+// Gemini occasionally puts a price in `content.price` (or sends `content: null`)
+// even though the semantic contract uses a top-level `approximateCost`. This is a
+// model-shape compatibility step only: the existing Zod schema, item grounding,
+// review card, and apply-time validation still decide whether it can be applied.
+function normalizeSemanticEdit(rawEdit: unknown): unknown {
+  if (!isJsonRecord(rawEdit) || rawEdit.type !== "UPDATE_SELECTED_ITEM") {
+    return rawEdit;
+  }
+
+  const edit = { ...rawEdit };
+  const rawContent = edit.content;
+  const content = isJsonRecord(rawContent) ? { ...rawContent } : {};
+  const candidates: unknown[] = [edit.approximateCost, rawContent];
+
+  for (const field of priceAliasFields) {
+    candidates.push(edit[field], content[field]);
+    delete edit[field];
+    delete content[field];
+  }
+  candidates.push(content.approximateCost);
+  delete content.approximateCost;
+
+  const price = candidates
+    .map(parseModelPrice)
+    .find((candidate) => candidate !== undefined);
+  if (price !== undefined) edit.approximateCost = price;
+
+  // An empty content object is valid for a price-only correction. Keep malformed
+  // non-object content unchanged unless a usable price made the intent unambiguous.
+  if (isJsonRecord(edit.content) || price !== undefined) {
+    edit.content = content;
+  }
+
+  return edit;
+}
+
 export function parseTripChatProposalResponse(
   text: string,
 ): ParsedTripChatProposal {
@@ -392,7 +455,9 @@ export function parseTripChatProposalResponse(
     rejectedEditReasons.push(reason);
   } else {
     plan.edits.slice(0, editLimit).forEach((rawEdit, index) => {
-      const parsed = semanticTripEditSchema.safeParse(rawEdit);
+      const parsed = semanticTripEditSchema.safeParse(
+        normalizeSemanticEdit(rawEdit),
+      );
       if (parsed.success) {
         edits.push(parsed.data);
       } else {
@@ -501,5 +566,5 @@ ${previousChoices}`
     : "No previous semantic choice could be safely parsed; choose grounded items from the supplied context."
 }
 
-Return corrected semantic proposal JSON only. Use real IDs from context or EXTENSION_DAY. Do not return database action names, source-day fields, labels, totals, or provenance. Include approximateCost only when the user explicitly asked to set, fix, or add an existing selected item's price.`;
+Return corrected semantic proposal JSON only. Use real IDs from context or EXTENSION_DAY. Do not return database action names, source-day fields, labels, totals, or provenance. For an explicit price correction use UPDATE_SELECTED_ITEM with content: {} and top-level approximateCost; never put a price field inside content.`;
 }

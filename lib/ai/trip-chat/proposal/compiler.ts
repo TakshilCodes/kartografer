@@ -1,4 +1,8 @@
-import { tripAiChangeSchema, type TripAiChange, type TripAiRecommendation } from "@/lib/ai/schemas/trip-ai-change.schema";
+import {
+  tripAiChangeSchema,
+  type TripAiChange,
+  type TripAiRecommendation,
+} from "@/lib/ai/schemas/trip-ai-change.schema";
 import type { TripChatContext } from "../context";
 import {
   EXTENSION_DAY_TARGET,
@@ -33,7 +37,8 @@ type ExtensionCapability =
   | { mode: "ADD_NEW_DAY"; nextDayNumber: number }
   | { mode: "BLOCKED_MAX_DAYS"; maxDays: number };
 type ResolvedDestination =
-  { dayId: string; dayNumber: number } | { dayRef: string; dayNumber: number };
+  | { dayId: string; dayNumber: number }
+  | { dayRef: string; dayNumber: number };
 
 function categorizedItems(context: TripChatContext, selected: boolean) {
   return (["ACTIVITY", "MEAL", "TRANSPORT", "STAY"] as const).flatMap(
@@ -609,4 +614,3 @@ export function compileSemanticTripProposal({
     rejectedEdits,
   };
 }
-
